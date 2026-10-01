@@ -239,7 +239,7 @@ const FICO = { Balcony: 'sun', 'Private pool': 'sun', 'Shared pool': 'sun', Gym:
 function paint() {
   const S = seg ? { o: l.cat, f: { [seg.id]: per } } : null;
   const pt = UPUI.priceText(l, S);
-  const crumbs = [['Home', 'Home.html'], [UP.VERTICALS[l.v].label, 'Search.html?v=' + l.v], [O.label, 'Search.html' + toQuery(blankState(l.v, l.cat))], [areaName(l.loc), 'Search.html' + toQuery({ ...blankState(l.v, l.cat), loc: [l.loc] })]];
+  const crumbs = [['Home', 'index.html'], [UP.VERTICALS[l.v].label, 'Search.html?v=' + l.v], [O.label, 'Search.html' + toQuery(blankState(l.v, l.cat))], [areaName(l.loc), 'Search.html' + toQuery({ ...blankState(l.v, l.cat), loc: [l.loc] })]];
   const similar = UPUI.results(blankState(l.v, l.cat)).filter(x => x.id !== l.id).sort((a, b) => (b.loc === l.loc) - (a.loc === l.loc)).slice(0, 3);
   const imgs = l.img;
   const key = O.meta(A, l, { def: d => O.def(d) });

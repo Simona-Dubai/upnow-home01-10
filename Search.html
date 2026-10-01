@@ -195,7 +195,7 @@ function paint() {
   document.title = title + ' | UpNow';
   document.getElementById('mdesc').content = `${all.length} verified results for ${title.toLowerCase()}. Contact owners and agents directly by phone or WhatsApp on UpNow.`;
 
-  const cr = [['Home', 'Home.html']]; if (S.v !== 'all') cr.push([VERTICALS[S.v].label, 'Search.html?v=' + S.v]); if (O) cr.push([O.label, 'Search.html' + toQuery(blankState(S.v, S.o))]);
+  const cr = [['Home', 'index.html']]; if (S.v !== 'all') cr.push([VERTICALS[S.v].label, 'Search.html?v=' + S.v]); if (O) cr.push([O.label, 'Search.html' + toQuery(blankState(S.v, S.o))]);
   if (S.loc.length === 1) cr.push([areaName(S.loc[0]), null]);
   document.getElementById('crumbs').innerHTML = cr.map(([tx, h], i) => (i ? '<span>/</span>' : '') + (h && i < cr.length - 1 ? `<a href="${h}">${esc(tx)}</a>` : `<span style="color:var(--ink)">${esc(tx)}</span>`)).join('');
   document.getElementById('h1').textContent = title;

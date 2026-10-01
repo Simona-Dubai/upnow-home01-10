@@ -59,7 +59,7 @@
       <div class="msec"><div class="msec-h"><div><h2>${Oo ? 'Top ' + esc(Oo.label.toLowerCase()) : 'Top rated'}</h2><p>Verified providers · ${feat.length}+ results</p></div><button data-go="results">See all</button></div><div class="hscroll">${feat.map(hcard).join('')}</div></div>
       ${fresh.length ? `<div class="msec"><div class="msec-h"><div><h2>New this week</h2><p>Listed in the last 7 days</p></div><button data-go="results" data-sort="new">See all</button></div><div class="hscroll">${fresh.map(hcard).join('')}</div></div>` : ''}
       ${ar.length && !(Oo && Oo.locAll) ? `<div class="msec"><div class="msec-h"><h2>Popular areas</h2></div><div class="areas2">${ar.map((a, i) => `<button data-area="${a.id}"><img src="${areaImg[i % areaImg.length]}" alt=""><span><b>${esc(a.n)}</b><small>${a.c} listings</small></span></button>`).join('')}</div></div>` : ''}
-      <div class="promo"><div style="flex:1"><b>List on UpNow</b><small>Get leads by call & WhatsApp — free.</small></div><a class="btn" href="provider-workspace/index.html">Start</a></div>
+      <div class="promo"><div style="flex:1"><b>List on UpNow</b><small>Get leads by call & WhatsApp — free.</small></div><a class="btn" href="index.html#provider-cta">Learn more</a></div>
       </div>${tbar()}`;
   }
 
@@ -219,7 +219,9 @@
 
   /* move modals/toast into the phone */
   UPUI.closeModal(); UPUI.closeSide();
-  ['.scrim', '.side-s', '#toast'].forEach(q => { const el = document.querySelector(q); if (el) scr.appendChild(el); });
+  if (matchMedia('(max-width: 700px)').matches) {
+    ['.scrim', '.side-s', '#toast'].forEach(q => { const el = document.querySelector(q); if (el) scr.appendChild(el); });
+  }
 
   /* demo jump links */
   document.querySelectorAll('.mside a[data-demo]').forEach(a => a.onclick = () => {
@@ -232,4 +234,10 @@
     if (k === 'provider') { stack = [{ s: 'home' }, { s: 'provider', p: 'Tariq Hassan' }]; ptab = 'list'; return render(true); }
   });
   render(true);
+  window.addEventListener('load', () => {
+    if (location.hash === '#provider-cta' && matchMedia('(max-width: 700px)').matches) {
+      const promo = scr.querySelector('.promo'), content = scr.querySelector('.view');
+      if (promo && content) content.scrollTop = promo.offsetTop;
+    }
+  }, { once: true });
 })();

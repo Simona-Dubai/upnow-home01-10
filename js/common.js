@@ -73,7 +73,33 @@
     ring: '<circle cx="12" cy="15" r="6"/><path d="m9 5 3 4 3-4-3-2z"/>',
     ball: '<circle cx="12" cy="12" r="9"/><path d="m12 7 4 3-1.5 5h-5L8 10zM12 3v4M21 10l-5 0M3 10h5M7 20l2-5M17 20l-2-5"/>',
     tree: '<path d="M12 22v-6M7 16h10l-5-13z"/>',
-    seat: '<path d="M6 20v-4h12v4M6 16V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v9M4 11h2M18 11h2"/>'
+    seat: '<path d="M6 20v-4h12v4M6 16V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v9M4 11h2M18 11h2"/>',
+    townhouse: '<path d="M2 21V10l5-4 5 4M12 21V10l5-4 5 4v11M2 21h20M5 21v-4h4v4M15 21v-4h4v4"/>',
+    penthouse: '<path d="M6 21V9h12v12M4 21h16M8 9V6h8v3M12 6V3M10 13h1M13 13h1M10 17h1M13 17h1"/>',
+    duplex: '<path d="M4 21V9l8-6 8 6v12M4 14h16M3 21h18M10 21v-4h4v4M8 10h2M14 10h2"/>',
+    cup: '<path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM17 10h1.5a2.5 2.5 0 0 1 0 5H17M7 3v2M10.5 3v2M14 3v2"/>',
+    medic: '<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/>',
+    leaf: '<path d="M5 19C5 10 10 5 20 4c-1 10-6 15-15 15zM5 19l8-8"/>',
+    cake: '<path d="M4 21v-7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7M2 21h20M4 16c2 1.5 4 1.5 5.3 0 1.4 1.5 4 1.5 5.4 0 1.3 1.5 3.3 1.5 5.3 0M12 12V7M12 3.5v.5"/>',
+    mic: '<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8"/>',
+    camera: '<path d="M3 8a2 2 0 0 1 2-2h2.5L9 4h6l1.5 2H19a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.5"/>',
+    tennis: '<circle cx="12" cy="12" r="9"/><path d="M6 5.3c3 3 3 10.4 0 13.4M18 5.3c-3 3-3 10.4 0 13.4"/>',
+    bball: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3v18M5.6 5.6c3 3 3 9.8 0 12.8M18.4 5.6c-3 3-3 9.8 0 12.8"/>',
+    shuttle: '<circle cx="7" cy="17" r="3"/><path d="m9.2 14.8 7.8-10.8 3 3-10.8 7.8M12.5 11.5 15 5.5M12.5 11.5l6-2.5"/>',
+    scissors: '<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M8.1 8.1 20 20M8.1 15.9 20 4"/>',
+    razor: '<path d="M4 20l9-9M11 5l8 8-4 4-8-8zM13 7l4 4"/>',
+    palette: '<path d="M12 3a9 9 0 1 0 0 18c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2h2.4A3.6 3.6 0 0 0 21 10.8C21 6.5 17 3 12 3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7.5" r="1"/>',
+    wind: '<path d="M3 8h10a3 3 0 1 0-3-3M3 12h15a3 3 0 1 1-3 3M3 16h7"/>',
+    smile: '<circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9.5h.01M15 9.5h.01"/>',
+    tooth: '<path d="M12 5.5C10.5 4 8.5 3 6.5 3.5 4 4 3 6.5 3.5 9c.4 2 1.3 3.5 1.8 5.5.5 2.3.7 6.5 2.7 6.5 1.8 0 1.8-5 4-5s2.2 5 4 5c2 0 2.2-4.2 2.7-6.5.5-2 1.4-3.5 1.8-5.5.5-2.5-.5-5-3-5.5-2-.5-4 .5-5.5 2z"/>',
+    flask: '<path d="M10 3h4v3h-4zM8.5 6h7l1 3h-9zM7 9h10a1 1 0 0 1 1 1v9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-9a1 1 0 0 1 1-1z"/>',
+    pen: '<path d="m12 19 7-7 3 3-7 7zM18 13l-1.5-7.5L2 2l3.5 14.5L13 18zM2 2l7.6 7.6"/><circle cx="11" cy="11" r="2"/>',
+    vase: '<path d="M9 3h6M10 3v3c-3 1.5-5 4-5 7.5A7.5 7.5 0 0 0 9 20h6a7.5 7.5 0 0 0 4-6.5c0-3.5-2-6-5-7.5V3"/>',
+    pan: '<path d="M3 11h14v2a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5zM17 12h4M8 4v3M11 3v4M14 4v3"/>',
+    wave: '<path d="M2 7c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2M2 13c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2M2 19c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2"/>',
+    book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5zM4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/>',
+    code: '<path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/>',
+    robot: '<rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4M9 4h6M2 14h2M20 14h2M9 13v2M15 13v2"/>'
   };
   function initials(n) { return n.split(/\s+/).map(x => x[0]).slice(0, 2).join('').toUpperCase(); }
   const ico = (n, cls = '') => `<svg class="ico ${cls}" viewBox="0 0 24 24">${P[n] || P.grid4}</svg>`;
@@ -130,7 +156,7 @@
   function header(active) {
     const main = NAV.slice(0, 3), rest = NAV.slice(3), restOn = rest.some(x => x[0] === active);
     return `<header class="hdr"><div class="wrap">
-      <a class="logo" href="${ROOT}Home.html"><b>U</b><span>UpNow</span></a>
+      <a class="logo" href="${ROOT}index.html"><b>U</b><span>UpNow</span></a>
       <nav class="nav">${main.map(([id, l]) => `<a href="${ROOT}Search.html?v=${id}" data-nav="${id}" class="${active === id ? 'on' : ''}">${esc(t(l))}</a>`).join('')}
         <div class="nmore"><button class="${restOn ? 'on' : ''}" type="button">${restOn ? esc(t(rest.find(x => x[0] === active)[1])) : 'More'}${ico('chev')}</button>
           <div class="ndrop">${rest.map(([id, l]) => `<a href="${ROOT}Search.html?v=${id}" data-nav="${id}" class="${active === id ? 'on' : ''}">${ico(VERTICALS[id].icon)}<span><b>${esc(t(l))}</b><small>${esc(VERTICALS[id].blurb)}</small></span></a>`).join('')}</div></div></nav>
@@ -141,7 +167,7 @@
         <button class="ib" data-open="saved" title="${t('Saved')}">${ico('heart')}<em id="hdrFav">0</em></button>
         <button class="ib" data-open="enq" title="${t('Enquiries')}">${ico('msg')}<em id="hdrLead">0</em></button>
         <button class="btn btn-o btn-sm" data-open="signin">${ico('user')}${t('Sign in')}</button>
-        <a class="btn btn-g btn-sm" href="${ROOT}provider-workspace/index.html">${ico('brief')}${t('Become a provider')}</a>
+        <a class="btn btn-g btn-sm" href="${ROOT}index.html#provider-cta">${ico('brief')}${t('Become a provider')}</a>
       </div></div></header>`;
   }
   document.addEventListener('click', e => {
@@ -157,15 +183,15 @@
   function updateHdrCounts() { const f = document.getElementById('hdrFav'), l = document.getElementById('hdrLead'); if (f) { f.textContent = favs.size; f.hidden = !favs.size; } if (l) { l.textContent = leads().length; l.hidden = !leads().length; } }
   function footer() {
     const cats = VERTICALS.spaces.offers;
-    return `<div class="wrap"><section class="cta"><div><div class="cta-k">FOR OWNERS, AGENTS & OPERATORS</div>
+    return `<div class="wrap"><section class="cta" id="provider-cta"><div><div class="cta-k">FOR OWNERS, AGENTS & OPERATORS</div>
       <h2>List your space.<br>Get leads in 42 minutes.</h2><p style="margin:16px 0 22px">Homes, offices, warehouses, plots, holiday homes, venues, courts and yachts — customers reach you directly by call, WhatsApp or request. Manage every lead in the UpNow provider workspace.</p>
-      <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn" style="background:#fff;color:var(--g9)" href="${ROOT}provider-workspace/index.html">${ico('brief')}Become a provider</a><a class="btn" style="border:1.5px solid rgba(255,255,255,.4)" href="${ROOT}provider-workspace/leads.html">See how leads arrive</a></div></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn" style="background:#fff;color:var(--g9)" href="${ROOT}index.html#provider-cta">${ico('brief')}Become a provider</a><a class="btn" style="border:1.5px solid rgba(255,255,255,.4)" href="${ROOT}index.html#provider-cta">See how leads arrive</a></div></div>
       <div class="stats"><div><b>12,000+</b><span>active listings</span></div><div><b>850+</b><span>verified providers</span></div><div><b>42 min</b><span>avg. first reply</span></div><div><b>0 AED</b><span>fees for customers</span></div></div></section></div>
       <footer class="foot"><div class="wrap fgrid">
-        <div><a class="logo" href="${ROOT}Home.html"><b>U</b>UpNow</a><p>Find verified spaces across Dubai and talk to the owner, agent or operator directly. No booking fees, no checkout.</p></div>
+        <div><a class="logo" href="${ROOT}index.html"><b>U</b>UpNow</a><p>Find verified spaces across Dubai and talk to the owner, agent or operator directly. No booking fees, no checkout.</p></div>
         <div><h5>Spaces</h5>${cats.map(o => `<a href="${ROOT}Search.html?v=spaces&o=${o.id}">${esc(o.label)}</a>`).join('')}</div>
         <div><h5>Popular areas</h5>${['dubai-marina', 'downtown', 'business-bay', 'jvc', 'al-quoz', 'palm-jumeirah', 'dip'].map(a => `<a href="${ROOT}Search.html?v=spaces&o=${['al-quoz', 'dip'].includes(a) ? 'industrial' : 'residential'}&loc=${a}">${esc(areaName(a))}</a>`).join('')}</div>
-        <div><h5>UpNow</h5><a href="#">About</a><a href="#">Help centre</a><a href="#">Report a listing</a><a href="${ROOT}provider-workspace/index.html">Provider workspace</a><a href="#">Terms</a><a href="#">Privacy</a></div>
+        <div><h5>UpNow</h5><a href="#">About</a><a href="#">Help centre</a><a href="#">Report a listing</a><a href="${ROOT}index.html#provider-cta">Provider information</a><a href="#">Terms</a><a href="#">Privacy</a></div>
       </div><div class="wrap fbot"><span>© 2026 UpNow Technologies FZ-LLC · Dubai, UAE</span><span>Listings show DLD, DTCM or trade-licence numbers where applicable. UpNow never takes payments from customers.</span></div></footer>`;
   }
 
@@ -391,7 +417,7 @@
       <div class="fld"><label>Mobile number</label><input value="+971 " inputmode="tel"></div>
       <button class="btn btn-g" style="width:100%;height:46px" onclick="UPUI.closeModal();UPUI.toast('We sent a code by WhatsApp')">${ico('wa')}Continue with WhatsApp code</button>
       <div class="or"><span>or</span></div><button class="btn btn-o" style="width:100%" onclick="UPUI.closeModal();UPUI.toast('Signed in')">Continue with UAE PASS</button>
-      <p class="fine">Listing a space? <a class="lnk" href="${ROOT}provider-workspace/index.html">Become a provider</a></p></div>`);
+      <p class="fine">Listing a space? <a class="lnk" href="${ROOT}index.html#provider-cta">Become a provider</a></p></div>`);
   }
 
   document.addEventListener('click', e => {

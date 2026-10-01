@@ -80,7 +80,7 @@
   const offers = [
     { id: 'residential', label: 'Residential', icon: 'home', h1: 'Residential properties for rent', short: 'Homes', basis: 'AED / year or month',
       hero: ['Find a home', 'you can trust.'], sub: 'Apartments, villas, townhouses and penthouses from DLD-permitted landlords and agents. Call, WhatsApp or request a viewing.',
-      img: im(['apt1', 'apt2', 'apt3', 'apt4', 'loft1', 'villa1', 'villa3']), n: 20, people: 1, lease: 1, permit: 'DLD permit',
+      img: im(['apt2', 'apt3', 'villa1', 'hero']), n: 20, people: 1, lease: 1, permit: 'DLD permit',
       action: 'Request a viewing', flow: ['Enquiry', 'Viewing', 'Offer & cheques', 'Ejari & contract', 'Move-in'], org: ['Greenstone Properties', 'Skyline Realty', 'Harbour & Co.', 'Private owner'],
       fields: ['loc', 'ptype', 'beds', 'price'], defaults: { term: 'yearly' },
       defs: [
@@ -109,7 +109,7 @@
 
     { id: 'commercial', label: 'Commercial', icon: 'building', h1: 'Commercial properties for rent', short: 'Offices & retail', basis: 'AED / year · per sqft',
       hero: ['Space to', 'grow your business.'], sub: 'Offices, retail, showrooms, clinics and co-working in mainland and free zones. Compare size, fit-out and price per sqft.',
-      img: im(['office1', 'office2', 'office3', 'office4', 'office5', 'lobby1', 'retail1']), n: 14, people: 1, lease: 1, permit: 'DLD permit', perSqft: 1,
+      img: im(['office1', 'office2', 'office3']), n: 14, people: 1, lease: 1, permit: 'DLD permit', perSqft: 1,
       action: 'Request a viewing', flow: ['Enquiry', 'Site visit', 'Heads of terms', 'Lease & Ejari', 'Fit-out & handover'], org: ['Greenstone Properties', 'Cavendish Commercial', 'Core Savills', 'Private landlord'],
       fields: ['loc', 'ctype', 'size', 'price'],
       defs: [
@@ -135,7 +135,7 @@
 
     { id: 'industrial', label: 'Industrial', icon: 'factory', h1: 'Warehouses & industrial for rent', short: 'Warehouses', basis: 'AED / year · per sqft',
       hero: ['Warehouses that', 'work as hard as you.'], sub: 'Warehouses, factories, workshops, cold storage and staff accommodation in Al Quoz, DIP, JAFZA and DIC. Filter by power, height and loading.',
-      img: im(['wh2', 'wh3', 'wh4', 'wh1', 'workshop2']), n: 11, people: 1, lease: 1, permit: 'DLD permit', perSqft: 1, locs: IND,
+      img: im(['wh3', 'workshop2', 'workshop1']), n: 11, people: 1, lease: 1, permit: 'DLD permit', perSqft: 1, locs: IND,
       action: 'Request a site visit', flow: ['Enquiry', 'Site visit', 'Offer', 'Lease & Ejari', 'Handover'], org: ['Greenstone Properties', 'Gulf Industrial Realty', 'JAFZA Leasing', 'Private landlord'],
       fields: ['loc', 'itype', 'size', 'price'],
       defs: [
@@ -181,7 +181,7 @@
 
     { id: 'mixed', label: 'Mixed-use', icon: 'layers', h1: 'Mixed-use buildings for lease', short: 'Buildings', basis: 'AED / year',
       hero: ['Whole buildings,', 'one conversation.'], sub: 'Residential-over-retail, office-and-retail and full buildings for bulk or master lease. See units, floors, occupancy and income details.',
-      img: im(['apt4', 'lobby1', 'retail1', 'office4']), n: 7, people: 1, lease: 1, permit: 'DLD permit',
+      img: im(['office3', 'apt3', 'aerial2']), n: 7, people: 1, lease: 1, permit: 'DLD permit',
       action: 'Request a viewing', flow: ['Enquiry', 'Site visit', 'Offer', 'Master lease & Ejari', 'Handover'], org: ['Greenstone Properties', 'Asteco Commercial', 'Private owner'],
       fields: ['loc', 'mtype', 'units', 'price'],
       defs: [
@@ -204,7 +204,7 @@
 
     { id: 'holiday', label: 'Holiday homes', icon: 'sun', h1: 'Holiday homes', short: 'Short stays', basis: 'AED / night',
       hero: ['Stay like', 'you live here.'], sub: 'DTCM-licensed holiday homes by the night. Ask the host about dates, early check-in or long stays — then pay the host directly.',
-      img: im(['hotel1', 'hotel2', 'villa1', 'apt2', 'villa3']), n: 12, permit: 'DTCM permit',
+      img: im(['hotel1', 'villa1', 'apt2']), n: 12, permit: 'DTCM permit',
       action: 'Check availability', flow: ['Enquiry', 'Host confirms dates', 'Pay host directly', 'Check-in', 'Review'], org: ['Silkhaus', 'Frank Porter', 'Greenstone Stays', 'Private host'], people: 1,
       fields: ['loc', 'checkin', 'checkout', 'guests'], locLabel: 'Destination',
       defs: [
@@ -228,7 +228,7 @@
 
     { id: 'venue', label: 'Venues', icon: 'party', h1: 'Event venues', short: 'Events', basis: 'AED / hour or day',
       hero: ['A venue for', 'every occasion.'], sub: 'Ballrooms, rooftops, meeting rooms, gardens and studios. Share your date and guest count and get a quote from the venue team.',
-      img: im(['venue1', 'venue2', 'office1', 'lobby1']), n: 10, permit: 'Trade licence',
+      img: im(['venue2', 'office1', 'hotel1']), n: 10, permit: 'Trade licence',
       action: 'Request a quote', flow: ['Enquiry', 'Quote', 'Site visit', 'Deposit to venue', 'Event day'], org: ['Venue team'], names: ['The Grand Ballroom', 'Skyline Rooftop', 'Marina Terrace', 'The Loft Studio', 'Palm Garden Lawn', 'Boardroom 21', 'Sunset Deck', 'Atelier Hall'],
       fields: ['loc', 'eventType', 'date', 'guests'],
       defs: [
@@ -272,7 +272,7 @@
 
     { id: 'yacht', label: 'Yachts', icon: 'boat', h1: 'Yacht charters', short: 'Charters', basis: 'AED / hour or day',
       hero: ['Out on the water', 'by this afternoon.'], sub: 'Crewed yacht and catamaran charters from licensed operators in Dubai Marina, Dubai Harbour and the Palm.',
-      img: im(['yacht1', 'yacht2']), n: 10, locs: MARINAS, locLabel: 'Marina', permit: 'Maritime licence',
+      img: im(['yacht2']), n: 10, locs: MARINAS, locLabel: 'Marina', permit: 'Maritime licence',
       action: 'Check availability', flow: ['Enquiry', 'Deposit to operator', 'Guest list', 'Trip', 'Settlement'], org: ['Charter operator'], names: ['Xclusive Yachts', 'Marina Charters', 'Blue Lagoon Yachting', 'Seven Seas'],
       fields: ['loc', 'date', 'duration', 'guests'],
       defs: [
