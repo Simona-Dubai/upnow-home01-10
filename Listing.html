@@ -25,6 +25,9 @@ body{background:#fff}
 .keyrow div{min-width:0;padding:14px 16px;border-right:1px solid var(--line)}.keyrow div:last-child{border:0}
 .keyrow small{display:block;color:var(--ink3);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
 .keyrow b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.keyrow .price{background:var(--g1)}
+.keyrow .price small{color:var(--g7)}
+.keyrow .price b{font-size:17px;font-weight:800;color:var(--g8)}
 .sec{margin-top:36px;padding-top:32px;border-top:1px solid var(--line)}
 .sec h2{font-size:20px;letter-spacing:-.01em;margin-bottom:14px;display:flex;align-items:center;gap:10px}
 .sec h2 .st{font-size:11px;font-weight:800;padding:3px 8px;border-radius:99px;background:var(--g1);color:var(--g8)}
@@ -253,7 +256,7 @@ function paint() {
       <div class="ov l">${A.tour ? `<span>${ico('video')}Video tour</span>` : ''}${l.featured ? `<span>${ico('star')}Featured</span>` : ''}</div>
       ${imgs.length ? `<div class="ov r"><button data-lb="0">${ico('grid4')}Show all ${imgs.length} photos</button></div>` : ''}</div>
   <div class="lay"><div>
-    <div class="keyrow">${key.slice(0, 4).map(([i, tx]) => `<div><small>${esc(tx.replace(/[\d,.+]+\s*/, '').trim() || O.label)}</small><b>${esc((tx.match(/[\d,.+]+/) || [tx])[0])}</b></div>`).join('')}<div><small>Price</small><b>${esc(UP.K(UPUI.priceOf(l, S)))}${esc(pt.u)}</b></div></div>
+    <div class="keyrow">${key.slice(0, 4).map(([i, tx]) => `<div><small>${esc(tx.replace(/[\d,.+]+\s*/, '').trim() || O.label)}</small><b>${esc((tx.match(/[\d,.+]+/) || [tx])[0])}</b></div>`).join('')}<div class="price"><small>Price</small><b>${esc(UP.K(UPUI.priceOf(l, S)))}${esc(pt.u)}</b></div></div>
     <section class="sec" style="border:0;padding-top:0"><h2>About this ${esc(O.label.toLowerCase().replace(/s$/, '').replace('holiday home', 'home'))}</h2><p class="about">${esc(ABOUT[l.cat] ? ABOUT[l.cat]() : `${l.title} — offered by ${l.provider.name} (${l.provider.org}) ${O.locAll ? 'across the UAE' : 'in ' + areaName(l.loc) + ', Dubai'}. Priced ${O.basis.toLowerCase()}. Call, WhatsApp or email — ref ${l.ref}.`)}</p></section>
     ${DMB.secs.map(([h, body]) => `<section class="sec" data-screen-label="${esc(h)}"><h2>${esc(h)}</h2>${body}</section>`).join('')}
     <section class="sec"><h2>${SP ? 'Property information' : 'Details'}</h2><div class="info">${info.map(([k, v]) => `<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div></section>
@@ -272,7 +275,6 @@ function paint() {
     ${similar.length ? `<section class="sec"><h2>Similar ${esc(O.h1.toLowerCase().replace(' for rent', '').replace(' for lease', ''))} nearby</h2><div class="row">${similar.map(x => UPUI.card(x)).join('')}</div></section>` : ''}
   </div>
   <aside class="side">
-    <div class="bk" data-screen-label="Booking widget">${DMB.bk()}</div>
     ${DM.agentCard(l)}
     <div class="safety"><b>${ico('shield')}Deal safely</b>${LEASE ? 'Never transfer a deposit or cheques before viewing and checking the permit on Dubai REST.' : 'Confirm details with the provider before paying any deposit.'} UpNow never takes payments.<br><a href="#" onclick="UPUI.toast('Thanks — our team will review this listing');return false">${ico('flag')}Report this listing</a></div>
   </aside></div>`;
