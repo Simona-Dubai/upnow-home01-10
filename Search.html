@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Search | UpNow Spaces</title>
+<meta name="description" id="mdesc" content="">
+<link rel="stylesheet" href="css/styles.css"><link rel="stylesheet" href="css/search.css"><link rel="stylesheet" href="css/results.css">
+<style>
+.gridres{grid-template-columns:repeat(4,1fr);gap:28px 20px}
+.layout.map .gridres{grid-template-columns:repeat(2,1fr)}
+.layout.list-v{grid-template-columns:1fr 300px}
+.card .acts{display:flex;gap:6px;padding:0 14px 14px}.card .acts .btn{flex:1;height:34px;font-size:12.5px}
+.lcard .spec{display:flex;color:var(--ink2);font-size:13px;font-weight:600}.lcard .spec span+span::before{content:'·';margin:0 8px;color:var(--ink3)}
+.qtype{display:flex;gap:8px;flex-wrap:wrap;padding:14px 0 2px}
+.qtype a{flex:none;white-space:nowrap;height:34px;padding:0 13px;border-radius:99px;border:1px solid var(--line2);background:#fff;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:6px}
+.qtype a.on{background:var(--g8);color:#fff;border-color:var(--g8)}
+.qtype a em{font-style:normal;font-weight:600;font-size:12px;color:var(--ink3)}.qtype a.on em{color:#bfe2cf}
+.permitnote{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--ink3);margin-top:6px}.permitnote .ico{width:14px;height:14px;color:var(--g6)}
+@media (max-width:1200px){.gridres{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:800px){.gridres{grid-template-columns:repeat(2,1fr)}.layout,.layout.map{grid-template-columns:1fr}}
+</style>
+</head>
+<body style="font-family: &quot;Plus Jakarta Sans&quot;; font-size: 14px">
+<div id="hdr"></div>
+<div class="sticky-s" data-screen-label="Search bar"><div class="wrap">
+  <div id="sb"></div>
+  <div class="frow" id="frow"></div>
+</div></div>
+<main class="wrap" data-screen-label="Results">
+  <nav class="crumbs" id="crumbs" aria-label="Breadcrumb"></nav>
+  <div class="res-h">
+    <div><h1 id="h1"></h1><div class="cnt" id="cnt"></div></div>
+    <div class="ctrls"><select class="sortsel" id="sort" aria-label="Sort"></select><div class="viewsw" id="viewsw"></div></div>
+  </div>
+  <div class="qtype skip-scroll" id="qtype"></div>
+  <div class="active" id="active"></div>
+  <div class="layout" id="layout"><div id="res"></div><aside id="aside"></aside></div>
+  <div class="seo" id="seo"></div>
+</main>
+<div id="ftr"></div>
+<div class="drawer-s" id="dscrim"></div>
+<aside class="drawer" id="drawer" aria-label="All filters"></aside>
+
+<script src="js/data.js"></script><script src="js/common.js"></script><script src="js/filters-ui.js"></script>
+<script>
+const { VERTICALS, LISTINGS, AREAS, areaById, areaName, offerOf } = UP;
+const { ico, esc, results, toQuery, parseState, valueLabel, facetCount, offer, blankState, empty, t, money } = UPUI;
+const { controlHTML } = UPF;
+const PER = 16;
+let S = parseState(); if (S.view === 'list') S.view = 'grid';
+let pillOpen = null, hlId = null;
+
+document.getElementById('hdr').innerHTML = UPUI.header(S.v);
+document.getElementById('ftr').innerHTML = UPUI.footer();
+UPUI.bindHeader();
+const bar = UPF.SearchBar(document.getElementById('sb'), S, { mode: 'bar', onChange: () => update(), onSubmit: () => update() });
+
+function update(push = true) {
+  const q = toQuery(S);
+  if (push && q !== location.search) history.pushState(null, '', q);
+  document.querySelectorAll('.hdr .nav a').forEach(a => a.classList.toggle('on', a.dataset.nav === S.v));
+  paint();
+}
+window.addEventListener('popstate', () => { const n = parseState(); Object.keys(S).forEach(k => delete S[k]); Object.assign(S, n); bar.render(); paint(); });
+
+const typeDef = O => O && O.defs.find(d => ['ptype', 'ctype', 'itype', 'landuse', 'mtype', 'sport', 'venueType', 'ytype'].includes(d.id));
+function seoTitle() {
+  const O = offer(S), td = O && typeDef(O);
+  let noun = O ? O.h1 : 'Everything on UpNow';
+  const tv = td && S.f[td.id]; const tl = tv && [].concat(tv).length === 1 ? valueLabel(td, tv) : null;
+  if (tl) noun = tl + (O.lease ? (O.id === 'land' ? ' plots for lease' : 's for rent') : 's');
+  const bd = S.f.beds; if (O && O.id === 'residential' && bd && bd.length === 1) noun = (bd[0] === '0' ? 'Studio ' : bd[0] + '-bedroom ') + (tl ? tl.toLowerCase() + 's for rent' : 'properties for rent');
+  const where = S.loc.length ? S.loc.map(areaName).slice(0, 2).join(' & ') + (S.loc.length > 2 ? ' +' + (S.loc.length - 2) : '') : 'Dubai';
+  return (S.q ? '“' + S.q + '” — ' : '') + noun.charAt(0).toUpperCase() + noun.slice(1) + ' in ' + where;
+}
+
+/* optional-filter pill row */
+function paintFilterRow() {
+  const O = offer(S);
+  if (!O) { document.getElementById('frow').innerHTML = ''; return; }
+  const opt = O.optional.filter(d => !d.required).slice(0, 6);
+  const act = O.defs.filter(d => !empty(S.f[d.id]) && !d.required).length;
+  const k = toQuery({ ...S, page: 1, sort: 'rec', view: 'grid' });
+  const saved = JSON.parse(localStorage.getItem('upnow.alerts') || '[]').includes(k);
+  const seg = O.defs.find(d => d.type === 'seg');
+  document.getElementById('frow').innerHTML = `
+    ${seg ? controlHTML(seg, S) + '<span class="sep"></span>' : ''}
+    ${opt.map(d => {
+      const val = S.f[d.id]; const lab = valueLabel(d, val); const set = !!lab;
+      if (d.type === 'toggle') return `<div class="fpill"><button class="${set ? 'set' : ''}" data-tg="${d.id}">${val ? ico('check') : ''}${esc(d.label)}</button></div>`;
+      return `<div class="fpill"><button class="${set ? 'set' : ''}" data-pill="${d.id}">${esc(set ? d.label + ': ' + lab : d.label)}${ico('chev')}</button>
+        ${pillOpen === d.id ? `<div class="pop"><div class="pop-h">${esc(d.label)}${set ? `<button class="lnk" data-clr="${d.id}">Clear</button>` : ''}</div>${controlHTML(d, S)}<div class="pop-f"><button class="btn btn-g btn-sm" data-closepill>Show ${results(S).length} results</button></div></div>` : ''}</div>`;
+    }).join('')}
+    <button class="chip" data-drawer>${ico('sliders')}${t('All filters')}${act ? ` <span class="c" style="background:var(--g7);color:#fff;border-radius:99px;padding:0 6px">${act}</span>` : ''}</button>
+    <div class="sp"></div>
+    <button class="save-s ${saved ? 'on' : ''}" id="saveS">${ico('bell')}${saved ? 'Alert on' : t('Save search')}</button>`;
+}
+const frow = document.getElementById('frow');
+frow.addEventListener('click', e => {
+  const tt = e.target;
+  if (tt.closest('[data-drawer]')) { pillOpen = null; openDrawer(); return; }
+  const tg = tt.closest('[data-tg]'); if (tg) { const d = offer(S).def(tg.dataset.tg); UPF.setVal(S, d, S.f[d.id] ? null : true); bar.render(); update(); return; }
+  const p = tt.closest('[data-pill]'); if (p) { pillOpen = pillOpen === p.dataset.pill ? null : p.dataset.pill; paintFilterRow(); return; }
+  const c = tt.closest('[data-clr]'); if (c) { delete S.f[c.dataset.clr]; bar.render(); update(); return; }
+  if (tt.closest('[data-closepill]')) { pillOpen = null; paintFilterRow(); return; }
+  const ctl = tt.closest('[data-ctl]'); if (ctl && ctl.tagName !== 'INPUT') { if (UPF.handleControl(ctl, S)) { bar.render(); update(); } return; }
+  if (tt.closest('#saveS')) { const k = toQuery({ ...S, page: 1, sort: 'rec', view: 'grid' }); let a = JSON.parse(localStorage.getItem('upnow.alerts') || '[]'); const on = a.includes(k); a = on ? a.filter(x => x !== k) : [...a, k]; localStorage.setItem('upnow.alerts', JSON.stringify(a)); UPUI.toast(on ? 'Search alert removed' : 'Saved — we\'ll WhatsApp you new matches'); paintFilterRow(); }
+});
+frow.addEventListener('change', e => { const c = e.target.closest('[data-ctl]'); if (c && UPF.handleControl(c, S)) { bar.render(); update(); } });
+document.addEventListener('mousedown', e => { if (pillOpen && !e.target.closest('.fpill')) { pillOpen = null; paintFilterRow(); } });
+
+/* all-filters drawer */
+const drawer = document.getElementById('drawer'), dscrim = document.getElementById('dscrim');
+function openDrawer() { paintDrawer(); drawer.classList.add('on'); dscrim.classList.add('on'); }
+function closeDrawer() { drawer.classList.remove('on'); dscrim.classList.remove('on'); }
+dscrim.onclick = closeDrawer;
+function paintDrawer() {
+  const O = offer(S); if (!O) return; const n = results(S).length;
+  const sc = drawer.querySelector('.db') ? drawer.querySelector('.db').scrollTop : 0;
+  const sec = (title, defs) => defs.length ? `<div class="dgrp">${title}</div>` + defs.map(d => `<div class="fs">${d.type === 'toggle' ? '' : `<h5>${esc(d.label)}${!empty(S.f[d.id]) && !d.required ? `<button class="lnk" data-dclr="${d.id}">Clear</button>` : ''}</h5>`}${controlHTML(d, S)}</div>`).join('') : '';
+  const locs = AREAS.map(a => ({ a, c: LISTINGS.filter(l => l.v === S.v && l.cat === O.id && (l.loc === a.id || (l.coverage || []).includes(a.id))).length })).filter(x => x.c);
+  drawer.innerHTML = `<div class="dh"><div style="flex:1"><h3>${esc(O.label)} filters</h3><div style="color:var(--ink3);font-size:12.5px;margin-top:2px">Priced ${esc(O.basis)}</div></div><button class="x" data-dclose>${ico('x')}</button></div>
+    <div class="db">
+      ${O.locAll ? '' : `<div class="fs"><h5>${esc(O.locLabel || 'Location')}</h5><div class="opts">${locs.map(({ a, c }) => `<button class="chip ${S.loc.includes(a.id) ? 'on' : ''}" data-dloc="${a.id}">${esc(a.n)} <span class="c">${c}</span></button>`).join('')}</div></div>`}
+      ${sec('Main', O.fields.filter(f => f !== 'loc').map(f => O.def(f)).filter(Boolean))}
+      ${sec('More filters', O.optional)}
+    </div>
+    <div class="df"><button class="btn btn-ghost" data-dreset>Reset all</button><button class="btn btn-g" data-dclose>Show ${n} ${n === 1 ? 'result' : 'results'}</button></div>`;
+  const db = drawer.querySelector('.db'); if (db) db.scrollTop = sc;
+}
+drawer.addEventListener('click', e => {
+  const tt = e.target;
+  if (tt.closest('[data-dclose]')) { closeDrawer(); return; }
+  if (tt.closest('[data-dreset]')) { const B = blankState(S.v, S.o); S.f = B.f; S.loc = []; S.q = ''; bar.render(); update(); paintDrawer(); return; }
+  const dl = tt.closest('[data-dloc]'); if (dl) { const id = dl.dataset.dloc; S.loc = S.loc.includes(id) ? S.loc.filter(x => x !== id) : [...S.loc, id]; S.page = 1; bar.render(); update(); paintDrawer(); return; }
+  const dc = tt.closest('[data-dclr]'); if (dc) { delete S.f[dc.dataset.dclr]; bar.render(); update(); paintDrawer(); return; }
+  const ctl = tt.closest('[data-ctl]'); if (ctl && ctl.tagName !== 'INPUT') { if (UPF.handleControl(ctl, S)) { bar.render(); update(); paintDrawer(); } }
+});
+drawer.addEventListener('change', e => { const c = e.target.closest('[data-ctl]'); if (c && UPF.handleControl(c, S)) { bar.render(); update(); paintDrawer(); } });
+
+/* list card (list view) */
+function lcard(l) {
+  const O = offerOf(l.v, l.cat), pt = UPUI.priceText(l, S);
+  return `<article class="lcard ${hlId === l.id ? 'hl' : ''}" data-id="${l.id}">
+    <a class="ph" href="Listing.html?id=${l.id}" data-ph="0">${UPUI.photo(l, 0)}${UPUI.badges(l)}
+      ${l.img.length > 1 ? `<button class="nav-b l" data-slide="-1">${ico('chevL')}</button><button class="nav-b r" data-slide="1">${ico('chevR')}</button><div class="dots">${l.img.map((_, i) => `<i class="${i === 0 ? 'on' : ''}"></i>`).join('')}</div>` : ''}</a>
+    <div class="bd">
+      <div class="top"><div><div class="type">${esc(O.label)}${S.v === 'all' ? ' · ' + VERTICALS[l.v].label : ''}</div><div class="pr">${pt.n}<span> ${pt.u}</span></div></div><button class="fav ${UPUI.favs.has(l.id) ? 'on' : ''}" data-fav="${l.id}" aria-label="Save">${ico('heart')}</button></div>
+      <a class="t" href="Listing.html?id=${l.id}">${esc(l.title)}</a>
+      <div class="loc">${ico('pin')}${esc(UPUI.locText(l))}, Dubai</div>
+      <div class="spec">${UPUI.specOf(l).map(s => `<span>${esc(s)}</span>`).join('')}</div>
+      <div class="foot2"><div class="prov"><i>${esc(UPUI.initials(l.provider.name))}</i><div><b>${esc(l.provider.name)}</b>${esc(l.provider.org)} · replies ~${l.provider.reply} min</div></div>
+        <button class="btn btn-o btn-sm" data-call="${l.id}">${ico('phone')}<span>${t('Call')}</span></button>
+        <button class="btn btn-wa btn-sm" data-wa="${l.id}">${ico('wa')}<span>${t('WhatsApp')}</span></button></div>
+    </div></article>`;
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-slide]'); if (!b) return;
+  e.preventDefault(); e.stopPropagation();
+  const ph = b.closest('.ph'), l = UPUI.byId(b.closest('[data-id]').dataset.id);
+  const i = (+ph.dataset.ph + +b.dataset.slide + l.img.length) % l.img.length; ph.dataset.ph = i;
+  ph.querySelector('img').src = l.img[i]; ph.querySelectorAll('.dots i').forEach((d, k) => d.classList.toggle('on', k === i));
+});
+
+/* map */
+function mapHTML(list) {
+  const byArea = {}; list.forEach(l => { (byArea[l.loc] = byArea[l.loc] || []).push(l); });
+  const pp = l => { const n = UPUI.priceOf(l, S); return n >= 1000 ? UP.K(n) : n; };
+  return `<div class="mapbox"><svg class="base" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <path d="M0 0 L100 0 L100 8 C 80 10, 60 14, 40 22 C 25 28, 10 40, 0 48 Z" fill="#cfe3ea"/>
+      ${[20, 40, 60, 80].map(x => `<line x1="${x}" y1="0" x2="${x - 10}" y2="100" stroke="#fff" stroke-width=".6"/>`).join('')}
+      ${[30, 55, 78].map(y => `<line x1="0" y1="${y + 10}" x2="100" y2="${y - 6}" stroke="#fff" stroke-width=".9"/>`).join('')}
+      <path d="M5 70 C 30 60, 60 44, 100 30" stroke="#f4dca8" stroke-width="1.2" fill="none"/></svg>
+    ${AREAS.map(a => `<div class="maplbl" style="left:${a.x}%;top:${a.y}%">${esc(a.n)}</div>`).join('')}
+    ${Object.entries(byArea).map(([loc, ls]) => { const a = areaById[loc]; return ls.slice(0, 3).map((l, i) => `<div class="pin ${hlId === l.id ? 'hl' : ''}" data-pin="${l.id}" style="left:${a.x + (i - (Math.min(ls.length, 3) - 1) / 2) * 6}%;top:${a.y - i % 2 * 2}%">${pp(l)}</div>`).join('') + (ls.length > 3 ? `<div class="pin" style="left:${a.x}%;top:${a.y + 6}%"><small>+${ls.length - 3}</small></div>` : ''); }).join('')}
+    <div class="map-note">${list.length} results · ${UPUI.prefs.cur} · illustrative map</div></div>`;
+}
+
+function asideHTML() {
+  const O = offer(S);
+  if (!O) return '';
+  const pool = LISTINGS.filter(l => l.v === S.v && l.cat === S.o);
+  const areas = AREAS.map(a => ({ a, c: pool.filter(l => l.loc === a.id).length })).filter(x => x.c).sort((x, y) => y.c - x.c).slice(0, 7);
+  return `<div class="side">
+    <div class="box steps"><h4>How ${esc(O.label.toLowerCase())} enquiries work</h4><ol>${O.flow.map((f, i) => `<li><i>${i + 1}</i>${esc(f)}</li>`).join('')}</ol><p>Call, WhatsApp or email — it reaches the provider instantly as a lead. No booking or payment on UpNow.</p></div>
+    <div class="box"><h4>Popular areas</h4>${areas.map(x => `<a class="lk" href="Search.html${toQuery({ ...S, loc: [x.a.id], page: 1 })}">${esc(x.a.n)}<em>${x.c}</em></a>`).join('')}</div>
+    <div class="box" style="background:var(--g1);border-color:var(--g2)"><h4>Can't find it?</h4><p style="margin:0 0 12px;color:var(--ink2);font-size:13px">Tell our team what you need — we'll shortlist matching ${esc(O.label.toLowerCase())} and send them on WhatsApp.</p><a class="btn btn-wa btn-sm" style="width:100%" href="https://wa.me/97140000000?text=${encodeURIComponent('Hi UpNow, I\'m looking for: ' + seoTitle())}" target="_blank">${ico('wa')}Chat with UpNow</a></div>
+  </div>`;
+}
+
+function paint() {
+  const O = offer(S);
+  const all = results(S);
+  const pages = Math.max(1, Math.ceil(all.length / PER)); if (S.page > pages) S.page = pages;
+  const list = all.slice((S.page - 1) * PER, S.page * PER);
+  const title = seoTitle();
+  document.title = title + ' | UpNow';
+  document.getElementById('mdesc').content = `${all.length} verified results for ${title.toLowerCase()}. Contact owners and agents directly by phone or WhatsApp on UpNow.`;
+
+  const cr = [['Home', 'Home.html']]; if (S.v !== 'all') cr.push([VERTICALS[S.v].label, 'Search.html?v=' + S.v]); if (O) cr.push([O.label, 'Search.html' + toQuery(blankState(S.v, S.o))]);
+  if (S.loc.length === 1) cr.push([areaName(S.loc[0]), null]);
+  document.getElementById('crumbs').innerHTML = cr.map(([tx, h], i) => (i ? '<span>/</span>' : '') + (h && i < cr.length - 1 ? `<a href="${h}">${esc(tx)}</a>` : `<span style="color:var(--ink)">${esc(tx)}</span>`)).join('');
+  document.getElementById('h1').textContent = title;
+  document.getElementById('cnt').innerHTML = `<b>${all.length}</b> ${t('results')}${O ? ' · priced ' + esc(O.basis) : ''}${all.length ? ` · showing ${(S.page - 1) * PER + 1}–${Math.min(S.page * PER, all.length)}` : ''}`;
+
+  const sortEl = document.getElementById('sort');
+  sortEl.innerHTML = UPUI.SORTS.map(([k, l]) => `<option value="${k}" ${S.sort === k ? 'selected' : ''}>Sort: ${l}</option>`).join('');
+  sortEl.onchange = () => { S.sort = sortEl.value; S.page = 1; update(); };
+  document.getElementById('viewsw').innerHTML = [['grid', 'grid4', t('Grid')], ['map', 'map', t('Map')]].map(([k, i, l]) => `<button class="${S.view === k ? 'on' : ''}" data-view="${k}">${ico(i)}${l}</button>`).join('');
+
+  const td = typeDef(O);
+  document.getElementById('qtype').innerHTML = td ? `<a href="Search.html${toQuery({ ...S, f: { ...S.f, [td.id]: undefined }, page: 1 })}" class="${empty(S.f[td.id]) ? 'on' : ''}">All ${esc(O.label.toLowerCase())}</a>` + td.options.map(op => { const val = td.type === 'multi' ? [op.v] : op.v; const on = [].concat(S.f[td.id] || []).length === 1 && [].concat(S.f[td.id])[0] === op.v; const n = facetCount(S, td.id, val); return n || on ? `<a href="Search.html${toQuery({ ...S, f: { ...S.f, [td.id]: val }, page: 1 })}" class="${on ? 'on' : ''}">${esc(op.l)} <em>${n}</em></a>` : ''; }).join('') : '';
+
+  const act = [];
+  if (S.q) act.push([`“${S.q}”`, 'q']);
+  S.loc.forEach(id => act.push([areaName(id), 'loc:' + id]));
+  if (O) O.defs.forEach(d => { if (d.required) return; const lab = valueLabel(d, S.f[d.id]); if (lab) act.push([(d.type === 'toggle' ? '' : d.label + ': ') + lab, 'f:' + d.id]); });
+  document.getElementById('active').innerHTML = act.length ? act.map(([tx, k]) => `<button class="chip" data-rm="${esc(k)}">${esc(tx)} ${ico('x')}</button>`).join('') + `<button class="lnk" data-rm="*" style="margin-left:6px">Clear all</button>` : '';
+
+  const view = S.view;
+  document.getElementById('layout').className = 'layout' + (view === 'map' ? ' map' : view === 'grid' ? ' grid-v' : ' list-v');
+  const withActs = l => UPUI.card(l, S).replace(/<\/div><\/a>$/, `</div><div class="acts"><button class="btn btn-o" data-call="${l.id}">${ico('phone')}${t('Call')}</button><button class="btn btn-wa" data-wa="${l.id}">${ico('wa')}${t('WhatsApp')}</button></div></a>`);
+  let body;
+  if (!all.length) {
+    const relax = [];
+    if (S.loc.length) relax.push(['Search all of Dubai', '*loc']);
+    if (O) O.defs.forEach(d => { if (!empty(S.f[d.id]) && !d.required) { const T = { ...S, f: { ...S.f } }; delete T.f[d.id]; const n = results(T).length; if (n) relax.push([`Remove “${valueLabel(d, S.f[d.id])}” (${n})`, 'f:' + d.id]); } });
+    body = `<div class="empty">${ico('search')}<h3>No exact matches</h3><p>Try widening your search — these would show results:</p><div class="opts">${relax.slice(0, 4).map(([tx, k]) => `<button class="chip" data-rm="${k}">${esc(tx)}</button>`).join('') || '<button class="chip" data-rm="*">Clear all filters</button>'}</div></div>`;
+  } else if (view === 'list') {
+    const items = list.map(lcard);
+    if (items.length > 4) items.splice(4, 0, `<div class="inline-cta">${ico('bolt')}<div><b>Get new matches first</b><span>Save this search — new ${esc(O ? O.h1.toLowerCase() : 'listings')} arrive on WhatsApp.</span></div><button class="btn btn-g btn-sm" onclick="document.getElementById('saveS').click()">${ico('bell')}Save search</button></div>`);
+    body = `<div class="list">${items.join('')}</div>`;
+  } else {
+    body = `<div class="gridres">${list.map(withActs).join('')}</div>`;
+  }
+  const pager = pages > 1 ? `<div class="pager"><button data-pg="${S.page - 1}" ${S.page === 1 ? 'disabled' : ''}>${ico('chevL')}</button>${Array.from({ length: pages }, (_, i) => `<button class="${S.page === i + 1 ? 'on' : ''}" data-pg="${i + 1}">${i + 1}</button>`).join('')}<button data-pg="${S.page + 1}" ${S.page === pages ? 'disabled' : ''}>${ico('chevR')}</button></div>` : '';
+  document.getElementById('res').innerHTML = body + pager;
+  const aside = document.getElementById('aside');
+  aside.innerHTML = view === 'map' ? mapHTML(all) : view === 'grid' ? '' : asideHTML();
+  aside.style.display = view === 'grid' ? 'none' : '';
+  paintFilterRow(); paintSeo(); UPUI.updateHdrCounts();
+}
+
+function paintSeo() {
+  const O = offer(S), td = typeDef(O);
+  if (!O) { document.getElementById('seo').innerHTML = ''; return; }
+  const offerLinks = VERTICALS[S.v].offers.map(o => `<a href="Search.html${toQuery(blankState(S.v, o.id))}">${esc(o.h1)} in Dubai</a>`).join('');
+  const areaLinks = AREAS.map(a => ({ a, c: LISTINGS.filter(l => l.v === S.v && l.cat === O.id && l.loc === a.id).length })).filter(x => x.c).sort((x, y) => y.c - x.c).slice(0, 8).map(x => `<a href="Search.html${toQuery({ ...blankState(S.v, S.o), loc: [x.a.id] })}">${esc(O.label)} in ${esc(x.a.n)}</a>`).join('');
+  const popLinks = td ? td.options.map(op => { const B = blankState(S.v, S.o); B.f[td.id] = td.type === 'multi' ? [op.v] : op.v; return `<a href="Search.html${toQuery(B)}">${esc(op.l)} · Dubai</a>`; }).join('') : '';
+  document.getElementById('seo').innerHTML = `<div><h4>More in ${esc(VERTICALS[S.v].label)}</h4>${offerLinks}</div><div><h4>${t('Popular areas')}</h4>${areaLinks}</div><div><h4>By type</h4>${popLinks}</div>
+    <p class="seo-p">UpNow lists verified ${esc(O.h1.toLowerCase())} across Dubai, priced ${esc(O.basis)}. ${O.permit ? `Every listing shows its ${esc(O.permit)} number. ` : ''}You contact the owner, agent or operator directly by phone, WhatsApp or request — no booking fees.</p>`;
+}
+
+document.querySelector('main').addEventListener('click', e => {
+  const tt = e.target;
+  const v = tt.closest('[data-view]'); if (v) { S.view = v.dataset.view; update(); return; }
+  const r = tt.closest('[data-rm]'); if (r) {
+    const k = r.dataset.rm;
+    if (k === '*') { S.f = blankState(S.v, S.o).f; S.loc = []; S.q = ''; }
+    else if (k === '*loc') S.loc = [];
+    else if (k === 'q') S.q = '';
+    else if (k.startsWith('loc:')) S.loc = S.loc.filter(x => x !== k.slice(4));
+    else if (k.startsWith('f:')) delete S.f[k.slice(2)];
+    S.page = 1; bar.render(); update(); return;
+  }
+  const pg = tt.closest('[data-pg]'); if (pg && !pg.disabled) { S.page = +pg.dataset.pg; update(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+  const pin = tt.closest('[data-pin]'); if (pin) { hlId = pin.dataset.pin; const idx = results(S).findIndex(l => l.id === hlId); S.page = Math.floor(idx / PER) + 1; paint(); const el = document.querySelector(`[data-id="${hlId}"]`); if (el) window.scrollTo({ top: el.getBoundingClientRect().top + scrollY - 280, behavior: 'smooth' }); }
+});
+document.querySelector('main').addEventListener('mouseover', e => {
+  if (S.view !== 'map') return;
+  const c = e.target.closest('[data-id]'); const id = c ? c.dataset.id : null;
+  document.querySelectorAll('.pin').forEach(p => p.classList.toggle('hl', p.dataset.pin === id));
+});
+paint();
+</script>
+</body></html>

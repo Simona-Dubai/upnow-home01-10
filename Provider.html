@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Provider profile | UpNow</title>
+<link rel="stylesheet" href="css/styles.css"><link rel="stylesheet" href="css/detail.css">
+<style>
+body{background:var(--bg)}
+.pv-cv{height:180px;background:linear-gradient(115deg,#0b3d2a 0%,#1a7a53 50%,#136142 100%);position:relative;overflow:hidden}
+.pv-cv::before{content:'';position:absolute;inset:0;background:radial-gradient(400px 160px at 78% 10%,rgba(255,255,255,.16),transparent 70%),repeating-linear-gradient(115deg,transparent 0 80px,rgba(255,255,255,.025) 80px 81px)}
+.pv-cv svg{position:absolute;left:0;right:0;bottom:-1px;width:100%;height:70px}
+.pv-hd{position:relative;margin-top:-96px;display:grid;grid-template-columns:auto 1fr auto;gap:24px;align-items:end;padding-bottom:22px}
+.pv-av{width:148px;height:148px;border-radius:50%;border:5px solid #fff;box-shadow:0 8px 28px rgba(0,0,0,.16);display:grid;place-items:center;font-size:48px;font-weight:800;color:#fff;background:linear-gradient(135deg,oklch(.62 .09 var(--hue)),oklch(.36 .07 var(--hue)));position:relative}
+.pv-av.biz{border-radius:36px}
+.pv-av .on{position:absolute;right:12px;bottom:12px;width:22px;height:22px;border-radius:50%;background:#22c55e;border:4px solid #fff}
+.pv-nm{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:700;font-size:36px;letter-spacing:-.02em;color:var(--g9);line-height:1.1}
+.pv-nm .ico{width:28px;height:28px;fill:var(--g6);stroke:#fff;stroke-width:1.5}
+.pv-sub{color:var(--ink2);font-size:14px;margin-top:6px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.pv-sub span{display:flex;align-items:center;gap:5px}.pv-sub .ico{width:15px;height:15px;color:var(--ink3)}
+.pv-sub .st .ico{fill:#f2a71b;stroke:#f2a71b}
+.pv-bdg{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.pv-bdg span{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:5px 10px;border-radius:99px;background:#fff;border:1px solid var(--line)}
+.pv-bdg span .ico{width:13px;height:13px;color:var(--g6)}
+.pv-bdg span.gold{background:#fff8e6;border-color:#f3dfa8;color:#8a5a12}.pv-bdg span.gold .ico{color:#d29a12}
+.pv-act{display:flex;gap:8px;padding-bottom:4px}
+.pv-act .btn{height:44px}
+.pv-lay{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:28px;align-items:start;padding-bottom:40px}
+.pv-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;margin-bottom:16px}
+.pv-card>h2{font-size:18px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.pv-card>h2 small{font-size:12.5px;color:var(--ink3);font-weight:500}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);background:#fff;border:1px solid var(--line);border-radius:18px;margin-bottom:16px;overflow:hidden}
+.kpis div{padding:16px 18px;min-width:0}.kpis div+div{border-left:1px solid var(--line)}
+.kpis b{display:block;font-size:24px;letter-spacing:-.02em}.kpis span{font-size:12.5px;color:var(--ink3)}
+.kpis em{font-style:normal;font-size:11px;font-weight:800;color:var(--g7);background:var(--g1);border-radius:99px;padding:2px 7px;margin-left:6px;vertical-align:4px}
+.about2{color:var(--ink2);line-height:1.7;margin:0 0 16px}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:0 24px}
+.facts div{padding:10px 0;border-top:1px solid var(--line)}.facts small{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink3)}.facts b{font-size:13.5px}
+.chipz{display:flex;gap:6px;flex-wrap:wrap}.chipz a,.chipz span{display:inline-flex;gap:6px;align-items:center;font-size:12.5px;font-weight:700;padding:6px 11px;border-radius:99px;border:1px solid var(--line);background:#fff}
+.chipz a:hover{border-color:var(--g5);color:var(--g8)}.chipz em{font-style:normal;color:var(--ink3);font-weight:600}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:-4px -22px 18px;padding:0 22px;overflow-x:auto}
+.tabs button{height:44px;padding:0 12px;font-weight:700;font-size:13.5px;color:var(--ink3);border-bottom:2.5px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tabs button.on{color:var(--g8);border-color:var(--g7)}
+.tabs button em{font-style:normal;font-size:11.5px;background:var(--bg);border-radius:99px;padding:1px 7px;margin-left:4px;color:var(--ink2)}
+.lgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.rv-top{display:grid;grid-template-columns:150px 1fr 1fr;gap:24px;align-items:center;margin-bottom:16px}
+.rv-top .big{font-size:48px;font-weight:800;line-height:1}.rv-top .str{color:#f2a71b;letter-spacing:2px}
+.attr div{display:flex;align-items:center;gap:10px;font-size:12.5px;margin:6px 0}.attr span{width:110px;color:var(--ink2)}.attr i{flex:1;height:6px;border-radius:9px;background:var(--bg);overflow:hidden}.attr i b{display:block;height:100%;background:var(--g6)}.attr em{font-style:normal;font-weight:800;width:26px;text-align:right}
+.rvl>div{border-top:1px solid var(--line);padding:14px 0}
+.rvl .h{display:flex;gap:10px;align-items:center;margin-bottom:6px}
+.rvl .av{width:34px;height:34px;border-radius:50%;background:var(--g1);color:var(--g8);display:grid;place-items:center;font-weight:800;font-size:12px}
+.rvl .h b{display:block;font-size:13.5px}.rvl .h small{color:var(--ink3);font-size:12px}
+.rvl .h .s{margin-left:auto;color:#f2a71b;font-size:12px}
+.rvl p{margin:0;font-size:13.5px;color:var(--ink2)}
+.rvl .tg{display:inline-flex;font-size:11px;font-weight:700;background:var(--g1);color:var(--g8);border-radius:6px;padding:2px 7px;margin-top:8px}
+.rvl .rp{margin:10px 0 0 44px;background:var(--bg);border-radius:10px;padding:10px 12px;font-size:12.5px;color:var(--ink2)}.rvl .rp b{color:var(--ink)}
+.side2{position:sticky;top:80px;display:flex;flex-direction:column;gap:14px}
+.vf{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px}
+.vf h4{margin:0 0 10px;font-size:14px;display:flex;gap:7px;align-items:center}.vf h4 .ico{color:var(--g6)}
+.vf .r{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:13px}
+.vf .r .ico{width:16px;height:16px;color:var(--g6)}.vf .r span{flex:1}.vf .r b{font-size:12.5px}
+.vf .r .x2{color:var(--ink3)}
+.team{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.team a{border:1px solid var(--line);border-radius:14px;padding:14px 10px;text-align:center}
+.team a:hover{border-color:var(--g5)}
+.team .av{width:52px;height:52px;border-radius:50%;margin:0 auto 8px;display:grid;place-items:center;color:#fff;font-weight:800;background:linear-gradient(135deg,oklch(.62 .09 var(--hue)),oklch(.36 .07 var(--hue)))}
+.team b{display:block;font-size:13px}.team small{color:var(--ink3);font-size:11.5px}
+.amap{height:200px;border-radius:14px;background:#e8efe9;position:relative;overflow:hidden;margin-bottom:12px}
+.amap i{position:absolute;border-radius:50%;background:rgba(26,122,83,.18);border:1.5px solid rgba(26,122,83,.5);transform:translate(-50%,-50%)}
+.amap span{position:absolute;transform:translate(-50%,-50%);font-size:10.5px;font-weight:800;color:var(--g9);white-space:nowrap;background:rgba(255,255,255,.85);padding:1px 6px;border-radius:5px}
+@media (max-width:1100px){.pv-lay{grid-template-columns:1fr}.side2{position:static}.kpis{grid-template-columns:repeat(3,1fr)}.lgrid{grid-template-columns:1fr 1fr}.pv-hd{grid-template-columns:auto 1fr}.pv-act{grid-column:1/-1}}
+@media (max-width:700px){.pv-hd{grid-template-columns:1fr;text-align:left}.pv-av{width:110px;height:110px;font-size:36px}.pv-nm{font-size:28px}.facts,.rv-top,.team{grid-template-columns:1fr 1fr}.lgrid{grid-template-columns:1fr}}
+</style></head>
+<body>
+<div id="hdr"></div>
+<div id="pv"></div>
+<div id="ftr"></div>
+<script src="js/data.js"></script><script src="js/common.js"></script><script src="js/dm-core.js"></script>
+<script>
+const { LISTINGS, offerOf, areaName, VERTICALS, AREAS } = UP;
+const { ico, esc, money, initials } = UPUI;
+const qp = new URLSearchParams(location.search).get('p');
+const name = LISTINGS.some(l => l.provider.name === qp) ? qp : 'Tariq Hassan';
+const P = DM.prov(name);
+const L0 = P.L[0], O0 = offerOf(L0.v, L0.cat), SP = P.v === 'spaces', LEASE = !!O0.lease;
+document.getElementById('hdr').innerHTML = UPUI.header(P.v);
+document.getElementById('ftr').innerHTML = UPUI.footer();
+UPUI.bindHeader();
+document.title = `${P.name} · ${P.org} | UpNow`;
+
+let s = 0; for (const c of name) s += c.charCodeAt(0) * 13; const r = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+const yrs = 2026 - P.since, deals = Math.round(P.L.length * 9 + r() * 40), first = P.name.split(' ')[0];
+const areas = Object.entries(P.L.reduce((m, l) => (m[l.loc] = (m[l.loc] || 0) + 1, m), {})).sort((a, b) => b[1] - a[1]);
+const cats = Object.entries(P.L.reduce((m, l) => (m[l.cat] = (m[l.cat] || 0) + 1, m), {}));
+const prices = P.L.map(l => l.price).sort((a, b) => a - b);
+const licence = SP ? (LEASE ? ['RERA broker card', 'BRN ' + (P.brn || '40217')] : [O0.permit, (L0.permit || 'DXB-000000')]) : [O0.org[0].replace('-licensed', ' licence').replace('-registered', ' registration').replace('-approved', ' approval'), 'No. ' + (100000 + Math.round(r() * 899999))];
+const superA = P.rating >= 4.5 && P.reply <= 15;
+const NAT = { Tariq: 'Egyptian', Aisha: 'Pakistani', Omar: 'Jordanian', Priya: 'Indian', Daniel: 'Bulgarian', Fatima: 'Emirati', Rahul: 'Indian', Layla: 'Lebanese', Marco: 'Italian', Sara: 'Egyptian', Ahmed: 'Emirati' };
+
+let tab = 'listings', lf = 'all';
+function listingsHTML() {
+  const list = P.L.filter(l => lf === 'all' || l.cat === lf);
+  return `${cats.length > 1 ? `<div class="chipz" style="margin-bottom:14px">${[['all', 'All', P.L.length], ...cats.map(([c, n]) => [c, offerOf(P.v, c).label, n])].map(([k, t, n]) => `<button class="chip ${lf === k ? 'on' : ''}" data-lf="${k}">${esc(t)} <span class="c">${n}</span></button>`).join('')}</div>` : ''}
+    <div class="lgrid">${list.slice(0, 9).map(l => UPUI.card(l)).join('')}</div>`;
+}
+function reviewsHTML() {
+  const attrs = SP && LEASE ? ['Responsiveness', 'Market knowledge', 'Negotiation', 'Honesty'] : ['Responsiveness', 'Value for money', 'Quality', 'Punctuality'];
+  const R = [['Nadia K.', 'Rented a 2-bed in ' + areaName(areas[0][0]), `${first} sent a video walkthrough within 10 minutes and arranged the viewing the same evening. Paperwork and Ejari were done in two days.`, 5, 'Aug 2026', 1],
+    ['James P.', SP ? 'Viewed 3 properties' : 'Booked twice', 'Very knowledgeable about the area and honest about service charges. Didn’t push us towards the most expensive option.', 5, 'Jul 2026', 0],
+    ['Omar H.', SP ? 'Renewed tenancy' : 'Regular customer', 'Quick on WhatsApp, always picks up. Negotiated 4 cheques instead of 2 with the landlord.', 4, 'Jun 2026', 1]];
+  return `<div class="rv-top"><div><div class="big">${P.rating.toFixed(1)}</div><div class="str">★★★★★</div><div style="color:var(--ink3);font-size:12.5px;margin-top:4px">${P.reviews.toLocaleString()} verified reviews</div></div>
+    <div class="attr">${[78, 15, 4, 2, 1].map((d, i) => `<div><span>${5 - i} stars</span><i><b style="width:${d}%"></b></i><em>${d}%</em></div>`).join('')}</div>
+    <div class="attr">${attrs.map((a, i) => { const v = (4.9 - i * .1 - r() * .2).toFixed(1); return `<div><span>${a}</span><i><b style="width:${v / 5 * 100}%"></b></i><em>${v}</em></div>`; }).join('')}</div></div>
+    <div class="rvl">${R.map(([n, ctx, t, st, d, rep]) => `<div><div class="h"><span class="av">${initials(n)}</span><span><b>${n}</b><small>${esc(ctx)} · ${d}</small></span><span class="s">${'★'.repeat(st)}${'☆'.repeat(5 - st)}</span></div><p>${esc(t)}</p><span class="tg">${ico('check')}Verified ${SP ? 'enquiry' : 'booking'} on UpNow</span>${rep ? `<div class="rp"><b>${esc(first)} replied:</b> Thank you! It was a pleasure helping you — reach out any time.</div>` : ''}</div>`).join('')}</div>`;
+}
+function dealsHTML() {
+  const rows = Array.from({ length: 6 }, (_, i) => { const l = P.L[i % P.L.length]; return [l.building || areaName(l.loc), ['Sep', 'Sep', 'Aug', 'Aug', 'Jul', 'Jun'][i] + ' 2026', UPUI.specOf(l)[0], money(Math.round(l.price * (.92 + r() * .12) / 1000) * 1000), r() > .4 ? 'Rented' : 'Renewal']; });
+  return `<p class="dm-sub">Tenancies this agent closed, matched to DLD Ejari registrations.</p>` + DM.H.table(['Building', 'Closed', 'Type', 'Annual rent', 'Deal'], rows.map(x => [`<b>${esc(x[0])}</b>`, x[1], esc(x[2]), x[3], `<span class="pill">${x[4]}</span>`]), 3);
+}
+function areasHTML() {
+  return `<div class="amap">${areas.map(([id, n]) => { const a = UP.areaById[id]; const sz = 34 + n * 16; return `<i style="left:${a.x}%;top:${a.y}%;width:${sz}px;height:${sz}px"></i><span style="left:${a.x}%;top:${a.y}%">${esc(a.n)}</span>`; }).join('')}</div>
+    <div class="chipz">${areas.map(([id, n]) => `<a href="Search.html?v=${P.v}&o=${L0.cat}&loc=${id}">${ico('pin')}${esc(areaName(id))}<em>${n}</em></a>`).join('')}</div>`;
+}
+function teamHTML() {
+  const T = [...new Set(LISTINGS.filter(l => l.provider.org === P.org && l.provider.name !== P.name).map(l => l.provider.name))].slice(0, 4);
+  return T.length ? `<div class="team">${T.map(n => { const q = DM.prov(n); return `<a href="Provider.html?p=${encodeURIComponent(n)}"><div class="av" style="--hue:${q.hue}">${initials(n)}</div><b>${esc(n)}</b><small>${q.rating.toFixed(1)}★ · ${q.L.length} listings</small></a>`; }).join('')}</div>` : '';
+}
+function paint() {
+  const T = [['listings', SP ? 'Properties' : 'Services', P.L.length], ['reviews', 'Reviews', P.reviews], SP && LEASE && ['deals', 'Closed deals', deals], ['areas', 'Areas served', areas.length]].filter(Boolean);
+  const team = P.person && !/^Private/.test(P.org) ? teamHTML() : '';
+  document.getElementById('pv').innerHTML = `
+  <div class="pv-cv"><svg viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0 70 L0 46 C260 4 520 0 820 30 C1080 56 1280 44 1440 20 L1440 70Z" fill="var(--bg)"/></svg></div>
+  <div class="wrap">
+    <div class="pv-hd" data-screen-label="Profile header">
+      <div class="pv-av ${P.person ? '' : 'biz'}" style="--hue:${P.hue}">${initials(P.name)}<span class="on"></span></div>
+      <div><div class="pv-nm">${esc(P.name)}<svg class="ico" viewBox="0 0 24 24">${UPUI.ICONS.badge}</svg></div>
+        <div class="pv-sub"><span>${ico(SP ? 'office' : 'shop')}${esc(P.person ? P.org : O0.org[0])}</span>${P.brn ? `<span>${ico('badge')}BRN ${P.brn}</span>` : ''}<span class="st">${ico('star')}<b>${P.rating.toFixed(1)}</b>&nbsp;(${P.reviews.toLocaleString()})</span><span>${ico('clock')}Replies within ${P.reply} min</span><span>${ico('globe')}${esc(P.langs.join(', '))}</span></div>
+        <div class="pv-bdg">${superA ? `<span class="gold">${ico('star')}${SP ? 'SuperAgent' : 'Top provider'} 2026</span>` : ''}<span>${ico('shield')}${esc(licence[0])} verified</span><span>${ico('user')}ID verified</span><span>${ico('phone')}Phone verified</span><span>${ico('cal')}On UpNow since ${P.since}</span></div></div>
+      <div class="pv-act"><button class="btn btn-o" onclick="navigator.clipboard&&navigator.clipboard.writeText(location.href);UPUI.toast('Profile link copied')">${ico('share')}Share</button><button class="btn btn-o" onclick="UPUI.toast('Following ${esc(first)} — you’ll get new listings')">${ico('bell')}Follow</button><button class="btn btn-wa" data-wa="${L0.id}">${ico('wa')}WhatsApp</button><button class="btn btn-g" data-call="${L0.id}">${ico('phone')}Call</button></div>
+    </div>
+    <div class="pv-lay"><div>
+      <div class="kpis"><div><b>${P.L.length}</b><span>Active ${SP ? 'listings' : 'offers'}</span></div><div><b>${deals}</b><span>${LEASE ? 'Deals closed (12 mo)' : 'Bookings (12 mo)'}</span></div><div><b>${P.reply} min</b><span>Median reply</span></div><div><b>${96 + Math.round(r() * 3)}%</b><span>Response rate</span></div><div><b>${yrs + (P.person ? 3 : 0)} yrs</b><span>Experience</span></div></div>
+      <div class="pv-card" data-screen-label="About"><h2>About ${esc(first)}</h2>
+        <p class="about2">${SP && P.person ? `${esc(P.name)} is a ${LEASE ? 'RERA-certified leasing consultant' : 'licensed operator'} at ${esc(P.org)}, specialising in ${esc(cats.map(([c]) => offerOf(P.v, c).label.toLowerCase()).join(' and '))} across ${esc(areas.slice(0, 3).map(a => areaName(a[0])).join(', '))}. Known for same-day viewings, clear breakdowns of cheques, deposits and Ejari, and staying in touch after move-in.` : `${esc(P.name)} is a ${esc(O0.org[0])} serving ${esc(areas.slice(0, 3).map(a => areaName(a[0])).join(', '))}${P.L.some(l => l.coverage) ? ' and ' + (P.L[0].coverage || []).length + ' more communities' : ''}. Every booking is handled directly — you agree details and pay ${esc(first)} with no middleman.`}</p>
+        <div class="facts">
+          <div><small>Specialises in</small><b>${esc(cats.map(([c]) => offerOf(P.v, c).label).join(', '))}</b></div>
+          <div><small>Price range</small><b>${money(prices[0])} – ${UP.K(prices[prices.length - 1])}</b></div>
+          <div><small>Languages</small><b>${esc(P.langs.join(', '))}</b></div>
+          ${P.person ? `<div><small>Nationality</small><b>${NAT[first] || '—'}</b></div>` : `<div><small>Opening hours</small><b>Sat–Thu 9:00–21:00</b></div>`}
+          <div><small>${esc(licence[0])}</small><b>${esc(licence[1])}</b></div>
+          <div><small>Typical reply</small><b>${P.reply <= 5 ? 'Within 5 minutes' : 'Within ' + P.reply + ' min'} · 9 AM–10 PM</b></div>
+        </div></div>
+      <div class="pv-card" data-screen-label="Profile tabs"><div class="tabs">${T.map(([k, t, n]) => `<button class="${tab === k ? 'on' : ''}" data-tab="${k}">${t}<em>${n.toLocaleString()}</em></button>`).join('')}</div>
+        ${({ listings: listingsHTML, reviews: reviewsHTML, deals: dealsHTML, areas: areasHTML })[tab]()}</div>
+      ${team ? `<div class="pv-card"><h2>More from ${esc(P.org)} <small>${esc(P.org)} · ${LISTINGS.filter(l => l.provider.org === P.org).length} listings</small></h2>${team}</div>` : ''}
+    </div>
+    <aside class="side2">
+      ${DM.agentCard(L0, { noFoot: false })}
+      <div class="vf" data-screen-label="Verification"><h4>${ico('shield')}Verified by UpNow</h4>
+        <div class="r">${ico('check')}<span>${esc(licence[0])}</span><b>${esc(licence[1])}</b></div>
+        <div class="r">${ico('check')}<span>Emirates ID</span><b>Checked</b></div>
+        <div class="r">${ico('check')}<span>${P.person ? 'Employer / agency' : 'Trade licence'}</span><b>${P.person ? 'Confirmed' : 'Valid to 2027'}</b></div>
+        <div class="r">${ico('check')}<span>Mobile number</span><b>Verified</b></div>
+        ${SP && LEASE ? `<div class="r">${ico('check')}<span>Listings with DLD permit</span><b>${P.L.filter(l => l.a.verified).length}/${P.L.length}</b></div>` : ''}
+        <p style="font-size:12px;color:var(--ink3);margin:10px 0 0">${SP && LEASE ? 'Validate the broker card on the Dubai REST app. ' : ''}UpNow never takes payments. <a class="lnk" href="#" onclick="UPUI.toast('Thanks — our trust team will review');return false">Report profile</a></p></div>
+    </aside></div>
+  </div>`;
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-tab]'); if (t) { tab = t.dataset.tab; paint(); return; }
+  const f = e.target.closest('[data-lf]'); if (f) { lf = f.dataset.lf; paint(); }
+});
+paint();
+</script>
+</body></html>
