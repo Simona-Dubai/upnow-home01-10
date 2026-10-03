@@ -21,12 +21,23 @@
 
   document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeSide(); document.dispatchEvent(new Event('upnow:escape')); } });
 
-  /* ---------- themed select menus ----------
-     Every <select> keeps its own look, value and change handlers; only the open menu is replaced by a themed list
-     (the browser's native one can't be styled). Touch screens keep the native picker. Opt out with data-native. */
-  let menu = null, menuSel = null, menuActive = -1, menuKb = false; // menuKb: opened from the keyboard
+  /* ---------- themed dropdown menus ----------
+     The browser's own lists can't be styled, so the open list is replaced by a themed one for
+     · <select> — keeps its own look, value and change handlers; only the open menu changes;
+     · <input list="…"> (suggestions from a <datalist>) — filters as you type; ↑ ↓ then Enter picks a suggestion.
+     Touch screens keep the native pickers. Opt out with data-native. */
+  let menu = null, menuEl = null, menuActive = -1, menuKb = false; // menuEl: the select / input; menuKb: opened from the keyboard
   const coarse = matchMedia('(pointer: coarse)');
-  const usable = s => s && s.tagName === 'SELECT' && !s.disabled && !s.multiple && !s.hasAttribute('data-native') && !coarse.matches;
+  const fine = el => !el.disabled && !el.hasAttribute('data-native') && !coarse.matches;
+  const usable = s => s && s.tagName === 'SELECT' && !s.multiple && fine(s);
+  // a suggestions input: its native list is switched off (list → data-list) the first time it is used
+  const comboOf = t => {
+    const el = t && t.closest && t.closest('input[list], input[data-list]');
+    if (!el || !fine(el)) return null;
+    if (el.hasAttribute('list')) { el.dataset.list = el.getAttribute('list'); el.removeAttribute('list'); }
+    return el;
+  };
+  const isCombo = el => el && el.tagName === 'INPUT';
   const opts = () => [...menu.querySelectorAll('[role=option]')];
   function setActive(i) {
     const o = opts(); if (!o.length) return;
@@ -37,7 +48,7 @@
     o[i].scrollIntoView({ block: 'nearest' });
   }
   function placeMenu() {
-    const r = menuSel.getBoundingClientRect(), gap = 6, below = innerHeight - r.bottom - gap - 12, above = r.top - gap - 12;
+    const r = menuEl.getBoundingClientRect(), gap = 6, below = innerHeight - r.bottom - gap - 12, above = r.top - gap - 12;
     const up = below < 180 && above > below;
     menu.style.minWidth = Math.max(r.width, 160) + 'px';
     menu.style.maxHeight = Math.min(320, up ? above : below) + 'px';
@@ -46,72 +57,92 @@
     menu.style.bottom = up ? innerHeight - r.top + gap + 'px' : '';
     menu.classList.toggle('is-up', up);
   }
-  /* opened with the mouse, focus goes to the menu, not the select — a focused <select> gets Chrome's text highlight
-     and the keyboard focus ring. Opened from the keyboard, focus stays on the select and returns there on close. */
-  function openMenu(sel, kb) {
+  /* A <select> opened with the mouse hands focus to the menu — a focused <select> gets Chrome's text highlight and the
+     keyboard focus ring. Opened from the keyboard, focus stays on it and returns there on close. A suggestions input
+     always keeps focus so you can keep typing; filter: narrow the list to what has been typed. */
+  function openMenu(el, kb, filter) {
+    let k = 0, html;
+    const item = (v, label, on, off) => `<div role="option" data-i="${k++}" data-v="${esc(v)}" aria-selected="${on}" aria-disabled="${off}">${ico('check')}<span>${esc(label)}</span></div>`;
+    if (isCombo(el)) {
+      const list = document.getElementById(el.dataset.list), q = filter ? el.value.trim().toLowerCase() : '';
+      const all = list ? [...list.querySelectorAll('option')].map(o => [o.value, o.label || o.textContent || o.value]) : [];
+      const hits = all.filter(([v, l]) => !q || (v + ' ' + l).toLowerCase().includes(q));
+      if (!hits.length) { closeMenu(); return; }
+      html = hits.map(([v, l]) => item(v, l, v === el.value, false)).join('');
+    } else {
+      const it = o => item(o.value, o.textContent, o.selected, o.disabled);
+      html = [...el.children].map(c => c.tagName === 'OPTGROUP' ? `<div class="select-menu-group">${esc(c.label)}</div>${[...c.children].map(it).join('')}` : it(c)).join('');
+    }
+    if (menu && menuEl === el) { menu.innerHTML = html; menuActive = -1; placeMenu(); return; } // re-filter in place, no re-animation
     closeMenu();
-    menuSel = sel; menuKb = !!kb;
+    menuEl = el; menuKb = !!kb;
     menu = document.createElement('div'); menu.className = 'select-menu'; menu.setAttribute('role', 'listbox'); menu.tabIndex = -1;
-    if (sel.getAttribute('aria-label')) menu.setAttribute('aria-label', sel.getAttribute('aria-label'));
-    let k = 0;
-    const item = o => `<div role="option" data-i="${k++}" data-v="${esc(o.value)}" aria-selected="${o.selected}" aria-disabled="${o.disabled}">${ico('check')}<span>${esc(o.textContent)}</span></div>`;
-    menu.innerHTML = [...sel.children].map(c => c.tagName === 'OPTGROUP' ? `<div class="select-menu-group">${esc(c.label)}</div>${[...c.children].map(item).join('')}` : item(c)).join('');
+    if (el.getAttribute('aria-label')) menu.setAttribute('aria-label', el.getAttribute('aria-label'));
+    menu.innerHTML = html;
     document.body.appendChild(menu);
     placeMenu();
-    sel.classList.add('is-menu-open'); sel.setAttribute('aria-expanded', 'true');
-    setActive(Math.max(0, sel.selectedIndex));
+    el.classList.add('is-menu-open'); el.setAttribute('aria-expanded', 'true');
+    if (isCombo(el)) return;
+    setActive(Math.max(0, el.selectedIndex));
     if (!kb) menu.focus({ preventScroll: true });
   }
   function closeMenu(refocus) {
     if (!menu) return;
     menu.remove(); menu = null; menuActive = -1;
-    menuSel.classList.remove('is-menu-open'); menuSel.setAttribute('aria-expanded', 'false');
-    if (refocus && menuKb) menuSel.focus();
-    else if (document.activeElement === document.body || document.activeElement === menuSel) menuSel.blur();
-    menuSel = null;
+    menuEl.classList.remove('is-menu-open'); menuEl.setAttribute('aria-expanded', 'false');
+    if (!isCombo(menuEl)) {
+      if (refocus && menuKb) menuEl.focus();
+      else if (document.activeElement === document.body || document.activeElement === menuEl) menuEl.blur();
+    }
+    menuEl = null;
   }
   function choose(i) {
     const o = opts()[i]; if (!o || o.getAttribute('aria-disabled') === 'true') return;
-    const sel = menuSel, kb = menuKb, changed = sel.value !== o.dataset.v;
-    sel.value = o.dataset.v; closeMenu(true);
-    if (changed) { sel.dispatchEvent(new Event('input', { bubbles: true })); sel.dispatchEvent(new Event('change', { bubbles: true })); }
+    const el = menuEl, kb = menuKb, changed = el.value !== o.dataset.v;
+    el.value = o.dataset.v; closeMenu(true);
+    if (changed || isCombo(el)) { el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); }
     // a change handler may have redrawn the control: keep keyboard focus on its replacement (same id / name / data-*)
-    if (kb && !sel.isConnected) {
-      const key = [...sel.attributes].filter(x => x.name === 'id' || x.name === 'name' || x.name.startsWith('data-')).map(x => `[${x.name}="${CSS.escape(x.value)}"]`).join('');
+    if (kb && !isCombo(el) && !el.isConnected) {
+      const key = [...el.attributes].filter(x => x.name === 'id' || x.name === 'name' || x.name.startsWith('data-')).map(x => `[${x.name}="${CSS.escape(x.value)}"]`).join('');
       const twin = key && document.querySelector('select' + key); if (twin) twin.focus();
     }
   }
   document.addEventListener('mousedown', e => {
     if (menu && menu.contains(e.target)) { e.preventDefault(); return; }
     const sel = e.target.closest('select');
-    if (usable(sel) && e.button === 0) { e.preventDefault(); if (menuSel === sel) closeMenu(); else openMenu(sel); return; }
+    if (usable(sel) && e.button === 0) { e.preventDefault(); if (menuEl === sel) closeMenu(); else openMenu(sel); return; }
+    const c = comboOf(e.target);
+    if (c && e.button === 0) { if (menuEl !== c && document.activeElement === c) openMenu(c); return; } // already focused: focusin won't fire
     closeMenu();
-  });
+  }, true);
+  document.addEventListener('focusin', e => { const c = comboOf(e.target); if (c && menuEl !== c) openMenu(c); });
+  document.addEventListener('input', e => { const c = menuEl === e.target || comboOf(e.target); if (c && e.isTrusted) openMenu(e.target, false, true); });
   document.addEventListener('click', e => { const o = menu && e.target.closest('.select-menu [role=option]'); if (o) choose(+o.dataset.i); });
   document.addEventListener('mousemove', e => { const o = menu && e.target.closest('.select-menu [role=option]'); if (o && +o.dataset.i !== menuActive && o.getAttribute('aria-disabled') !== 'true') { opts().forEach(x => x.classList.remove('is-active')); o.classList.add('is-active'); menuActive = +o.dataset.i; } });
   document.addEventListener('keydown', e => {
-    const sel = e.target.closest && e.target.closest('select');
+    const sel = e.target.closest && e.target.closest('select'), combo = comboOf(e.target);
     if (!menu) {
       if (usable(sel) && (['Enter', ' ', 'ArrowDown', 'ArrowUp'].includes(e.key) || (e.altKey && e.key === 'ArrowDown'))) { e.preventDefault(); openMenu(sel, true); }
+      else if (combo && e.key === 'ArrowDown') { e.preventDefault(); openMenu(combo, true); if (menu) setActive(0); }
       return;
     }
-    if (sel !== menuSel && !menu.contains(e.target)) return;
-    const n = opts().length;
+    if (e.target !== menuEl && !menu.contains(e.target)) return;
+    const n = opts().length, typing = isCombo(menuEl);
     if (e.key === 'ArrowDown') { e.preventDefault(); setActive(menuActive + 1); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(menuActive - 1); }
-    else if (e.key === 'Home' || e.key === 'PageUp') { e.preventDefault(); setActive(0); }
-    else if (e.key === 'End' || e.key === 'PageDown') { e.preventDefault(); setActive(n - 1); }
-    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(menuActive); }
+    else if (!typing && (e.key === 'Home' || e.key === 'PageUp')) { e.preventDefault(); setActive(0); }
+    else if (!typing && (e.key === 'End' || e.key === 'PageDown')) { e.preventDefault(); setActive(n - 1); }
+    else if (e.key === 'Enter' || (!typing && e.key === ' ')) { if (menuActive >= 0) { e.preventDefault(); choose(menuActive); } else closeMenu(); }
     else if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); closeMenu(true); }
     else if (e.key === 'Tab') closeMenu();
-    else if (e.key.length === 1) { // type-ahead: jump to the next option starting with that letter (ignoring leading flags / symbols)
+    else if (!typing && e.key.length === 1) { // type-ahead: jump to the next option starting with that letter (ignoring leading flags / symbols)
       const o = opts(), c = e.key.toLowerCase();
       for (let s = 1; s <= n; s++) { const i = (menuActive + s) % n; if (o[i].textContent.replace(/^[^\p{L}\p{N}]+/u, '').toLowerCase().startsWith(c)) { setActive(i); break; } }
     }
   }, true);
   addEventListener('resize', () => closeMenu());
   addEventListener('scroll', e => { if (menu && !menu.contains(e.target)) closeMenu(); }, true);
-  document.addEventListener('focusout', e => { if (menu && (e.target === menuSel || e.target === menu)) setTimeout(() => { if (menu && document.activeElement !== menuSel && document.activeElement !== menu) closeMenu(); }, 0); });
+  document.addEventListener('focusout', e => { if (menu && (e.target === menuEl || e.target === menu)) setTimeout(() => { if (menu && document.activeElement !== menuEl && document.activeElement !== menu) closeMenu(); }, 0); });
 
   Object.assign(U, { openModal, closeModal, openSide, closeSide, toast });
 })();
