@@ -137,7 +137,7 @@ function paint() {
   document.getElementById("ag").innerHTML = `
   <div class="provider-cover"><svg viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0 70 L0 46 C260 4 520 0 820 30 C1080 56 1280 44 1440 20 L1440 70Z" fill="var(--bg)"/></svg></div>
   <div class="wrap">
-    <div class="provider-header" data-screen-label="Agency header">
+    <div class="provider-header">
       <div class="provider-avatar is-business" style="--hue:${(org.length * 47) % 360}">${initials(org)}</div>
       <div><div class="provider-name">${esc(org)}<svg class="icon" viewBox="0 0 24 24">${UPUI.ICONS.badge}</svg></div>
         <div class="provider-meta"><span>${ico("brief")}${esc(kind)}</span><span class="rating">${ico("star")}<b>${rating.toFixed(1)}</b>&nbsp;(${reviews.toLocaleString()} reviews)</span><span>${ico("pin")}${esc(office)}, Dubai</span><span>${ico("cal")}On UpNow since ${since}</span></div></div>
@@ -145,7 +145,7 @@ function paint() {
     </div>
     <div class="provider-layout"><div>
       <div class="kpis"><div><b>${agents.length}</b><span>${SP ? "Agents" : "Team members"}</span></div><div><b>${L.length}</b><span>Active ${SP ? "listings" : "offers"}</span></div><div><b>${areas.length}</b><span>Areas covered</span></div><div><b>~${reply} min</b><span>Typical reply</span></div></div>
-      <div class="provider-card" data-screen-label="About agency"><h2>About ${esc(org)}</h2>
+      <div class="provider-card"><h2>About ${esc(org)}</h2>
         <p class="provider-about">${esc(org)} is a ${esc(kind.toLowerCase())} with ${agents.length} ${agents.length === 1 ? "agent" : "agents"} on UpNow, listing ${esc(cats.map((c) => offerOf(v, c).label.toLowerCase()).join(", "))} across ${esc(
           areas
             .slice(0, 3)
@@ -158,11 +158,11 @@ function paint() {
           <div><small>Head office</small><b>${esc(office)}, Dubai</b> <a class="text-link" href="https://maps.google.com/?q=${encodeURIComponent(org + " " + office + " Dubai")}" target="_blank" rel="noopener">Directions</a></div>
           <div><small>Working hours</small><b>Mon–Sat · 9 AM–7 PM</b></div>
         </div></div>
-      <div class="provider-card" data-screen-label="Agency tabs"><div class="tabs">${T.map(([k, t, n]) => `<button class="${tab === k ? "is-active" : ""}" data-tab="${k}">${t}<em>${n.toLocaleString()}</em></button>`).join("")}</div>
+      <div class="provider-card"><div class="tabs">${T.map(([k, t, n]) => `<button class="${tab === k ? "is-active" : ""}" data-tab="${k}">${t}<em>${n.toLocaleString()}</em></button>`).join("")}</div>
         ${{ listings: listingsHTML, agents: agentsHTML, areas: areasHTML }[tab]()}</div>
     </div>
     <aside class="provider-sidebar">
-      <div class="agent-card is-channels" data-screen-label="Contact agency"><div class="agent-body"><h4>Contact ${esc(org)}</h4>
+      <div class="agent-card is-channels"><div class="agent-body"><h4>Contact ${esc(org)}</h4>
         <div class="agent-actions"><button class="agent-action" data-call="${L0.id}">${ico("phone")}<span><b>Call</b><small>Office line</small></span>${ico("chevR", "chevron")}</button>
           <button class="agent-action" data-wa="${L0.id}">${ico("wa")}<span><b>WhatsApp</b><small>Chat instantly</small></span>${ico("chevR", "chevron")}</button></div>
         <div class="agent-more">Or pick an agent</div>
@@ -173,7 +173,7 @@ function paint() {
               `<a href="${DM.provHref(a.name)}"><div class="avatar" style="--hue:${a.hue}">${initials(a.name)}</div><b>${esc(a.name.split(" ")[0])}</b><small>${a.rating.toFixed(1)}★</small></a>`,
           )
           .join("")}</div></div></div>
-      <div class="verification-box" data-screen-label="Verification"><h4>${ico("shield")}Verified by UpNow</h4>
+      <div class="verification-box"><h4>${ico("shield")}Verified by UpNow</h4>
         ${SP && LEASE ? `<div class="verification-row">${ico("check")}<span>RERA office registration</span><b>ORN ${orn}</b></div>` : ""}
         <div class="verification-row">${ico("check")}<span>Trade licence</span><b>DED ${ded}</b></div>
         <div class="verification-row">${ico("check")}<span>${SP && LEASE ? "Agents with BRN" : "Team ID checked"}</span><b>${SP && LEASE ? agents.filter((a) => a.brn).length : agents.length}/${agents.length}</b></div>

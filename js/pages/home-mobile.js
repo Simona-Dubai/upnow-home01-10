@@ -48,7 +48,7 @@
     const areaImg = [PATHS.img('hero.jpg'), PATHS.img('apt2.jpg'), PATHS.img('villa1.jpg'), PATHS.img('office1.jpg'), PATHS.img('apt3.jpg'), PATHS.img('hotel1.jpg')];
     const pool = Oo ? LISTINGS.filter(l => l.cat === S.o) : LISTINGS;
     const ar = AREAS.map(a => ({ ...a, c: pool.filter(l => l.loc === a.id).length })).filter(a => a.c).sort((a, b) => b.c - a.c).slice(0, 4);
-    return `${sbar()}<div class="screen-view" data-screen-label="M01 Home">
+    return `${sbar()}<div class="screen-view">
       <div class="home-header"><div class="location"><small>Explore in</small><b>${ico('pin')}Dubai, UAE ${ico('chev')}</b></div><button class="circle-btn">${ico('bell')}</button></div>
       <div class="home-title">${esc(Oo ? (Oo.hero ? Oo.hero.join(' ') : Oo.h1) : 'Everything Dubai, one search.')}</div>
       <button class="search-pill" data-go="search">${ico('search')}<span><b>${esc(Oo ? Oo.h1 : 'Search UpNow')}</b><small>${esc(S.loc.length ? S.loc.map(areaName).join(', ') : Oo ? 'Any area · ' + Oo.fields.filter(f => f !== 'loc').map(f => (Oo.def(f) || {}).label).filter(Boolean).join(' · ') : 'Homes, cleaners, safaris, schools…')}</small></span><i>${ico('sliders')}</i></button>
@@ -68,7 +68,7 @@
     const sug = AREAS.filter(a => !S.loc.includes(a.id) && (!locQ || a.n.toLowerCase().includes(locQ.toLowerCase()))).map(a => ({ ...a, c: LISTINGS.filter(l => (S.v === 'all' || (l.v === S.v && l.cat === S.o)) && (l.loc === a.id || (l.coverage || []).includes(a.id))).length })).filter(a => a.c || locQ).sort((a, b) => b.c - a.c).slice(0, locQ ? 8 : 5);
     const fields = Oo ? Oo.fields.filter(f => f !== 'loc').map(f => Oo.def(f)).filter(Boolean) : [];
     const n = UPUI.results(S).length;
-    return `${sbar()}<div class="screen-view" data-screen-label="M02 Search">
+    return `${sbar()}<div class="screen-view">
       ${top(stack.length > 1 ? 'Search' : 'Search', `<button class="circle-btn" data-reset>${ico('x')}</button>`)}
       <div class="vertical-chips" style="padding-top:2px">${UPUI.TABS.map(v => `<button class="${S.v === v ? 'is-active' : ''}" data-v="${v}">${ico(VERTICALS[v].icon)}${esc(VERTICALS[v].label)}</button>`).join('')}</div>
       ${S.v !== 'all' ? `<div class="vertical-chips" style="padding-top:6px">${VERTICALS[S.v].offers.map(o => `<button class="${S.o === o.id ? 'is-active' : ''}" style="${S.o === o.id ? 'background:var(--g1);color:var(--g8);border-color:var(--g5)' : ''}" data-o="${o.id}">${ico(iconOf(S.v, o))}${esc(o.label)}</button>`).join('')}</div>` : ''}
@@ -93,7 +93,7 @@
       ${sel ? `<div class="card-rail"><div class="h-scroll">${[sel, ...R.filter(x => x.id !== sel.id).slice(0, 4)].map(hcard).join('')}</div></div>` : ''}</div>`;
     return `${sbar()}<div class="results-head"><div class="query-row"><button class="circle-btn" data-back>${ico('chevL')}</button><button class="query-btn" data-go="search">${ico('search')}<span><b>${esc(Oo ? Oo.h1 : 'All results')}</b><small>${esc(sub)}</small></span></button><button class="circle-btn" onclick="UPUI.toast('Search saved — we’ll alert you on WhatsApp')">${ico('bell')}</button></div>
       <div class="filter-chips"><button class="is-filters" data-sheet="filters">${ico('sliders')}Filters${active ? `<em>${active}</em>` : ''}</button>${pills.map(d => { const v = UPUI.valueLabel(d, S.f[d.id]); return `<button class="${v && !d.required ? 'is-active' : ''}" data-sheet="f:${d.id}">${esc(v && d.type !== 'toggle' ? v : d.label)}${d.type === 'toggle' ? '' : ico('chev')}</button>`; }).join('')}</div></div>
-      <div class="screen-view" data-screen-label="M03 Results" style="${view === 'map' ? 'overflow:hidden' : ''}">${view === 'map' ? map : list}</div>
+      <div class="screen-view" style="${view === 'map' ? 'overflow:hidden' : ''}">${view === 'map' ? map : list}</div>
       <button class="map-fab" data-view>${ico(view === 'map' ? 'grid4' : 'map')}${view === 'map' ? 'List' : 'Map'}</button>${tbar()}`;
   }
 
@@ -106,7 +106,7 @@
     const imgs = l.img.length ? l.img : [null];
     const about = `${l.title} in ${UPUI.locText(l)}${O2.locAll ? '' : ', Dubai'}. Offered by ${l.provider.name} (${l.provider.org}). Priced ${O2.basis.toLowerCase()}. Ref ${l.ref}${l.permit ? ' · ' + O2.permit + ' ' + l.permit : ''}.`;
     const lease = !!O2.lease;
-    return `${sbar(true)}<div class="screen-view" data-screen-label="M04 Listing">
+    return `${sbar(true)}<div class="screen-view">
       <div class="detail-gallery"><div class="track" id="dgTr">${imgs.map(x => x ? `<img src="${x}" alt="">` : UPUI.photo(l)).join('')}</div>
         <div class="gallery-toolbar"><button class="circle-btn is-glass" data-back>${ico('chevL')}</button><span class="spacer"></span><button class="circle-btn is-glass" onclick="UPUI.toast('Link copied')">${ico('share')}</button><button class="circle-btn is-glass ${UPUI.favs.has(l.id) ? 'is-active' : ''}" data-fav="${l.id}">${ico('heart')}</button></div>
         <div class="gallery-badges">${l.a.verified ? `<span>${ico('shield')}${esc(O2.permit || 'Verified')}</span>` : ''}${l.a.tour ? `<span>${ico('video')}Tour</span>` : ''}</div><span class="count" id="dgN">1 / ${imgs.length}</span></div>
@@ -125,7 +125,7 @@
     const sup = P.rating >= 4.5 && P.reply <= 15;
     const body = ptab === 'list' ? P.L.slice(0, 12).map(mcard).join('') : ptab === 'rev' ? `<div class="detail-box"><div style="display:flex;gap:14px;align-items:center"><b style="font-size:40px">${P.rating.toFixed(1)}</b><span><span style="color:#f2a71b">★★★★★</span><br><small style="color:var(--ink3)">${P.reviews.toLocaleString()} verified reviews</small></span></div></div>` + [['Nadia K.', `${first} sent a video walkthrough within 10 minutes and arranged the viewing the same evening.`], ['James P.', 'Honest about service charges and didn’t push us towards the most expensive option.'], ['Omar H.', 'Quick on WhatsApp, always picks up.']].map(([n, x]) => `<div style="padding:14px 0;border-bottom:1px solid var(--line)"><b style="font-size:13.5px">${n}</b> <span style="color:#f2a71b;font-size:12px">★★★★★</span><p style="margin:4px 0 0;font-size:13px;color:var(--ink2)">${x}</p></div>`).join('')
       : H2([['Company', P.person ? P.org : offerOf(L0.v, L0.cat).org[0]], P.brn && ['BRN', P.brn], ['Languages', P.langs.join(', ')], ['On UpNow since', P.since], ['Areas', [...new Set(P.L.map(l => areaName(l.loc)))].slice(0, 4).join(', ')], ['Specialises in', [...new Set(P.L.map(l => offerOf(l.v, l.cat).label))].join(', ')]]);
-    return `${sbar(true)}<div class="screen-view" data-screen-label="M05 Provider">
+    return `${sbar(true)}<div class="screen-view">
       <div class="m-provider-cover"><div class="detail-gallery" style="height:0"><div class="gallery-toolbar"><button class="circle-btn is-glass" data-back>${ico('chevL')}</button><span class="spacer"></span><button class="circle-btn is-glass" onclick="UPUI.toast('Profile link copied')">${ico('share')}</button></div></div><svg viewBox="0 0 400 44" preserveAspectRatio="none"><path d="M0 44 L0 28 C90 0 180 2 260 20 C330 36 370 30 400 14 L400 44Z" fill="#fff"/></svg></div>
       <div class="m-provider"><div class="avatar ${P.person ? '' : 'is-business'}" style="--hue:${P.hue}">${initials(P.name)}<i></i></div>
         <div class="name">${esc(P.name)}<svg class="icon" viewBox="0 0 24 24">${UPUI.ICONS.badge}</svg></div><div class="org">${esc(P.person ? P.org : offerOf(L0.v, L0.cat).org[0])}${P.brn ? ' • BRN ' + P.brn : ''}</div>
@@ -139,15 +139,15 @@
 
   function savedS() {
     const L = [...UPUI.favs].map(UPUI.byId).filter(Boolean);
-    return `${sbar()}<div class="screen-view" data-screen-label="M06 Saved"><div class="top-bar"><h1 style="text-align:left;font-size:24px">Saved</h1></div>${L.length ? L.map(mcard).join('') : `<div class="m-empty">${ico('heart')}<b>Nothing saved yet</b>Tap ♡ on any listing to shortlist it.</div>`}</div>${tbar()}`;
+    return `${sbar()}<div class="screen-view"><div class="top-bar"><h1 style="text-align:left;font-size:24px">Saved</h1></div>${L.length ? L.map(mcard).join('') : `<div class="m-empty">${ico('heart')}<b>Nothing saved yet</b>Tap ♡ on any listing to shortlist it.</div>`}</div>${tbar()}`;
   }
   function inbox() {
     const L = UPUI.leads();
-    return `${sbar()}<div class="screen-view" data-screen-label="M07 Enquiries"><div class="top-bar"><h1 style="text-align:left;font-size:24px">Enquiries</h1></div>
+    return `${sbar()}<div class="screen-view"><div class="top-bar"><h1 style="text-align:left;font-size:24px">Enquiries</h1></div>
       ${L.length ? L.map(r => `<button class="enquiry-row" style="width:100%;padding:12px 16px;text-align:left" data-l="${r.lid}"><img src="${PATHS.img(r.img)}" alt=""><div class="content"><div class="row-head"><b>${esc(r.title)}</b></div><small>${esc(r.provider)} · ${esc(r.area)}</small><small>${{ request: 'Enquiry', email: 'Email', call: 'Call', whatsapp: 'WhatsApp' }[r.type]} · ${new Date(r.t).toLocaleDateString()}</small></div></button>`).join('') : `<div class="m-empty">${ico('msg')}<b>No enquiries yet</b>Calls, WhatsApps and booking requests you send appear here.</div>`}</div>${tbar()}`;
   }
   function account() {
-    return `${sbar()}<div class="screen-view" data-screen-label="M08 Account"><div class="top-bar"><h1 style="text-align:left;font-size:24px">Account</h1></div>
+    return `${sbar()}<div class="screen-view"><div class="top-bar"><h1 style="text-align:left;font-size:24px">Account</h1></div>
       <div style="padding:0 16px 16px;display:flex;gap:12px;align-items:center"><span class="circle-btn" style="width:56px;height:56px">${ico('user')}</span><div style="flex:1"><b>Guest</b><br><small style="color:var(--ink3)">Sign in to sync saved & enquiries</small></div><button class="btn btn-primary btn-sm" data-open="signin">Sign in</button></div>
       <div class="account-list">${[['globe', 'Language', UPUI.prefs.lang === 'ar' ? 'العربية' : 'English'], ['tag', 'Currency', UPUI.prefs.cur], ['bell', 'Saved searches & alerts', '2'], ['shield', 'Safety centre', ''], ['brief', 'Become a provider', ''], ['doc', 'Help & support', '']].map(([i, x, v]) => `<button>${ico(i)}<span>${x}</span><em>${v}</em>${ico('chevR')}</button>`).join('')}</div></div>${tbar()}`;
   }

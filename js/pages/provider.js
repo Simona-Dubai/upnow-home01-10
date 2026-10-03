@@ -135,7 +135,7 @@ function paint() {
   document.getElementById("pv").innerHTML = `
   <div class="provider-cover"><svg viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0 70 L0 46 C260 4 520 0 820 30 C1080 56 1280 44 1440 20 L1440 70Z" fill="var(--bg)"/></svg></div>
   <div class="wrap">
-    <div class="provider-header" data-screen-label="Profile header">
+    <div class="provider-header">
       <div class="provider-avatar ${P.person ? "" : "is-business"}" style="--hue:${P.hue}">${initials(P.name)}<span class="online-dot"></span></div>
       <div><div class="provider-name">${esc(P.name)}<svg class="icon" viewBox="0 0 24 24">${UPUI.ICONS.badge}</svg></div>
         <div class="provider-meta"><span>${ico(SP ? "office" : "shop")}${P.person && DM.isAgency(P.org) ? `<a class="agency-link" href="${DM.agencyHref(P.org)}">${esc(P.org)}</a>` : esc(P.person ? P.org : O0.org[0])}</span>${P.brn ? `<span>${ico("badge")}BRN ${P.brn}</span>` : ""}<span class="rating">${ico("star")}<b>${P.rating.toFixed(1)}</b>&nbsp;(${P.reviews.toLocaleString()})</span><span>${ico("clock")}Replies within ${P.reply} min</span><span>${ico("globe")}${esc(P.langs.join(", "))}</span></div>
@@ -144,7 +144,7 @@ function paint() {
     </div>
     <div class="provider-layout"><div>
       <div class="kpis"><div><b>${P.L.length}</b><span>Active ${SP ? "listings" : "offers"}</span></div>${LEASE ? "" : `<div><b>${deals}</b><span>Bookings (12 mo)</span></div>`}<div><b>${P.reply} min</b><span>Median reply</span></div><div><b>${96 + Math.round(r() * 3)}%</b><span>Response rate</span></div><div><b>${yrs + (P.person ? 3 : 0)} yrs</b><span>Experience</span></div></div>
-      <div class="provider-card" data-screen-label="About"><h2>About ${esc(first)}</h2>
+      <div class="provider-card"><h2>About ${esc(first)}</h2>
         <p class="provider-about">${
           SP && P.person
             ? `${esc(P.name)} is a ${LEASE ? "RERA-certified leasing consultant" : "licensed operator"} at ${esc(P.org)}, specialising in ${esc(cats.map(([c]) => offerOf(P.v, c).label.toLowerCase()).join(" and "))} across ${esc(
@@ -168,13 +168,13 @@ function paint() {
           <div><small>${esc(licence[0])}</small><b>${esc(licence[1])}</b></div>
           <div><small>Typical reply</small><b>${P.reply <= 5 ? "Within 5 minutes" : "Within " + P.reply + " min"} · 9 AM–10 PM</b></div>
         </div></div>
-      <div class="provider-card" data-screen-label="Profile tabs"><div class="tabs">${T.map(([k, t, n]) => `<button class="${tab === k ? "is-active" : ""}" data-tab="${k}">${t}<em>${n.toLocaleString()}</em></button>`).join("")}</div>
+      <div class="provider-card"><div class="tabs">${T.map(([k, t, n]) => `<button class="${tab === k ? "is-active" : ""}" data-tab="${k}">${t}<em>${n.toLocaleString()}</em></button>`).join("")}</div>
         ${{ listings: listingsHTML, reviews: reviewsHTML, areas: areasHTML }[tab]()}</div>
       ${team ? `<div class="provider-card"><h2>More from ${esc(P.org)} <a class="text-link" href="${DM.agencyHref(P.org)}">View agency</a></h2>${team}</div>` : ""}
     </div>
     <aside class="provider-sidebar">
       ${DM.agentCard(L0, { channels: true })}
-      <div class="verification-box" data-screen-label="Verification"><h4>${ico("shield")}Verified by UpNow</h4>
+      <div class="verification-box"><h4>${ico("shield")}Verified by UpNow</h4>
         <div class="verification-row">${ico("check")}<span>${esc(licence[0])}</span><b>${esc(licence[1])}</b></div>
         <div class="verification-row">${ico("check")}<span>Emirates ID</span><b>Checked</b></div>
         <div class="verification-row">${ico("check")}<span>${P.person ? "Employer / agency" : "Trade licence"}</span><b>${P.person ? "Confirmed" : "Valid to 2027"}</b></div>

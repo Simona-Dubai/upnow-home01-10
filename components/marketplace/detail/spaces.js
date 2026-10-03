@@ -27,23 +27,9 @@
     return H.table(['#', 'Dated', 'Amount'], rows.map(([a, b, v]) => [`<b>${a}</b>`, b, M(v)]), 2);
   }
 
-  /* ---------- RESIDENTIAL — rooms as entered by the provider, move-in cost ---------- */
+  /* ---------- RESIDENTIAL — move-in cost, building & community ---------- */
   reg('residential', c => {
     const A = c.A, villa = ['villa', 'townhouse'].includes(A.ptype), st = c.st;
-    const beds = A.beds, baths = A.baths, sq = A.sqft, rr = n => Math.round(n / 5) * 5;
-    const rooms = [];
-    const bedIco = 'bed';
-    if (beds === 0) rooms.push(['sofa', 'Studio living & sleeping', rr(sq * .62), 'Open plan · double bed fits', 'main']);
-    else {
-      rooms.push(['sofa', 'Living & dining', rr(sq * (villa ? .22 : .28)), villa ? 'Double-height · garden access' : (A.amenities.includes('Balcony') ? 'Opens to balcony' : 'Open plan'), 'main']);
-      for (let i = 0; i < beds; i++) rooms.push([bedIco, i === 0 ? 'Master bedroom' : 'Bedroom ' + (i + 1), rr(sq * (i === 0 ? .16 : .11)), i === 0 ? 'King bed · en-suite · walk-in wardrobe' : i === 1 ? 'Queen bed · built-in wardrobe' : 'Double bed · built-in wardrobe', 'bed']);
-    }
-    rooms.push(['tool', villa ? 'Kitchen (closed) + pantry' : beds === 0 ? 'Kitchenette' : 'Kitchen (open)', rr(sq * .09), A.furnishing === 'unfurnished' ? 'Cooker hob · fridge on request' : 'Fully fitted appliances', 'wet']);
-    for (let i = 0; i < baths; i++) rooms.push(['bath', i < Math.min(beds, baths - 1) ? (i === 0 ? 'Master en-suite' : 'En-suite ' + (i + 1)) : 'Guest bathroom', rr(sq * .045), i === 0 ? 'Bathtub + rain shower' : 'Walk-in shower', 'wet']);
-    if (A.amenities.includes("Maid's room")) rooms.push(['bed', "Maid's room", rr(sq * .04), 'With own bathroom', 'aux']);
-    if (A.amenities.includes('Study')) rooms.push(['brief', 'Study', rr(sq * .05), 'Fits desk + shelving', 'aux']);
-    if (A.amenities.includes('Balcony') || villa) rooms.push(['sun', villa ? 'Garden & terrace' : 'Balcony', rr(sq * (villa ? .2 : .06)), A.amenities.includes('Sea view') ? 'Sea view' : A.amenities.includes('Burj view') ? 'Burj Khalifa view' : villa ? 'Landscaped · ' + (A.amenities.includes('Private pool') ? 'private pool' : 'BBQ area') : 'Community view', 'out']);
-    const roomList = `<div class="room-list">${rooms.map(r => `<div class="room-item"><i>${ico(r[0])}</i><div><b>${esc(r[1])}</b><small>${esc(r[3])}</small></div></div>`).join('')}</div>`;
 
     st.ch = st.ch || Math.min(A.cheques, 4); st.tm = st.tm || 'yearly';
     const rent = () => st.tm === 'monthly' ? Math.round(c.l.price * 1.3 / 12 / 100) * 100 : c.l.price * (1 + ({ 1: 0, 2: 0, 4: .02, 6: .04, 12: .06 }[st.ch] || 0));

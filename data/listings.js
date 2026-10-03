@@ -620,5 +620,5 @@
   LISTINGS.forEach((l, i) => { l.id = 'L' + (1000 + i); l.featured = rnd() < .18; });
 
   const offerOf = (v, c) => { const vv = V[v] || V.spaces; return vv.offers.find(x => x.id === c) || vv.offers[0]; };
-  window.UP = { AREAS, areaById, areaName, LISTINGS, VERTICALS: V, VORDER, offerOf, K, IMG };
+  window.UP = { AREAS, areaById, areaName, LISTINGS, VERTICALS: V, VORDER, offerOf, K };
 })();

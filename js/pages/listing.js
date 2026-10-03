@@ -325,7 +325,7 @@ function paint() {
     )
     .map(
       ([h, body]) =>
-        `<section class="section" data-screen-label="${esc(h)}"><h2>${esc(h)}</h2>${body}</section>`,
+        `<section class="section"><h2>${esc(h)}</h2>${body}</section>`,
     )
     .join("");
   const secsText = secsHTML
@@ -595,7 +595,7 @@ function paint() {
       </div>
 
       <aside class="sidebar">
-        <div class="price-box" data-screen-label="Price">
+        <div class="price-box">
           <div class="price-row">
             <div class="price">${esc(pt.n)}<span> ${esc(pt.u)}</span></div>
             ${

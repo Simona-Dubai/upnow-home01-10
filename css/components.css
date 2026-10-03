@@ -1,6 +1,5 @@
 @charset "UTF-8";
 /* Reusable components shared by every page. Sections are marked with the component name. */
-
 /* header — mirrors provider workspace top bar */
 .site-header {
   background: #fff;
@@ -784,52 +783,6 @@ body {
 /* modal extras */
 .modal.is-wide {
   width: min(620px, 100%);
-}
-
-.profile-head {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.profile-head .avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--g1);
-  color: var(--g8);
-  display: grid;
-  place-items: center;
-  font-weight: 800;
-  flex: none;
-}
-
-.profile-head.is-large .avatar {
-  width: 56px;
-  height: 56px;
-  font-size: 18px;
-}
-
-.profile-head .name {
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.profile-head .org {
-  color: var(--ink3);
-  font-size: 12.5px;
-}
-
-.profile-head .verified-icon {
-  color: var(--g6);
-  display: inline-flex;
-}
-
-.profile-head .verified-icon .icon {
-  width: 15px;
-  height: 15px;
 }
 
 .note {
@@ -2492,49 +2445,6 @@ h1,
 .detail-note .icon {
   color: var(--g6);
   margin-top: 1px;
-}
-
-.room-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.room-item {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 10px 12px;
-  cursor: default;
-  transition: 0.15s;
-}
-
-.room-item i {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: var(--g1);
-  color: var(--g7);
-  display: grid;
-  place-items: center;
-  flex: none;
-}
-
-.room-item div {
-  flex: 1;
-  min-width: 0;
-}
-
-.room-item b {
-  font-size: 13.5px;
-  display: block;
-}
-
-.room-item small {
-  color: var(--ink3);
-  font-size: 12px;
 }
 
 /* bed cards (stay) */

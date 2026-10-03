@@ -1404,7 +1404,6 @@ body.mobile-shell {
   grid-template-columns: 1fr 1fr;
 }
 
-.m-detail-section .room-list,
 .m-detail-section .calendar-pair,
 .m-detail-section .detail-columns {
   grid-template-columns: 1fr;

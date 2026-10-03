@@ -8,10 +8,6 @@
   /* ---------- lead capture ---------- */
   function waText(l) { return `Hi ${l.provider.name.split(' ')[0]}, I found your listing on ${SITE.name} and I'm interested.\n\n${l.title}\n${locText(l)}\nRef ${l.ref}\n\nIs it still available?`; }
   const waLink = l => 'https://wa.me/' + l.provider.phone.replace('+', '') + '?text=' + encodeURIComponent(waText(l));
-  function providerHead(l, big) {
-    return `<div class="profile-head ${big ? 'is-large' : ''}"><div class="avatar">${esc(initials(l.provider.name))}</div>
-      <div><div class="name">${esc(l.provider.name)} ${l.a.verified ? `<span class="verified-icon">${ico('shield')}</span>` : ''}</div><div class="org">${esc(l.provider.org)}${l.provider.brn ? ' · BRN ' + l.provider.brn : ''}</div></div></div>`;
-  }
   function me() { return store.get('me') || { name: '', phone: '+971 ', email: '' }; }
   function logLead(type, l, extra = {}) {
     const O = offerOf(l.v, l.cat), pt = priceText(l);
@@ -105,5 +101,5 @@
     const o = e.target.closest('[data-open]'); if (o) { e.preventDefault(); closeModal(); ({ enq: enquiries, saved, signin })[o.dataset.open](); return; }
   });
 
-  Object.assign(U, { call, whatsapp, request, providerHead });
+  Object.assign(U, { call, whatsapp, request });
 })();
