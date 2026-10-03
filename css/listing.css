@@ -212,6 +212,15 @@ body {
   gap: 10px;
 }
 
+.section h2 .section-tag {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 99px;
+  background: var(--color-primary-tint-light);
+  color: var(--color-primary-dark);
+}
+
 .listing-about {
   color: var(--color-text-secondary);
   line-height: 1.7;
@@ -222,6 +231,10 @@ body {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0 32px;
+}
+
+.lead-card .lead-card-footer span {
+  white-space: nowrap;
 }
 
 .info-grid div {
@@ -503,6 +516,18 @@ body {
   padding-top: 4px;
 }
 
+.sidebar-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.4fr;
+  gap: 8px;
+}
+
+.sidebar-actions .btn {
+  height: 38px;
+  font-size: 12.5px;
+  padding: 0 10px;
+}
+
 [data-fav].is-active .icon {
   fill: var(--color-danger);
   stroke: var(--color-danger);
@@ -577,6 +602,129 @@ body {
   font-weight: 700;
 }
 
+.agent-box {
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  padding: 22px;
+}
+
+.agent-box .agent-head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.agent-box .photo {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary-darkest));
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 19px;
+  flex: none;
+  position: relative;
+}
+
+.agent-box .photo em {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  color: var(--color-primary);
+}
+
+.agent-box .photo em .icon {
+  width: 13px;
+  height: 13px;
+}
+
+.agent-box .name {
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.agent-box .org {
+  color: var(--color-text-muted);
+  font-size: 12.5px;
+}
+
+.agent-box .agent-meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 14px;
+  text-align: center;
+}
+
+.agent-box .agent-meta div {
+  background: var(--color-bg);
+  border-radius: 10px;
+  padding: 8px 4px;
+}
+
+.agent-box .agent-meta b {
+  display: block;
+  font-size: 14px;
+}
+
+.agent-box .agent-meta span {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.response-time {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-primary-dark);
+  font-size: 12.5px;
+  font-weight: 600;
+  margin-top: 12px;
+}
+
+.response-time i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+}
+
+.contact-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.contact-buttons .btn {
+  height: 46px;
+  font-size: 14px;
+}
+
+.contact-buttons .is-full {
+  grid-column: 1/-1;
+  height: 40px;
+}
+
+.permit-line {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-top: 10px;
+}
+
+.permit-line b {
+  color: var(--color-text-secondary);
+}
+
 .safety-note {
   border-radius: 14px;
   padding: 13px 15px;
@@ -615,38 +763,30 @@ body {
     padding-bottom: 76px;
   }
 }
-
 @media (max-width: 1000px) {
   .gallery {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 200px 140px;
   }
-
   .gallery > div:first-child {
     grid-column: 1/-1;
     grid-row: auto;
   }
-
   .gallery > div:nth-child(n+4) {
     display: none;
   }
-
   .listing-layout {
     grid-template-columns: 1fr;
   }
-
   .sidebar {
     position: static;
   }
-
   .info-grid {
     grid-template-columns: 1fr 1fr;
   }
-
   .card-row {
     grid-template-columns: 1fr;
   }
-
   .mobile-bar {
     display: flex;
     position: fixed;
@@ -659,12 +799,10 @@ body {
     gap: 8px;
     z-index: 90;
   }
-
   .mobile-bar .btn {
     flex: 1;
   }
 }
-
 .lightbox {
   position: fixed;
   inset: 0;
@@ -714,9 +852,4 @@ body {
   bottom: 20px;
   color: #fff;
   font-weight: 700;
-}
-
-/* Text links on this page keep the size of their surrounding text (the shared .text-link is 12.5px). */
-.text-link {
-  font-size: inherit;
 }

@@ -42,8 +42,9 @@
   }
 
   /* ---- search bar ---- */
-  function SearchBar(root, S, { mode, onChange, onSubmit }) {
-    let open = null, locQuery = '';
+  /* onFilters: when given, the bar shows a Filters button (with the number of extra filters set) that calls it */
+  function SearchBar(root, S, { mode, onChange, onSubmit, onFilters }) {
+    let open = null, shown = null, locQuery = '';
     const O = () => offer(S);
     function locSuggestions() {
       const q = locQuery.trim().toLowerCase();
@@ -78,14 +79,19 @@
       const fields = S.v === 'all' ? ['loc'] : Oo.fields;
       const offers = S.v === 'all' ? VORDER.map(v => ({ id: v, label: VERTICALS[v].label, basis: VERTICALS[v].blurb, icon: VERTICALS[v].icon, all: 1 })) : VERTICALS[S.v].offers;
       const extra = Oo ? Oo.optional.filter(d => d.id !== 'verified').slice(0, mode === 'hero' ? 7 : 0) : [];
+      const nSet = Oo ? Oo.optional.filter(d => !d.required && !empty(S.f[d.id])).length : 0;
+      const filtersBtn = onFilters && Oo ? `<button class="search-filters ${nSet ? 'is-set' : ''}" data-b="filters">${ico('sliders')}<span>${t('Filters')}</span>${nSet ? `<em>${nSet}</em>` : ''}</button>` : '';
       root.innerHTML = `
         <div class="vertical-tabs ${mode} no-scrollbar">${UPUI.TABS.map(id => `<button class="${S.v === id ? 'is-active' : ''}" data-b="vert" data-val="${id}">${ico(VERTICALS[id].icon)}${esc(t(VERTICALS[id].label))}</button>`).join('')}</div>
         <div class="search-panel ${mode}">
           <div class="offer-rail-wrap"><button class="rail-arrow is-prev" data-b="oscroll" data-val="-1">${ico('chevL')}</button><div class="offer-rail">${offers.map(x => `<button class="offer ${!x.all && S.o === x.id ? 'is-active' : ''}" data-b="${x.all ? 'vert' : 'offer'}" data-val="${x.id}"><i>${ico(x.icon || OICO[x.id] || VERTICALS[S.v].icon)}</i><span><b>${esc(t(x.label))}</b><small>${esc(x.basis)}</small></span></button>`).join('')}</div><button class="rail-arrow is-next" data-b="oscroll" data-val="1">${ico('chevR')}</button></div>
-          <div class="search-bar ${mode}">${fields.map(segHTML).join('')}<button class="search-submit" data-b="submit">${ico('search')}<span>${t('Search')}</span></button></div>
+          <div class="search-bar ${mode}">${fields.map(segHTML).join('')}${filtersBtn}<button class="search-submit" data-b="submit">${ico('search')}<span>${t('Search')}</span></button></div>
           ${mode === 'hero' && !Oo ? `<div class="more-filters"><span>Pick a vertical above, or search everything at once.</span></div>` : ''}${mode === 'hero' && Oo ? `<div class="more-filters"><span>${t('More filters')}:</span>${extra.map(d => { const sv = valueLabel(d, S.f[d.id]); return `<button class="chip ${sv && !d.required ? 'is-active' : ''}" data-b="${d.type === 'toggle' ? 'tgl' : 'open'}" data-val="${d.id}">${d.type === 'toggle' && sv ? ico('check') : ''}${esc(sv && d.type !== 'toggle' ? d.label + ': ' + sv : d.label)}${d.type === 'toggle' ? '' : ico('chev')}</button>`; }).join('')}<span class="spacer"></span><span class="price-basis">${ico('tag')}Priced ${esc(Oo.basis)}</span></div>
             ${open && extra.some(d => d.id === open) ? `<div class="more-filters-popover"><div class="popover-header">${esc(Oo.def(open).label)}${!empty(S.f[open]) && !Oo.def(open).required ? `<button class="text-link" data-b="clearf" data-val="${open}">Clear</button>` : ''}</div>${controlHTML(Oo.def(open), S)}<div class="popover-footer"><button class="btn btn-primary btn-sm" data-b="close">Done</button></div></div>` : ''}` : ''}
         </div>`;
+      // a popover that was already open is only being redrawn: don't replay its open animation
+      if (open && open === shown) root.querySelectorAll('.popover, .more-filters-popover').forEach(p => p.classList.add('is-shown'));
+      shown = open;
       const inp = root.querySelector('#locInput'); if (!inp) return;
       inp.addEventListener('focus', () => { if (open !== 'loc') { open = 'loc'; locQuery = S.loc.length ? '' : S.q; render(); const i = root.querySelector('#locInput'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); } });
       inp.addEventListener('input', e => { locQuery = e.target.value; const p = root.querySelector('.search-field.location .popover'); if (p) p.innerHTML = locPanel(); });
@@ -109,6 +115,7 @@
       else if (a === 'oscroll') { const o = root.querySelector('.offer-rail'); o.scrollLeft += +v * o.clientWidth * .7; }
       else if (a === 'open') { open = open === v ? null : v; render(); }
       else if (a === 'close') { open = null; render(); }
+      else if (a === 'filters') { open = null; render(); onFilters(); }
       else if (a === 'tgl') { const d = O().def(v); setVal(S, d, S.f[v] ? null : true); commit(); render(); }
       else if (a === 'addloc') addLoc(v);
       else if (a === 'rmloc') { S.loc = S.loc.filter(x => x !== v); S.page = 1; commit(); render(); }

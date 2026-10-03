@@ -17,13 +17,13 @@
     const tot = () => (sub() - disc() + mat()) * 1.05;
     return {
       secs: [
-        ['Choose a service', live(c, 'sv', () => H.opts('sv', st, SV.map(s => ({ ...s, p: M(ph * s.mult) + '<span style="font-weight:500;color:var(--ink3)">/hr</span>' }))))],
+        ['Choose a service', live(c, 'sv', () => H.opts('sv', st, SV.map(s => ({ ...s, p: M(ph * s.mult) + '<span style="font-weight:500;color:var(--color-text-muted)">/hr</span>' }))))],
         ['What’s included', `<div class="detail-columns">${H.box('Every visit', 'check', [['Kitchen', 'Counters, hob, sink, outside of appliances'], ['Bathrooms', 'Toilet, shower, tiles, mirrors'], ['Rooms', 'Dusting, beds, vacuum & mop'], ['Bins', 'Emptied & relined']])}${H.box('Not included', 'x', [['Inside oven / fridge', 'Deep clean only'], ['Windows (outside)', 'Building access needed'], ['Laundry & ironing', 'Add-on · AED 30/hr'], ['Pest control', 'Separate service']])}</div>`],
         ['Your team', H.spec([['users', 'Team size', 'Up to ' + A.team + ' cleaners'], ['shield', 'Vetting', 'Emirates ID + police check'], ['clock', 'Minimum', A.minHours + ' hours'], ['tool', 'Materials', A.materials ? 'Brought by team' : 'Customer provides / +AED 10/hr'], ['pin', 'Covers', (c.l.coverage || []).length + ' areas'], ['star', 'Rating', c.l.rating + ' · ' + c.l.reviews + ' visits']])]
       ],
       bk: () => H.price(c.l, money(ph), '/hour per cleaner') + H.lab('How often') + H.chips('fr', st, Object.entries(FR).map(([k, [, t]]) => [k, t])) + H.lab('Date') + H.days('d', st) + H.lab('Start time') + H.chips('t', st, slotTimes(c, st.d, ['08:00', '09:00', '11:00', '13:00', '15:00', '17:00'])) +
         H.step('hrs', st, st.hrs + ' hours', 'Min ' + A.minHours, A.minHours, 8) + H.step('cl', st, st.cl + ' cleaner' + (st.cl > 1 ? 's' : ''), 'Up to ' + A.team, 1, A.team) +
-        `<div class="booking-stepper"><div><b>Cleaning materials</b><small>+ AED 10 / hour</small></div><div><button data-bk="flag" data-k="mat" style="width:auto;padding:0 12px;border-radius:99px;${st.mat ? 'background:var(--g7);color:#fff;border-color:var(--g7)' : ''}">${st.mat ? 'Added' : 'Add'}</button></div></div>` +
+        `<div class="booking-stepper"><div><b>Cleaning materials</b><small>+ AED 10 / hour</small></div><div><button data-bk="flag" data-k="mat" style="width:auto;padding:0 12px;border-radius:99px;${st.mat ? 'background:var(--color-primary);color:#fff;border-color:var(--color-primary)' : ''}">${st.mat ? 'Added' : 'Add'}</button></div></div>` +
         H.sum([[`${M(rate())} × ${st.hrs} hrs × ${st.cl}`, M(sub())], disc() ? [FR[st.fr][1].split(' · ')[0] + ' discount', '−' + M(disc())] : null, mat() ? ['Materials', M(mat())] : null, ['VAT 5%', M((sub() - disc() + mat()) * .05)]], M(tot()), st.fr === 'once' ? 'Total' : 'Per visit') + H.go('Request booking') + H.fine('Pay the company after the visit'),
       go: () => ({ title: 'Request booking', rows: [['Company', c.l.provider.name], ['Service', sel(SV, st.sv).t], ['When', fd(dayN(st.d)) + ' · ' + st.t], ['Team', st.cl + ' × ' + st.hrs + ' hrs'], ['Frequency', FR[st.fr][1]]], total: M(tot()) })
     };
@@ -97,7 +97,7 @@
       secs: [
         ['Itinerary', H.tl(itin)],
         ['What’s included', `<div class="detail-columns"><div class="detail-box"><h4>${ico('check')}Included</h4>${H.chk(inc.map(x => [1, x]))}</div><div class="detail-box"><h4>${ico('x')}Not included</h4>${H.chk(exc.map(x => [0, x]))}</div></div>`],
-        ['Options', live(c, 'xo', () => H.opts('op', st, opts.map(x => ({ ...x, p: M(pp * x.m) + '<span style="font-weight:500;color:var(--ink3)">' + unit + '</span>' }))))],
+        ['Options', live(c, 'xo', () => H.opts('op', st, opts.map(x => ({ ...x, p: M(pp * x.m) + '<span style="font-weight:500;color:var(--color-text-muted)">' + unit + '</span>' }))))],
         ['Good to know', H.spec([['users', 'Group size', A.format === 'private' ? 'Private' : 'Up to ' + (A.groupMax || 20)], ['globe', 'Languages', (A.language || ['English']).slice(0, 3).join(', ')], ['user', 'Min. age', (A.minAge || 3) + '+'], ['clock', 'Cancellation', 'Free up to 24h'], ['shield', 'Licence', 'DTCM-licensed'], ['car', 'Pickup', (A.transport || []).includes?.('4x4') || A.transport === 'pickup' ? 'Hotel pickup' : 'Meeting point']])]
       ],
       bk: () => H.price(c.l, money(pp), unit) + H.lab('Date') + H.days('d', st) + H.lab('Session') + H.seg('s', st, ses) +

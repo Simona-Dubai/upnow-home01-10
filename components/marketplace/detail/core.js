@@ -28,7 +28,7 @@
     chips: (key, st, items, multi) => `<div class="booking-chips">${items.map(x => { const [v, t, dis] = Array.isArray(x) ? x : [x, x]; const on = multi ? (st[key] || []).includes(v) : st[key] === v; return `<button class="${on ? 'is-active' : ''}" ${dis ? 'disabled' : ''} data-bk="${multi ? 'tg' : 'set'}" data-k="${key}" data-v="${esc(v)}">${esc(t)}</button>`; }).join('')}</div>`,
     step: (key, st, t, s, min, max) => `<div class="booking-stepper"><div><b>${esc(t)}</b>${s ? `<small>${esc(s)}</small>` : ''}</div><div><button data-bk="dec" data-k="${key}" data-min="${min}" ${st[key] <= min ? 'disabled' : ''}>−</button><em>${st[key]}</em><button data-bk="inc" data-k="${key}" data-max="${max}" ${st[key] >= max ? 'disabled' : ''}>+</button></div></div>`,
     sum: (rows, total, tl = 'Estimated total') => `<div class="booking-summary">${rows.filter(Boolean).map(([k, v]) => `<div><span>${esc(k)}</span><span>${v}</span></div>`).join('')}<div class="is-total"><span>${esc(tl)}</span><span>${total}</span></div></div>`,
-    price: (l, n, u) => `<div class="booking-price"><div class="price">${n}<span> ${esc(u)}</span></div><div class="rating">${ico('star')}${l.rating} <span style="color:var(--ink3);font-weight:500">· ${l.reviews} reviews</span></div></div>`,
+    price: (l, n, u) => `<div class="booking-price"><div class="price">${n}<span> ${esc(u)}</span></div><div class="rating">${ico('star')}${l.rating} <span style="color:var(--color-text-muted);font-weight:500">· ${l.reviews} reviews</span></div></div>`,
     go: (t, i = 'cal') => `<button class="btn btn-primary booking-submit" data-bk="go">${ico(i)}${esc(t)}</button>`,
     fine: t => `<p class="booking-note">${ico('shield')}${esc(t)}</p>`,
     alert: t => `<div class="booking-alert">${ico('bolt')}${esc(t)}</div>`
@@ -88,7 +88,7 @@
   function confirmReq(l, g) {
     const fn = l.provider.name.split(' ')[0];
     openModal(`<div class="contact-header"><div class="avatar">${ico('cal')}</div><div class="contact-title"><b>${esc(g.title)}</b><span>Sent to ${esc(l.provider.name)} · replies in ~${l.provider.reply} min</span></div><button class="close-btn" aria-label="Close" data-close>${ico('x')}</button></div>
-      <div class="contact-body" style="padding-top:4px"><div class="table-wrap"><table class="detail-table"><tbody>${g.rows.filter(Boolean).map(([k, v]) => `<tr><td style="color:var(--ink3)">${esc(k)}</td><td class="numeric">${esc(v)}</td></tr>`).join('')}${g.total ? `<tr class="total-row"><td>${esc(g.tl || 'Estimated total')}</td><td class="numeric">${g.total}</td></tr>` : ''}</tbody></table></div>
+      <div class="contact-body" style="padding-top:4px"><div class="table-wrap"><table class="detail-table"><tbody>${g.rows.filter(Boolean).map(([k, v]) => `<tr><td style="color:var(--color-text-muted)">${esc(k)}</td><td class="numeric">${esc(v)}</td></tr>`).join('')}${g.total ? `<tr class="total-row"><td>${esc(g.tl || 'Estimated total')}</td><td class="numeric">${g.total}</td></tr>` : ''}</tbody></table></div>
       <p class="contact-tip">Nothing is charged on ${SITE.name}. ${esc(fn)} confirms availability and you pay ${l.v === 'spaces' && offerOf(l.v, l.cat).lease ? 'the landlord / agent' : 'the provider'} directly.</p>
       <div class="contact-divider"><span>send this request by</span></div><div class="contact-alt"><button class="btn btn-whatsapp" data-wa="${l.id}">${ico('wa')}WhatsApp</button><button class="btn btn-outline" data-email="${l.id}">${ico('msg')}Email</button><button class="btn btn-outline" data-call="${l.id}">${ico('phone')}Call</button></div></div>`, 'contact-modal');
   }
@@ -159,8 +159,8 @@
     const l = UPUI.byId(id), fn = l.provider.name.split(' ')[0];
     const txt = `Hi ${fn}, I saw ${l.title} (Ref ${l.ref}) on ${SITE.name}. Is it available?`;
     openModal(`<div class="contact-header"><div class="avatar">${esc(initials(l.provider.name))}</div><div class="contact-title"><b>Text ${esc(fn)}</b><span>${UPUI.fmtPhone(l.provider.phone)}</span></div><button class="close-btn" aria-label="Close" data-close>${ico('x')}</button></div>
-      <div class="contact-body"><label class="contact-label">Message</label><textarea class="contact-message" id="smsTxt" style="background:#f7f4fe;border-color:#e6e0f6;color:#2e1f55">${esc(txt)}</textarea>
-      <a class="btn contact-submit" style="background:#7c4dd6;color:#fff" id="smsGo" href="sms:${l.provider.phone}?&body=${encodeURIComponent(txt)}">${ico('msg')}Open Messages</a></div>`, 'contact-modal');
+      <div class="contact-body"><label class="contact-label">Message</label><textarea class="contact-message" id="smsTxt" style="">${esc(txt)}</textarea>
+      <a class="btn btn-primary contact-submit" style="" id="smsGo" href="sms:${l.provider.phone}?&body=${encodeURIComponent(txt)}">${ico('msg')}Open Messages</a></div>`, 'contact-modal');
     const t = document.getElementById('smsTxt'), g = document.getElementById('smsGo');
     t.oninput = () => g.href = `sms:${l.provider.phone}?&body=${encodeURIComponent(t.value)}`;
     g.onclick = () => { toast('Opening Messages…'); setTimeout(closeModal, 300); };

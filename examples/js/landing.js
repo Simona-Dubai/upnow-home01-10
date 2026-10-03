@@ -9,7 +9,7 @@ bindHeader();
 $('kicker').textContent = C.hero.kicker;
 $('title').innerHTML = C.hero.title;
 $('text').textContent = C.hero.text;
-$('heroActions').innerHTML = ui.button({ label: 'Book a tour', icon: 'cal', href: '#tour', variant: '', attrs: { style: 'background:#fff;color:var(--g9)' } })
+$('heroActions').innerHTML = ui.button({ label: 'Book a tour', icon: 'cal', href: '#tour', variant: '', attrs: { style: 'background:#fff;color:var(--color-primary-darkest)' } })
   + ui.button({ label: 'See workspaces', href: 'spaces.html', variant: '', attrs: { style: 'border:1.5px solid rgba(255,255,255,.4);color:#fff' } });
 
 $('features').innerHTML = C.features.map(([i, t, s]) => `<div>${ico(i)}<b>${esc(t)}</b><span>${esc(s)}</span></div>`).join('');
@@ -38,6 +38,6 @@ $('tourForm').addEventListener('submit', e => {
   e.preventDefault();
   const name = new FormData(e.target).get('name');
   openModal(`<div class="modal-header"><h3>Tour requested</h3><button class="close-btn" aria-label="Close" data-close>${ico('x')}</button></div>
-    <div class="modal-body"><p style="margin:0 0 14px;color:var(--ink2)">Thanks ${esc(name)} — the community team will call you to fix a time.</p>${ui.button({ label: 'Done', attrs: { 'data-close': true } })}</div>`);
+    <div class="modal-body"><p style="margin:0 0 14px;color:var(--color-text-secondary)">Thanks ${esc(name)} — the community team will call you to fix a time.</p>${ui.button({ label: 'Done', attrs: { 'data-close': true } })}</div>`);
   toast('Tour request sent');
 });

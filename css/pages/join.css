@@ -1,12 +1,12 @@
 @charset "UTF-8";
 /* Provider onboarding (Join.html) */
 .ob-body {
-  background: var(--bg);
+  background: var(--color-bg);
 }
 
 .ob-top {
   background: #fff;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .ob-top .wrap {
@@ -24,8 +24,8 @@
   font-style: normal;
   font-weight: 600;
   font-size: 12px;
-  color: var(--g7);
-  background: var(--g1);
+  color: var(--color-primary);
+  background: var(--color-primary-tint-light);
   border-radius: 99px;
   padding: 3px 9px;
   margin-left: 4px;
@@ -38,11 +38,11 @@
   gap: 6px;
   font-weight: 700;
   font-size: 13px;
-  color: var(--ink2);
+  color: var(--color-text-secondary);
 }
 
 .ob-help:hover {
-  color: var(--g7);
+  color: var(--color-primary);
 }
 
 .ob-help .icon {
@@ -81,7 +81,7 @@
   padding: 10px 12px;
   border-radius: 12px;
   font-size: 13px;
-  color: var(--ink3);
+  color: var(--color-text-muted);
   background: transparent;
   text-align: left;
 }
@@ -95,7 +95,7 @@
   font-style: normal;
   font-weight: 800;
   font-size: 12px;
-  border: 1.5px solid var(--line2);
+  border: 1.5px solid var(--color-border-strong);
   background: #fff;
   flex: none;
 }
@@ -114,24 +114,24 @@
 
 .ob-steps li.is-now>* {
   background: #fff;
-  color: var(--ink);
-  box-shadow: var(--sh);
+  color: var(--color-text);
+  box-shadow: var(--shadow);
 }
 
 .ob-steps li.is-now i {
-  background: var(--g7);
-  border-color: var(--g7);
+  background: var(--color-primary);
+  border-color: var(--color-primary);
   color: #fff;
 }
 
 .ob-steps li.is-done>* {
-  color: var(--g8);
+  color: var(--color-primary-dark);
 }
 
 .ob-steps li.is-done i {
-  background: var(--g1);
-  border-color: var(--g5);
-  color: var(--g7);
+  background: var(--color-primary-tint-light);
+  border-color: var(--color-primary-lighter);
+  color: var(--color-primary);
 }
 
 .ob-steps li.is-done button:hover {
@@ -141,22 +141,22 @@
 /* panel */
 .ob-panel {
   background: #fff;
-  border: 1px solid var(--line);
+  border: 1px solid var(--color-border);
   border-radius: 20px;
   padding: 28px 30px;
 }
 
 .ob-h1 {
-  font-family: var(--serif);
+  font-family: var(--font-serif);
   font-weight: 700;
   font-size: 28px;
-  color: var(--g9);
+  color: var(--color-primary-darkest);
   letter-spacing: -.01em;
   line-height: 1.15;
 }
 
 .ob-sub {
-  color: var(--ink2);
+  color: var(--color-text-secondary);
   margin: 8px 0 22px;
   max-width: 560px;
 }
@@ -166,7 +166,7 @@
   font-weight: 800;
   letter-spacing: .06em;
   text-transform: uppercase;
-  color: var(--ink3);
+  color: var(--color-text-muted);
   margin: 22px 0 10px;
 }
 
@@ -186,7 +186,7 @@
 }
 
 .ob-hint {
-  color: var(--ink3);
+  color: var(--color-text-muted);
   font-size: 12px;
 }
 
@@ -194,7 +194,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  color: var(--red);
+  color: var(--color-danger);
   font-size: 12.5px;
   font-weight: 600;
   margin-top: 4px;
@@ -209,7 +209,7 @@
 .ob-field.has-error select,
 .ob-field.has-error textarea,
 .ob-field.has-error .ob-phone {
-  border-color: var(--red);
+  border-color: var(--color-danger);
 }
 
 .ob-select {
@@ -231,27 +231,27 @@
   width: 14px;
   height: 14px;
   pointer-events: none;
-  color: var(--ink3);
+  color: var(--color-text-muted);
 }
 
 .ob-phone {
   display: flex;
   align-items: center;
   gap: 8px;
-  border: 1.5px solid var(--line2);
+  border: 1.5px solid var(--color-border-strong);
   border-radius: 10px;
   padding: 4px 4px 4px 12px;
   background: #fff;
 }
 
 .ob-phone:focus-within {
-  border-color: var(--g6);
+  border-color: var(--color-primary-light);
 }
 
 .ob-phone span {
   font-weight: 700;
   font-size: 14px;
-  color: var(--ink2);
+  color: var(--color-text-secondary);
   white-space: nowrap;
 }
 
@@ -271,8 +271,8 @@
   font-style: normal;
   font-weight: 800;
   font-size: 12.5px;
-  color: var(--g7);
-  background: var(--g1);
+  color: var(--color-primary);
+  background: var(--color-primary-tint-light);
   border-radius: 99px;
   padding: 6px 10px;
 }
@@ -286,7 +286,7 @@
   width: 100%;
   height: 48px;
   border-radius: 12px;
-  border: 1.5px solid var(--line2);
+  border: 1.5px solid var(--color-border-strong);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -305,13 +305,13 @@
 }
 
 .ob-uaepass:hover {
-  border-color: var(--ink2);
+  border-color: var(--color-text-secondary);
 }
 
 .ob-uaepass.is-done {
-  border-color: var(--g6);
-  background: var(--g1);
-  color: var(--g8);
+  border-color: var(--color-primary-light);
+  background: var(--color-primary-tint-light);
+  color: var(--color-primary-dark);
 }
 
 .ob-chips,
@@ -351,29 +351,29 @@
   align-items: center;
   gap: 6px;
   padding: 12px 6px;
-  border: 1.5px solid var(--line);
+  border: 1.5px solid var(--color-border);
   border-radius: 14px;
   background: #fff;
   font-weight: 700;
   font-size: 12.5px;
-  color: var(--ink2);
+  color: var(--color-text-secondary);
   text-align: center;
 }
 
 .ob-verticals button .icon {
   width: 20px;
   height: 20px;
-  color: var(--g7);
+  color: var(--color-primary);
 }
 
 .ob-verticals button:hover {
-  border-color: var(--g5);
+  border-color: var(--color-primary-lighter);
 }
 
 .ob-verticals button.is-active {
-  border-color: var(--g7);
-  background: var(--g1);
-  color: var(--g8);
+  border-color: var(--color-primary);
+  background: var(--color-primary-tint-light);
+  color: var(--color-primary-dark);
 }
 
 .ob-roles {
@@ -387,22 +387,22 @@
   align-items: center;
   gap: 12px;
   padding: 14px;
-  border: 1.5px solid var(--line);
+  border: 1.5px solid var(--color-border);
   border-radius: 14px;
   background: #fff;
   text-align: left;
 }
 
 .ob-role:hover {
-  border-color: var(--g5);
+  border-color: var(--color-primary-lighter);
 }
 
 .ob-role i {
   width: 40px;
   height: 40px;
   border-radius: 11px;
-  background: var(--g1);
-  color: var(--g7);
+  background: var(--color-primary-tint-light);
+  color: var(--color-primary);
   display: grid;
   place-items: center;
   flex: none;
@@ -425,7 +425,7 @@
 
 .ob-role small {
   display: block;
-  color: var(--ink3);
+  color: var(--color-text-muted);
   font-size: 12.5px;
   margin-top: 1px;
 }
@@ -434,19 +434,19 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 2px solid var(--line2);
+  border: 2px solid var(--color-border-strong);
   flex: none;
   display: grid;
   place-items: center;
 }
 
 .ob-role.is-active {
-  border-color: var(--g7);
+  border-color: var(--color-primary);
   background: #f7fbf9;
 }
 
 .ob-role.is-active .ob-radio {
-  border-color: var(--g7);
+  border-color: var(--color-primary);
 }
 
 .ob-role.is-active .ob-radio::after {
@@ -454,7 +454,7 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: var(--g7);
+  background: var(--color-primary);
 }
 
 /* documents */
@@ -469,22 +469,22 @@
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
-  border: 1.5px dashed var(--line2);
+  border: 1.5px dashed var(--color-border-strong);
   border-radius: 14px;
   background: #fff;
   cursor: pointer;
 }
 
 .ob-doc:hover {
-  border-color: var(--g5);
+  border-color: var(--color-primary-lighter);
 }
 
 .ob-doc i {
   width: 38px;
   height: 38px;
   border-radius: 10px;
-  background: var(--bg);
-  color: var(--ink3);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
   display: grid;
   place-items: center;
   flex: none;
@@ -503,13 +503,13 @@
 .ob-doc b em {
   font-style: normal;
   font-weight: 600;
-  color: var(--ink3);
+  color: var(--color-text-muted);
   font-size: 12px;
 }
 
 .ob-doc small {
   display: block;
-  color: var(--ink3);
+  color: var(--color-text-muted);
   font-size: 12.5px;
   white-space: nowrap;
   overflow: hidden;
@@ -518,17 +518,17 @@
 
 .ob-doc.is-done {
   border-style: solid;
-  border-color: var(--g5);
+  border-color: var(--color-primary-lighter);
   background: #f7fbf9;
 }
 
 .ob-doc.is-done i {
-  background: var(--g7);
+  background: var(--color-primary);
   color: #fff;
 }
 
 .ob-doc.has-error {
-  border-color: var(--red);
+  border-color: var(--color-danger);
 }
 
 .ob-check {
@@ -537,7 +537,7 @@
   align-items: flex-start;
   margin-top: 22px;
   font-size: 13px;
-  color: var(--ink2);
+  color: var(--color-text-secondary);
   cursor: pointer;
 }
 
@@ -545,12 +545,12 @@
   width: 18px;
   height: 18px;
   margin-top: 1px;
-  accent-color: var(--g7);
+  accent-color: var(--color-primary);
   flex: none;
 }
 
 .ob-check.has-error {
-  color: var(--red);
+  color: var(--color-danger);
 }
 
 /* footer nav */
@@ -561,7 +561,7 @@
   gap: 12px;
   margin-top: 28px;
   padding-top: 20px;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--color-border);
 }
 
 .ob-nav .btn {
@@ -574,13 +574,13 @@
   align-items: center;
   gap: 5px;
   font-size: 12px;
-  color: var(--ink3);
+  color: var(--color-text-muted);
 }
 
 .ob-save .icon {
   width: 13px;
   height: 13px;
-  color: var(--g6);
+  color: var(--color-primary-light);
 }
 
 /* submitted */
@@ -593,7 +593,7 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: var(--g7);
+  background: var(--color-primary);
   color: #fff;
   display: grid;
   place-items: center;
@@ -631,7 +631,7 @@
   top: 38px;
   bottom: -6px;
   width: 2px;
-  background: var(--line);
+  background: var(--color-border);
 }
 
 .ob-timeline i {
@@ -644,8 +644,8 @@
   font-weight: 800;
   font-size: 12px;
   background: #fff;
-  border: 1.5px solid var(--line2);
-  color: var(--ink3);
+  border: 1.5px solid var(--color-border-strong);
+  color: var(--color-text-muted);
   flex: none;
 }
 
@@ -655,14 +655,14 @@
 }
 
 .ob-timeline li.is-done i {
-  background: var(--g7);
-  border-color: var(--g7);
+  background: var(--color-primary);
+  border-color: var(--color-primary);
   color: #fff;
 }
 
 .ob-timeline li.is-now i {
-  border-color: var(--g7);
-  color: var(--g7);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .ob-timeline b {
@@ -671,7 +671,7 @@
 }
 
 .ob-timeline small {
-  color: var(--ink3);
+  color: var(--color-text-muted);
   font-size: 12.5px;
 }
 
@@ -697,7 +697,7 @@
   font-weight: 800;
   letter-spacing: .06em;
   text-transform: uppercase;
-  color: var(--ink3);
+  color: var(--color-text-muted);
   margin-bottom: 10px;
 }
 
@@ -720,7 +720,7 @@
   padding: 0 4px;
   font-size: 12px;
   font-weight: 700;
-  color: var(--ink3);
+  color: var(--color-text-muted);
 }
 
 .ob-card-status .icon {
@@ -731,7 +731,7 @@
 }
 
 .ob-card-status.is-review {
-  color: var(--amber);
+  color: var(--color-amber);
 }
 
 .ob-why {
@@ -747,7 +747,7 @@
   display: flex;
   gap: 10px;
   font-size: 12.5px;
-  color: var(--ink2);
+  color: var(--color-text-secondary);
 }
 
 .ob-why li>.icon {
@@ -756,21 +756,21 @@
   padding: 7px;
   border-radius: 9px;
   background: #fff;
-  border: 1px solid var(--line);
-  color: var(--g7);
+  border: 1px solid var(--color-border);
+  color: var(--color-primary);
   flex: none;
 }
 
 .ob-why b {
   display: block;
-  color: var(--ink);
+  color: var(--color-text);
   font-size: 13.5px;
 }
 
 .ob-foot {
   text-align: center;
   font-size: 12px;
-  color: var(--ink3);
+  color: var(--color-text-muted);
   padding: 0 16px 28px;
 }
 
@@ -848,7 +848,7 @@
 
 .ob-suggest small {
   width: 100%;
-  color: var(--ink3);
+  color: var(--color-text-muted);
   font-size: 12px;
 }
 
@@ -868,13 +868,13 @@
   gap: 6px;
   min-height: 46px;
   padding: 6px 10px;
-  border: 1.5px solid var(--line2);
+  border: 1.5px solid var(--color-border-strong);
   border-radius: 10px;
   background: #fff;
 }
 
 .ob-tags:focus-within {
-  border-color: var(--g6);
+  border-color: var(--color-primary-light);
 }
 
 .ob-field .ob-tags input {
@@ -893,7 +893,7 @@
   margin-bottom: 10px;
   font-size: 13.5px;
   font-weight: 600;
-  color: var(--ink2);
+  color: var(--color-text-secondary);
   cursor: pointer;
 }
 
@@ -901,5 +901,5 @@
   width: 17px;
   height: 17px;
   padding: 0;
-  accent-color: var(--g7);
+  accent-color: var(--color-primary);
 }

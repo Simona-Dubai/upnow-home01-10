@@ -1,20 +1,20 @@
 /* Site header and footer, rendered from the SITE config (data/site.js).
-   header(activeNavId) → logo, navigation (with "More" dropdown), currency / language selects, saved / enquiries counters,
+   header(activeNavId, { nav: false }) → logo, navigation (nav: false leaves it out, e.g. where the page has its own category tabs) (with "More" dropdown), currency / language selects, saved / enquiries counters,
    sign-in and a call-to-action button — each part can be switched off in SITE.header.
-   footer() → optional CTA band, about text, link columns and legal lines. */
+   footer({ cta: false }) → optional CTA band (cta: false leaves it out), about text, link columns and legal lines. */
 (function () {
   const U = window.UPUI = window.UPUI || {};
   const { ico, esc, t, prefs, store, CUR } = U;
   const HREF = PATHS.href;
 
-  function header(active) {
+  function header(active, { nav = true } = {}) {
     const H = SITE.header, main = H.nav.slice(0, H.visible), rest = H.nav.slice(H.visible), cur = rest.find(x => x.id === active);
     const link = x => `<a href="${x.href}" data-nav="${x.id}" class="${active === x.id ? 'is-active' : ''}">`;
     return `<header class="site-header"><div class="wrap">
       <a class="logo" href="${SITE.homeHref || HREF.home}"><b>${esc(SITE.logoMark)}</b><span>${esc(SITE.name)}</span></a>
-      <nav class="nav">${main.map(x => `${link(x)}${esc(t(x.label))}</a>`).join('')}
+      ${nav ? `<nav class="nav">${main.map(x => `${link(x)}${esc(t(x.label))}</a>`).join('')}
         ${rest.length ? `<div class="nav-more"><button class="${cur ? 'is-active' : ''}" type="button">${cur ? esc(t(cur.label)) : 'More'}${ico('chev')}</button>
-          <div class="nav-dropdown">${rest.map(x => `${link(x)}${ico(x.icon)}<span><b>${esc(t(x.label))}</b><small>${esc(x.blurb)}</small></span></a>`).join('')}</div></div>` : ''}</nav>
+          <div class="nav-dropdown">${rest.map(x => `${link(x)}${ico(x.icon)}<span><b>${esc(t(x.label))}</b><small>${esc(x.blurb)}</small></span></a>`).join('')}</div></div>` : ''}</nav>` : ''}
       <span class="spacer"></span>
       <div class="header-actions">
         ${H.currency ? `<label class="header-select"><select id="hCur">${Object.keys(CUR).map(k => `<option value="${k}" ${prefs.cur === k ? 'selected' : ''}>${CUR[k][2]} ${k}</option>`).join('')}</select>${ico('chev')}</label>` : ''}
@@ -41,9 +41,9 @@
     if (f && U.favs) { f.textContent = U.favs.size; f.hidden = !U.favs.size; }
     if (l && U.leads) { l.textContent = U.leads().length; l.hidden = !U.leads().length; }
   }
-  const BTN = { light: 'background:#fff;color:var(--g9)', outline: 'border:1.5px solid rgba(255,255,255,.4)' };
-  function footer() {
-    const F = SITE.footer, C = F.cta;
+  const BTN = { light: 'background:#fff;color:var(--color-primary-darkest)', outline: 'border:1.5px solid rgba(255,255,255,.4)' };
+  function footer({ cta = true } = {}) {
+    const F = SITE.footer, C = cta && F.cta;
     return `${C ? `<div class="wrap"><section class="cta"${C.id ? ` id="${C.id}"` : ''}><div><div class="cta-kicker">${esc(C.kicker)}</div>
       <h2>${C.title}</h2><p style="margin:16px 0 22px">${esc(C.text)}</p>
       <div style="display:flex;gap:10px;flex-wrap:wrap">${C.buttons.map(b => `<a class="btn" style="${BTN[b.style] || ''}" href="${b.href}">${b.icon ? ico(b.icon) : ''}${esc(b.label)}</a>`).join('')}</div></div>

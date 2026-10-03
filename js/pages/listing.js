@@ -9,7 +9,7 @@ let per = seg ? seg.options[0].v : null;
 UPUI.pushRecent(l.id);
 const DMB = DM.build(l);
 document.getElementById("hdr").innerHTML = UPUI.header(l.v);
-document.getElementById("ftr").innerHTML = UPUI.footer();
+document.getElementById("ftr").innerHTML = UPUI.footer({ cta: false }); // no "list your space" band on listing detail pages
 UPUI.bindHeader();
 const where = UPUI.locText(l);
 document.title = `${l.title} · ${areaName(l.loc)} | UpNow`;
@@ -385,7 +385,7 @@ function paint() {
         )
         .join("")}
       <span>/</span>
-      <span style="color:var(--ink)">${esc(l.ref)}</span>
+      <span style="color:var(--color-text)">${esc(l.ref)}</span>
     </nav>
 
     <div class="title-row">
@@ -395,7 +395,7 @@ function paint() {
           <span>${ico("pin")}${esc(where)}, Dubai</span>
           ${A.verified ? `<span class="verification-box">${ico("shield")}${esc(O.permit || "Provider")} verified</span>` : ""}
           <span class="stars">${ico("star")}${l.rating}
-            <span style="color:var(--ink3);font-weight:500">(${l.reviews})</span>
+            <span style="color:var(--color-text-muted);font-weight:500">(${l.reviews})</span>
           </span>
           <span>${ico("eye")}${120 + Math.round(r() * 900)} views this week</span>
           <span>${ico("clock")}Listed ${l.posted === 0 ? "today" : l.posted + " days ago"}</span>
@@ -550,7 +550,7 @@ function paint() {
             <div>
               <div class="rating-value">${l.rating}</div>
               <div class="rating-stars">★★★★★</div>
-              <div style="color:var(--ink3);font-size:12.5px;margin-top:4px">${l.reviews} verified reviews</div>
+              <div style="color:var(--color-text-muted);font-size:12.5px;margin-top:4px">${l.reviews} verified reviews</div>
             </div>
             <div class="rating-bars">
               ${[72, 18, 6, 3, 1]

@@ -16,7 +16,7 @@ const L0 = L[0],
   SP = v === "spaces",
   LEASE = !!offerOf(v, L0.cat).lease;
 document.getElementById("hdr").innerHTML = UPUI.header(v);
-document.getElementById("ftr").innerHTML = UPUI.footer();
+document.getElementById("ftr").innerHTML = UPUI.footer({ cta: false }); // no "list your space" band on agency pages
 UPUI.bindHeader();
 document.title = `${org} · ${SP ? "Real estate agency" : "Provider"} in Dubai | UpNow`;
 
@@ -135,7 +135,7 @@ function paint() {
     ["areas", "Areas served", areas.length],
   ];
   document.getElementById("ag").innerHTML = `
-  <div class="provider-cover"><svg viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0 70 L0 46 C260 4 520 0 820 30 C1080 56 1280 44 1440 20 L1440 70Z" fill="var(--bg)"/></svg></div>
+  <div class="provider-cover"><svg viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0 70 L0 46 C260 4 520 0 820 30 C1080 56 1280 44 1440 20 L1440 70Z" fill="var(--color-bg)"/></svg></div>
   <div class="wrap">
     <div class="provider-header">
       <div class="provider-avatar is-business" style="--hue:${(org.length * 47) % 360}">${initials(org)}</div>
@@ -145,20 +145,7 @@ function paint() {
     </div>
     <div class="provider-layout"><div>
       <div class="kpis"><div><b>${agents.length}</b><span>${SP ? "Agents" : "Team members"}</span></div><div><b>${L.length}</b><span>Active ${SP ? "listings" : "offers"}</span></div><div><b>${areas.length}</b><span>Areas covered</span></div><div><b>~${reply} min</b><span>Typical reply</span></div></div>
-      <div class="provider-card"><h2>About ${esc(org)}</h2>
-        <p class="provider-about">${esc(org)} is a ${esc(kind.toLowerCase())} with ${agents.length} ${agents.length === 1 ? "agent" : "agents"} on UpNow, listing ${esc(cats.map((c) => offerOf(v, c).label.toLowerCase()).join(", "))} across ${esc(
-          areas
-            .slice(0, 3)
-            .map((a) => areaName(a[0]))
-            .join(", "),
-        )}${areas.length > 3 ? " and " + (areas.length - 3) + " more communities" : ""}. Every enquiry goes straight to the agent handling the listing — no middleman, no fees for you.</p>
-        <div class="facts">
-          <div><small>Specialises in</small><b>${esc(cats.map((c) => offerOf(v, c).label).join(", "))}</b></div>
-          <div><small>Price range</small><b>${money(prices[0])} – ${UP.K(prices[prices.length - 1])}</b></div>
-          <div><small>Head office</small><b>${esc(office)}, Dubai</b> <a class="text-link" href="https://maps.google.com/?q=${encodeURIComponent(org + " " + office + " Dubai")}" target="_blank" rel="noopener">Directions</a></div>
-          <div><small>Working hours</small><b>Mon–Sat · 9 AM–7 PM</b></div>
-        </div></div>
-      <div class="provider-card"><div class="tabs">${T.map(([k, t, n]) => `<button class="${tab === k ? "is-active" : ""}" data-tab="${k}">${t}<em>${n.toLocaleString()}</em></button>`).join("")}</div>
+      <div class="provider-card is-fill"><div class="tabs">${T.map(([k, t, n]) => `<button class="${tab === k ? "is-active" : ""}" data-tab="${k}">${t}<em>${n.toLocaleString()}</em></button>`).join("")}${tab === "listings" ? PROFILE.listingsTools() : ""}</div>
         ${{ listings: listingsHTML, agents: agentsHTML, areas: areasHTML }[tab]()}</div>
     </div>
     <aside class="provider-sidebar">
@@ -173,15 +160,27 @@ function paint() {
               `<a href="${DM.provHref(a.name)}"><div class="avatar" style="--hue:${a.hue}">${initials(a.name)}</div><b>${esc(a.name.split(" ")[0])}</b><small>${a.rating.toFixed(1)}★</small></a>`,
           )
           .join("")}</div></div></div>
+      ${PROFILE.aboutBox({
+        title: "About " + org,
+        text: `${org} is a ${kind.toLowerCase()} with ${agents.length} ${agents.length === 1 ? "agent" : "agents"} on UpNow, listing ${cats.map((c) => offerOf(v, c).label.toLowerCase()).join(", ")} across ${areas.slice(0, 3).map((a) => areaName(a[0])).join(", ")}${areas.length > 3 ? " and " + (areas.length - 3) + " more communities" : ""}. Every enquiry goes straight to the agent handling the listing — no middleman, no fees for you.`,
+        facts: [
+          ["Specialises in", esc(cats.map((c) => offerOf(v, c).label).join(", "))],
+          ["Price range", `${money(prices[0])} – ${UP.K(prices[prices.length - 1])}`],
+          ["Working hours", "Mon–Sat · 9 AM–7 PM"],
+          ["Head office", `${esc(office)} · <a class="text-link" href="https://maps.google.com/?q=${encodeURIComponent(org + " " + office + " Dubai")}" target="_blank" rel="noopener">Directions</a>`],
+        ],
+      })}
       <div class="verification-box"><h4>${ico("shield")}Verified by UpNow</h4>
         ${SP && LEASE ? `<div class="verification-row">${ico("check")}<span>RERA office registration</span><b>ORN ${orn}</b></div>` : ""}
         <div class="verification-row">${ico("check")}<span>Trade licence</span><b>DED ${ded}</b></div>
         <div class="verification-row">${ico("check")}<span>${SP && LEASE ? "Agents with BRN" : "Team ID checked"}</span><b>${SP && LEASE ? agents.filter((a) => a.brn).length : agents.length}/${agents.length}</b></div>
         ${SP && LEASE ? `<div class="verification-row">${ico("check")}<span>Listings with DLD permit</span><b>${L.filter((l) => l.a.verified).length}/${L.length}</b></div>` : ""}
-        <p style="font-size:12px;color:var(--ink3);margin:10px 0 0">UpNow never takes payments. <a class="text-link" href="#" onclick="UPUI.toast('Thanks — our trust team will review');return false">Report agency</a></p></div>
+        <p style="font-size:12px;color:var(--color-text-muted);margin:10px 0 0">UpNow never takes payments. <a class="text-link" href="#" onclick="UPUI.toast('Thanks — our trust team will review');return false">Report agency</a></p></div>
     </aside></div>
   </div>`;
   if (tab === "listings") PROFILE.mount(L, pf);
+  PROFILE.fitAbout();
+  PROFILE.stickySidebar();
 }
 document.addEventListener("click", (e) => {
   const t = e.target.closest("[data-tab]");

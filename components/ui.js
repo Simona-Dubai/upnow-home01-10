@@ -21,11 +21,17 @@
     badge: ({ label, tone, icon }) => `<span class="${cls('badge', tone && 'is-' + tone)}">${icon ? ico(icon) : ''}${esc(label)}</span>`,
 
     /* the card used across the site: photo (+ badges, save button, photo count) · title · location · spec line · price.
-       image: URL or ready HTML (starts with "<"); spec: array of short facts; fav: { id, active, label } */
-    card: ({ href, attrs: a, image, alt = '', badges = [], fav, count, title, location, spec = [], price, unit = '' }) => {
-      const img = !image ? '' : image.startsWith('<') ? image : `<img src="${esc(image)}" alt="${esc(alt || title)}" loading="lazy">`;
+       image: URL or ready HTML (starts with "<"); images: array of URLs → photo slider with back / next arrows;
+       spec: array of short facts; fav: { id, active, label } */
+    card: ({ href, attrs: a, image, images, alt = '', badges = [], fav, count, title, location, spec = [], price, unit = '' }) => {
+      const pic = (src, lazy) => `<img src="${esc(src)}" alt="${esc(alt || title)}"${lazy ? ' loading="lazy"' : ''}>`;
+      const slider = images && images.length > 1;
+      const img = slider ? `<div class="slides">${images.map(src => pic(src, true)).join('')}</div>
+        <button class="slide-btn is-prev" type="button" data-slide="-1" aria-label="Previous photo">${ico('chevL')}</button><button class="slide-btn is-next" type="button" data-slide="1" aria-label="Next photo">${ico('chevR')}</button>`
+        : !image ? '' : image.startsWith('<') ? image : pic(image, true);
+      const n = slider ? images.length : count;
       return `<a class="card" href="${esc(href)}"${attrs(a)}>
-      <div class="photo">${img}<div class="badges">${badges.map(ui.badge).join('')}</div>${fav ? `<button class="fav-btn ${fav.active ? 'is-active' : ''}" data-fav="${esc(fav.id)}" aria-label="${esc(fav.label || 'Save ' + title)}" aria-pressed="${!!fav.active}">${ico('heart')}</button>` : ''}${count > 1 ? `<span class="count">${ico('grid4')}${count}</span>` : ''}</div>
+      <div class="photo"${slider ? ' data-slider data-i="0"' : ''}>${img}<div class="badges">${badges.map(ui.badge).join('')}</div>${fav ? `<button class="fav-btn ${fav.active ? 'is-active' : ''}" data-fav="${esc(fav.id)}" aria-label="${esc(fav.label || 'Save ' + title)}" aria-pressed="${!!fav.active}">${ico('heart')}</button>` : ''}${n > 1 ? `<span class="count">${ico('grid4')}<span>${slider ? '1/' + n : n}</span></span>` : ''}</div>
       <div class="content"><div class="title">${esc(title)}</div>
         <div class="location">${ico('pin')}<span>${esc(location)}</span></div>
         <div class="spec">${spec.map(s => `<span>${esc(s)}</span>`).join('')}</div>
@@ -52,6 +58,17 @@
     /* empty state (inside drawers, lists, results) */
     empty: ({ icon = 'search', title, text, action }) => `<div class="side-drawer-empty">${ico(icon)}<b>${esc(title)}</b>${text ? `<span>${esc(text)}</span>` : ''}${action || ''}</div>`
   };
+
+  /* card photo slider: back / next arrows step through the photos without following the card link */
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-slide]'); if (!b) return;
+    e.preventDefault(); e.stopPropagation();
+    const p = b.closest('[data-slider]'), n = p.querySelectorAll('.slides img').length;
+    const i = (+p.dataset.i + +b.dataset.slide + n) % n;
+    p.dataset.i = i;
+    p.querySelector('.slides').style.transform = `translateX(${-100 * i}%)`;
+    const c = p.querySelector('.count span'); if (c) c.textContent = `${i + 1}/${n}`;
+  });
 
   Object.assign(U, { ui });
 })();
