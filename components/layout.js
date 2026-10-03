@@ -11,7 +11,7 @@
     const H = SITE.header, main = H.nav.slice(0, H.visible), rest = H.nav.slice(H.visible), cur = rest.find(x => x.id === active);
     const link = x => `<a href="${x.href}" data-nav="${x.id}" class="${active === x.id ? 'is-active' : ''}">`;
     return `<header class="site-header"><div class="wrap">
-      <a class="logo" href="${HREF.home}"><b>${esc(SITE.logoMark)}</b><span>${esc(SITE.name)}</span></a>
+      <a class="logo" href="${SITE.homeHref || HREF.home}"><b>${esc(SITE.logoMark)}</b><span>${esc(SITE.name)}</span></a>
       <nav class="nav">${main.map(x => `${link(x)}${esc(t(x.label))}</a>`).join('')}
         ${rest.length ? `<div class="nav-more"><button class="${cur ? 'is-active' : ''}" type="button">${cur ? esc(t(cur.label)) : 'More'}${ico('chev')}</button>
           <div class="nav-dropdown">${rest.map(x => `${link(x)}${ico(x.icon)}<span><b>${esc(t(x.label))}</b><small>${esc(x.blurb)}</small></span></a>`).join('')}</div></div>` : ''}</nav>
@@ -49,7 +49,7 @@
       <div style="display:flex;gap:10px;flex-wrap:wrap">${C.buttons.map(b => `<a class="btn" style="${BTN[b.style] || ''}" href="${b.href}">${b.icon ? ico(b.icon) : ''}${esc(b.label)}</a>`).join('')}</div></div>
       <div class="stats">${C.stats.map(([b, s]) => `<div><b>${esc(b)}</b><span>${esc(s)}</span></div>`).join('')}</div></section></div>` : ''}
       <footer class="site-footer"><div class="wrap footer-grid">
-        <div><a class="logo" href="${HREF.home}"><b>${esc(SITE.logoMark)}</b>${esc(SITE.name)}</a><p>${esc(F.about)}</p></div>
+        <div><a class="logo" href="${SITE.homeHref || HREF.home}"><b>${esc(SITE.logoMark)}</b>${esc(SITE.name)}</a><p>${esc(F.about)}</p></div>
         ${F.columns.map(c => `<div><h5>${esc(c.title)}</h5>${c.links.map(([l, h]) => `<a href="${h}">${esc(l)}</a>`).join('')}</div>`).join('\n        ')}
       </div><div class="wrap footer-bottom">${F.legal.map(x => `<span>${esc(x)}</span>`).join('')}</div></footer>`;
   }
