@@ -84,3 +84,31 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* compact grid / rows */
+@media (max-width: 1250px) {
+  .compact-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 800px) {
+  .compact-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .row-item {
+    grid-template-columns: 88px minmax(0, 1fr);
+  }
+
+  .row-item img,
+  .row-item .tile {
+    width: 88px;
+    height: 64px;
+  }
+
+  .row-item .row-price {
+    grid-column: 2;
+    text-align: left;
+  }
+}
