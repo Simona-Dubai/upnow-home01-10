@@ -21,13 +21,16 @@ body.mobile-shell {
     height: 100dvh;
     overflow: hidden;
   }
+
   #desktop-site {
     display: none;
   }
+
   #mobile-app,
   #mobile-app .phone-frame {
     display: block;
   }
+
   #mobile-app .phone-frame {
     width: 100vw;
     height: 100vh;
@@ -36,22 +39,24 @@ body.mobile-shell {
     padding: 0;
     box-shadow: none;
   }
+
   #mobile-app .phone-screen {
     border-radius: 0;
   }
+
   #mobile-app .phone-island {
     display: none;
   }
+
   #mobile-app .status-bar > * {
     display: none;
   }
+
   #mobile-app .status-bar:not(.is-overlay) {
     height: 0;
   }
-  #mobile-app .screen-view.is-under-bar {
-    margin-top: 0;
-  }
 }
+
 .home-hero {
   position: relative;
   padding: 40px 0 34px;
@@ -356,13 +361,16 @@ body.mobile-shell {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
 @media (max-width: 900px) {
   .home-hero h1 {
     font-size: 44px;
   }
+
   .card-row {
     grid-template-columns: repeat(2, 1fr);
   }
+
   .popular-areas,
   .how-it-works {
     grid-template-columns: repeat(2, 1fr);

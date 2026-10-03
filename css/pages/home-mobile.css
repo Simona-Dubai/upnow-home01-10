@@ -64,15 +64,6 @@ body.mobile-shell {
   margin-top: -6px;
 }
 
-.demo-sidebar .demo-section-label {
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink3);
-  margin: 16px 12px 6px;
-}
-
 .phone-frame {
   width: 392px;
   height: 848px;
@@ -121,10 +112,6 @@ body.mobile-shell {
   z-index: 60;
 }
 
-.status-bar.is-light {
-  color: #fff;
-}
-
 .status-bar.is-overlay {
   position: absolute;
   top: 0;
@@ -163,10 +150,6 @@ body.mobile-shell {
   scrollbar-width: none;
 }
 
-.screen-view.is-under-bar {
-  margin-top: -50px;
-}
-
 .h-scroll {
   display: flex;
   gap: 12px;
@@ -193,9 +176,11 @@ body.mobile-shell {
     padding: 0;
     display: block;
   }
+
   .demo-sidebar {
     display: none;
   }
+
   .phone-frame {
     width: 100vw;
     height: 100vh;
@@ -204,13 +189,16 @@ body.mobile-shell {
     padding: 0;
     box-shadow: none;
   }
+
   .phone-screen {
     border-radius: 0;
   }
+
   .phone-island {
     display: none;
   }
 }
+
 /* tab bar */
 .tab-bar {
   flex: none;
@@ -1534,12 +1522,6 @@ body.mobile-shell {
   font-weight: 800;
   font-size: 14px;
   flex: none;
-}
-
-.cta-bar.is-lease .btn {
-  flex: 1;
-  height: 48px;
-  border-radius: 14px;
 }
 
 /* bottom sheet */

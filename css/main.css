@@ -1,0 +1,10 @@
+@charset "UTF-8";
+/* Shared stylesheet: link this on every page, then the page's own file from css/pages/.
+   Order matters: tokens → reset → base → components → utilities → responsive. */
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Serif:opsz,wght@8..144,500;8..144,600;8..144,700;8..144,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+@import url("variables.css");
+@import url("reset.css");
+@import url("base.css");
+@import url("components.css");
+@import url("utilities.css");
+@import url("responsive.css");
