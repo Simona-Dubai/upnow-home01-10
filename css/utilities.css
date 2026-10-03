@@ -17,7 +17,7 @@
 }
 
 .text-link {
-  color: var(--g7);
+  color: var(--color-primary);
   font-weight: 700;
   font-size: 12.5px;
   text-decoration: underline;

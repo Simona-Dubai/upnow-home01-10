@@ -81,10 +81,10 @@ The generic layer never reads listing data, so a site that is not a marketplace 
 
 All values live in `css/variables.css`; the component library shows them live.
 
-- **Colours:** brand greens `--g1` (lightest) … `--g9` (darkest); text `--ink`, `--ink2`, `--ink3`; lines `--line`, `--line2`; page background `--bg`; status `--wa` (WhatsApp), `--amber`, `--red`, `--warning-bg`, `--warning-ink`, `--disabled-ink`, `--rating-star(-strong)`.
-- **Type:** `--sans` = Plus Jakarta Sans (interface, 400–800), `--serif` = Roboto Serif (display headings). Body 14px / 1.45. Common sizes: 60 / 36 / 28 / 24 / 20 / 18 / 16 / 15 / 14 / 13 / 12.5 / 12 / 11px.
-- **Radius:** pills 99px · cards `--r` 14px · fields `--r-sm` 10px · panels 18px · modals 18px.
-- **Shadows:** `--sh` (raised), `--sh-lg` (floating).
+- **Colours:** brand `--color-primary` with `-darkest`, `-dark`, `-light`, `-lighter`, `-tint`, `-tint-light` steps; text `--color-text`, `--color-text-secondary`, `--color-text-muted`; borders `--color-border`, `--color-border-strong`; page background `--color-bg`; status `--color-whatsapp` (WhatsApp), `--color-amber`, `--color-danger`, `--color-warning-bg`, `--color-warning-text`, `--color-text-disabled`, `--color-rating-star(-strong)`.
+- **Type:** `--font-sans` = Plus Jakarta Sans (interface, 400–800), `--font-serif` = Roboto Serif (display headings). Body 14px / 1.45. Common sizes: 60 / 36 / 28 / 24 / 20 / 18 / 16 / 15 / 14 / 13 / 12.5 / 12 / 11px.
+- **Radius:** pills 99px · cards `--radius` 14px · fields `--radius-sm` 10px · panels 18px · modals 18px.
+- **Shadows:** `--shadow` (raised), `--shadow-lg` (floating).
 - **Container:** `.wrap` — max 1360px, padding 48px → 28px (≤ 1100px) → 16px (≤ 640px).
 - **Breakpoints (max-width):** 1250, 1200, 1180, 1100, 1000, 960, 900, 800, 700, 640, 520px.
 - **Layers (z-index):** header 60, dropdown 70, popovers 80, drawers 150–190, modal 200, lightbox 250, toast 300.
@@ -117,7 +117,7 @@ Plain HTML works too: `<button class="btn btn-primary">…</button>`, `<div clas
 
 ## Add a component
 
-1. **Styles:** add a section to `css/components.css` using the tokens (`var(--g7)`, `var(--r)` …). Breakpoints go in `css/responsive.css`.
+1. **Styles:** add a section to `css/components.css` using the tokens (`var(--color-primary)`, `var(--radius)` …). Breakpoints go in `css/responsive.css`.
 2. **Markup helper (optional):** add a builder to `UPUI.ui` in `components/ui.js` — take plain content, return an HTML string, escape text with `esc()`.
    Marketplace-specific pieces go in `components/marketplace/`.
 3. **Document it:** add an entry to `DEMOS` in `js/pages/components.js` so it appears in the component library.
@@ -136,8 +136,8 @@ All links and images go through `PATHS`, so pages work from `/`, `/pages/` or an
 
 ## Change the theme
 
-- **Colours:** override the tokens after `main.css`, as `examples/theme.css` does — e.g. set `--g1 … --g9` to another hue. Every component follows.
-- **Fonts:** replace the files in `assets/fonts/`, update `css/fonts.css`, and set `--sans` / `--serif` in `css/variables.css`.
+- **Colours:** override the tokens after `main.css`, as `examples/theme.css` does — e.g. set the `--color-primary*` tokens to another hue. Every component follows.
+- **Fonts:** replace the files in `assets/fonts/`, update `css/fonts.css`, and set `--font-sans` / `--font-serif` in `css/variables.css`.
 - **Brand, navigation, footer, currencies, languages:** edit `data/site.js` (or write your own `SITE`, like `examples/content.js`).
 - **Logo:** `SITE.logoMark` / `SITE.name` for the header mark; `assets/logos/` for the image and tab icon.
 - **Icons:** add a path to `components/icons.js`; export it to `assets/icons/` if you need the file.

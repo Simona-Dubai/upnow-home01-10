@@ -86,7 +86,7 @@
   }
   function signin() {
     openModal(`<div class="modal-header"><h3>Sign in to ${SITE.name}</h3><button class="close-btn" aria-label="Close" data-close>${ico('x')}</button></div>
-      <div class="modal-body"><p style="margin:0 0 14px;color:var(--ink2)">Keep your saved spaces and enquiries on every device.</p>
+      <div class="modal-body"><p style="margin:0 0 14px;color:var(--color-text-secondary)">Keep your saved spaces and enquiries on every device.</p>
       <div class="field"><label>Mobile number</label><input value="+971 " inputmode="tel"></div>
       <button class="btn btn-primary" style="width:100%;height:46px" onclick="UPUI.closeModal();UPUI.toast('We sent a code by WhatsApp')">${ico('wa')}Continue with WhatsApp code</button>
       <div class="or-divider"><span>or</span></div><button class="btn btn-outline" style="width:100%" onclick="UPUI.closeModal();UPUI.toast('Signed in')">Continue with UAE PASS</button>

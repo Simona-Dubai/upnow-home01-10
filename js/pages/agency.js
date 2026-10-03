@@ -135,7 +135,7 @@ function paint() {
     ["areas", "Areas served", areas.length],
   ];
   document.getElementById("ag").innerHTML = `
-  <div class="provider-cover"><svg viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0 70 L0 46 C260 4 520 0 820 30 C1080 56 1280 44 1440 20 L1440 70Z" fill="var(--bg)"/></svg></div>
+  <div class="provider-cover"><svg viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0 70 L0 46 C260 4 520 0 820 30 C1080 56 1280 44 1440 20 L1440 70Z" fill="var(--color-bg)"/></svg></div>
   <div class="wrap">
     <div class="provider-header">
       <div class="provider-avatar is-business" style="--hue:${(org.length * 47) % 360}">${initials(org)}</div>
@@ -178,7 +178,7 @@ function paint() {
         <div class="verification-row">${ico("check")}<span>Trade licence</span><b>DED ${ded}</b></div>
         <div class="verification-row">${ico("check")}<span>${SP && LEASE ? "Agents with BRN" : "Team ID checked"}</span><b>${SP && LEASE ? agents.filter((a) => a.brn).length : agents.length}/${agents.length}</b></div>
         ${SP && LEASE ? `<div class="verification-row">${ico("check")}<span>Listings with DLD permit</span><b>${L.filter((l) => l.a.verified).length}/${L.length}</b></div>` : ""}
-        <p style="font-size:12px;color:var(--ink3);margin:10px 0 0">UpNow never takes payments. <a class="text-link" href="#" onclick="UPUI.toast('Thanks — our trust team will review');return false">Report agency</a></p></div>
+        <p style="font-size:12px;color:var(--color-text-muted);margin:10px 0 0">UpNow never takes payments. <a class="text-link" href="#" onclick="UPUI.toast('Thanks — our trust team will review');return false">Report agency</a></p></div>
     </aside></div>
   </div>`;
   if (tab === "listings") PROFILE.mount(L, pf);

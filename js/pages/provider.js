@@ -90,7 +90,7 @@ function reviewsHTML() {
       1,
     ],
   ];
-  return `<div class="reviews-summary"><div><div class="rating-value">${P.rating.toFixed(1)}</div><div class="rating-stars">★★★★★</div><div style="color:var(--ink3);font-size:12.5px;margin-top:4px">${P.reviews.toLocaleString()} verified reviews</div></div>
+  return `<div class="reviews-summary"><div><div class="rating-value">${P.rating.toFixed(1)}</div><div class="rating-stars">★★★★★</div><div style="color:var(--color-text-muted);font-size:12.5px;margin-top:4px">${P.reviews.toLocaleString()} verified reviews</div></div>
     <div class="rating-breakdown">${[78, 15, 4, 2, 1].map((d, i) => `<div><span>${5 - i} stars</span><i><b style="width:${d}%"></b></i><em>${d}%</em></div>`).join("")}</div>
     <div class="rating-breakdown">${attrs
       .map((a, i) => {
@@ -133,7 +133,7 @@ function paint() {
   ].filter(Boolean);
   const team = P.person && !/^Private/.test(P.org) ? teamHTML() : "";
   document.getElementById("pv").innerHTML = `
-  <div class="provider-cover"><svg viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0 70 L0 46 C260 4 520 0 820 30 C1080 56 1280 44 1440 20 L1440 70Z" fill="var(--bg)"/></svg></div>
+  <div class="provider-cover"><svg viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0 70 L0 46 C260 4 520 0 820 30 C1080 56 1280 44 1440 20 L1440 70Z" fill="var(--color-bg)"/></svg></div>
   <div class="wrap">
     <div class="provider-header">
       <div class="provider-avatar ${P.person ? "" : "is-business"}" style="--hue:${P.hue}">${initials(P.name)}<span class="online-dot"></span></div>
@@ -180,7 +180,7 @@ function paint() {
         <div class="verification-row">${ico("check")}<span>${P.person ? "Employer / agency" : "Trade licence"}</span><b>${P.person ? "Confirmed" : "Valid to 2027"}</b></div>
         <div class="verification-row">${ico("check")}<span>Mobile number</span><b>Verified</b></div>
         ${SP && LEASE ? `<div class="verification-row">${ico("check")}<span>Listings with DLD permit</span><b>${P.L.filter((l) => l.a.verified).length}/${P.L.length}</b></div>` : ""}
-        <p style="font-size:12px;color:var(--ink3);margin:10px 0 0">${SP && LEASE ? "Validate the broker card on the Dubai REST app. " : ""}UpNow never takes payments. <a class="text-link" href="#" onclick="UPUI.toast('Thanks — our trust team will review');return false">Report profile</a></p></div>
+        <p style="font-size:12px;color:var(--color-text-muted);margin:10px 0 0">${SP && LEASE ? "Validate the broker card on the Dubai REST app. " : ""}UpNow never takes payments. <a class="text-link" href="#" onclick="UPUI.toast('Thanks — our trust team will review');return false">Report profile</a></p></div>
     </aside></div>
   </div>`;
   if (tab === "listings") PROFILE.mount(P.L, pf);

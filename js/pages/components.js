@@ -7,15 +7,15 @@ const pick = cat => LISTINGS.find(l => l.cat === cat);
 
 /* ---------- design tokens (values read live from :root, so a theme change shows here) ---------- */
 const TOKENS = {
-  'Brand greens': ['--g9', '--g8', '--g7', '--g6', '--g5', '--g2', '--g1'],
-  'Text & surfaces': ['--ink', '--ink2', '--ink3', '--line', '--line2', '--bg', '--card'],
-  'Status': ['--wa', '--amber', '--red', '--warning-bg', '--warning-ink', '--disabled-ink', '--rating-star', '--rating-star-strong']
+  'Brand greens': ['--color-primary-darkest', '--color-primary-dark', '--color-primary', '--color-primary-light', '--color-primary-lighter', '--color-primary-tint', '--color-primary-tint-light'],
+  'Text & surfaces': ['--color-text', '--color-text-secondary', '--color-text-muted', '--color-border', '--color-border-strong', '--color-bg', '--color-surface'],
+  'Status': ['--color-whatsapp', '--color-amber', '--color-danger', '--color-warning-bg', '--color-warning-text', '--color-text-disabled', '--color-rating-star', '--color-rating-star-strong']
 };
 const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const FONT_SIZES = [['60px', 'Hero headline', 'serif'], ['36px', 'Profile name', 'serif'], ['28px', 'Price (detail)', 'sans'], ['24px', 'Section title', 'sans'], ['20px', 'Card group title', 'sans'], ['18px', 'Modal title', 'sans'],
   ['16px', 'Card price', 'sans'], ['15px', 'Emphasis', 'sans'], ['14px', 'Body (base)', 'sans'], ['13px', 'Secondary text', 'sans'], ['12.5px', 'Meta / captions', 'sans'], ['12px', 'Small print', 'sans'], ['11px', 'Labels (uppercase)', 'sans']];
-const RADII = [['99px', 'Pills: buttons, chips, selects'], ['50%', 'Avatars, icon buttons'], ['22px', 'Footer CTA band'], ['20px', 'Agent card'], ['18px', 'Modals, panels, profile cards'], ['16px', 'Popovers, dropdowns'], ['var(--r) 14px', 'Cards, boxes'], ['12px', 'Tiles, inputs'], ['var(--r-sm) 10px', 'Fields, small boxes'], ['6px', 'Badges']];
-const SHADOWS = [['var(--sh)', 'Raised: cards on hover, price box'], ['var(--sh-lg)', 'Floating: popovers, modals, dropdowns'], ['0 1px 2px rgba(15,40,28,.05), 0 10px 30px rgba(15,40,28,.07)', 'Agent card']];
+const RADII = [['99px', 'Pills: buttons, chips, selects'], ['50%', 'Avatars, icon buttons'], ['22px', 'Footer CTA band'], ['20px', 'Agent card'], ['18px', 'Modals, panels, profile cards'], ['16px', 'Popovers, dropdowns'], ['var(--radius) 14px', 'Cards, boxes'], ['12px', 'Tiles, inputs'], ['var(--radius-sm) 10px', 'Fields, small boxes'], ['6px', 'Badges']];
+const SHADOWS = [['var(--shadow)', 'Raised: cards on hover, price box'], ['var(--shadow-lg)', 'Floating: popovers, modals, dropdowns'], ['0 1px 2px rgba(15,40,28,.05), 0 10px 30px rgba(15,40,28,.07)', 'Agent card']];
 const SPACING = [4, 6, 8, 10, 12, 14, 16, 18, 22, 28, 40, 56];
 const BREAKPOINTS = [['1250px', 'listing grids 4 → 3 columns'], ['1200px', 'home card rows 6 → 3'], ['1180px', 'header: hide currency / language'], ['1100px', 'container padding 48 → 28px; profile sidebar drops below'], ['1000px', 'listing: single column, mobile action bar'],
   ['960px', 'header: hide main nav'], ['900px', 'footer + forms to 2 / 1 columns'], ['800px', 'search results 2 columns'], ['700px', 'home becomes the mobile app'], ['640px', 'container padding 16px'], ['520px', 'mobile app full-screen']];
@@ -27,14 +27,14 @@ const l0 = pick('residential'), lCourt = pick('court'), lClean = pick('cleaning'
 const S0 = UPUI.blankState('spaces', 'residential');
 const DEMOS = [
   ['Foundations', 'colours', 'Colours', 'css/variables.css', () => Object.entries(TOKENS).map(([g, names]) => `<h4 class="lib-sub">${g}</h4><div class="lib-swatches">${names.map(n => `<div><i style="background:var(${n})"></i><b>${n}</b><small>${cssVar(n)}</small></div>`).join('')}</div>`).join(''),
-    ':root {\n  --g7: #136142;   /* primary brand green — change these to re-theme */\n  --ink: #14201a;  /* body text */\n}\n.my-thing { color: var(--g7); }'],
-  ['Foundations', 'type', 'Typography', 'css/variables.css · css/base.css', () => `<div class="lib-type"><p><span>Font families</span><span class="lib-fams"><b style="font-family:var(--sans)">Plus Jakarta Sans — interface (var(--sans))</b><b style="font-family:var(--serif)">Roboto Serif — display headings (var(--serif))</b></span></p>${FONT_SIZES.map(([s, u, f]) => `<p><span>${s}</span><b style="font-size:${s};font-family:var(--${f})${s === '11px' ? ';text-transform:uppercase;letter-spacing:.06em' : ''}">${u}</b></p>`).join('')}<p><span>Weights</span><b><span style="font-weight:400">400</span> · <span style="font-weight:500">500</span> · <span style="font-weight:600">600</span> · <span style="font-weight:700">700</span> · <span style="font-weight:800">800</span></b></p><p><span>Line height</span><b style="font-weight:500">1.45 for body text; 1.7 for long reading text (about sections)</b></p></div>`,
-    'h1.display { font-family: var(--serif); font-weight: 700; }\n/* fonts are self-hosted: css/fonts.css + assets/fonts/ */'],
+    ':root {\n  --color-primary: #136142;   /* primary brand green — change these to re-theme */\n  --color-text: #14201a;  /* body text */\n}\n.my-thing { color: var(--color-primary); }'],
+  ['Foundations', 'type', 'Typography', 'css/variables.css · css/base.css', () => `<div class="lib-type"><p><span>Font families</span><span class="lib-fams"><b style="font-family:var(--font-sans)">Plus Jakarta Sans — interface (var(--font-sans))</b><b style="font-family:var(--font-serif)">Roboto Serif — display headings (var(--font-serif))</b></span></p>${FONT_SIZES.map(([s, u, f]) => `<p><span>${s}</span><b style="font-size:${s};font-family:var(--${f})${s === '11px' ? ';text-transform:uppercase;letter-spacing:.06em' : ''}">${u}</b></p>`).join('')}<p><span>Weights</span><b><span style="font-weight:400">400</span> · <span style="font-weight:500">500</span> · <span style="font-weight:600">600</span> · <span style="font-weight:700">700</span> · <span style="font-weight:800">800</span></b></p><p><span>Line height</span><b style="font-weight:500">1.45 for body text; 1.7 for long reading text (about sections)</b></p></div>`,
+    'h1.display { font-family: var(--font-serif); font-weight: 700; }\n/* fonts are self-hosted: css/fonts.css + assets/fonts/ */'],
   ['Foundations', 'radius', 'Radius, shadows & spacing', 'css/variables.css', () => `<h4 class="lib-sub">Border radius</h4><div class="lib-radii">${RADII.map(([r, u]) => `<div><i style="border-radius:${r.split(' ')[0]}"></i><b>${r}</b><small>${u}</small></div>`).join('')}</div>
       <h4 class="lib-sub">Shadows</h4><div class="lib-radii">${SHADOWS.map(([s, u]) => `<div><i style="box-shadow:${s};border-radius:14px;background:#fff"></i><b>${s.startsWith('var') ? s : 'agent card'}</b><small>${u}</small></div>`).join('')}</div>
       <h4 class="lib-sub">Spacing in use (px)</h4><div class="lib-space">${SPACING.map(n => `<div><i style="width:${n}px"></i><small>${n}</small></div>`).join('')}</div>
       <h4 class="lib-sub">Motion</h4><p class="lib-p">Hovers and state changes use <code>transition: .15s</code> (chips <code>.12s</code>, drawers <code>.2s</code>, hero image crossfade <code>.7s</code>).</p>`,
-    'border-radius: var(--r);      /* 14px — cards */\nbox-shadow: var(--sh-lg);     /* floating layers */\ntransition: .15s;'],
+    'border-radius: var(--radius);      /* 14px — cards */\nbox-shadow: var(--shadow-lg);     /* floating layers */\ntransition: .15s;'],
   ['Foundations', 'layout', 'Container, breakpoints & layers', 'css/base.css · css/responsive.css', () => `<p class="lib-p"><code>.wrap</code> — centred container, max-width 1360px, side padding 48px → 28px (≤1100px) → 16px (≤640px).</p>
       <div class="lib-cols"><div><h4 class="lib-sub">Breakpoints (max-width)</h4><table class="detail-table lib-table">${BREAKPOINTS.map(([b, u]) => `<tr><td><b>${b}</b></td><td>${u}</td></tr>`).join('')}</table></div>
       <div><h4 class="lib-sub">z-index layers</h4><table class="detail-table lib-table">${ZINDEX.map(([z, u]) => `<tr><td><b>${z}</b></td><td>${u}</td></tr>`).join('')}</table></div></div>`,
@@ -118,7 +118,7 @@ DEMOS.forEach(d => d[6] && d[6](document.getElementById(d[1])));
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-lib]'); if (!b) return;
   const k = b.dataset.lib;
-  if (k === 'modal') UPUI.openModal(`<div class="modal-header"><h3>Modal title</h3><button class="close-btn" aria-label="Close" data-close>${ico('x')}</button></div><div class="modal-body"><p style="margin:0 0 14px;color:var(--ink2)">Any HTML goes here. Close with the ×, a click outside or Esc.</p>${ui.button({ label: 'Done', attrs: { 'data-close': true } })}</div>`);
+  if (k === 'modal') UPUI.openModal(`<div class="modal-header"><h3>Modal title</h3><button class="close-btn" aria-label="Close" data-close>${ico('x')}</button></div><div class="modal-body"><p style="margin:0 0 14px;color:var(--color-text-secondary)">Any HTML goes here. Close with the ×, a click outside or Esc.</p>${ui.button({ label: 'Done', attrs: { 'data-close': true } })}</div>`);
   if (k === 'drawer') UPUI.openSide(`<div class="side-drawer-header"><div><h3>Side drawer</h3><small>For lists like saved items or enquiries</small></div><button class="close-btn" aria-label="Close" data-close>${ico('x')}</button></div><div class="side-drawer-body">${ui.empty({ icon: 'msg', title: 'Nothing here yet', text: 'Drawer content scrolls; the header and footer stay put.' })}</div><div class="side-drawer-footer"><span>Footer note</span></div>`);
   if (k === 'toast') UPUI.toast('Saved to your shortlist');
 });

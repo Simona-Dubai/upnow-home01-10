@@ -164,7 +164,7 @@
     return {
       secs: [
         ['Spaces & capacity', `<p class="detail-subtitle">Max guests by room layout.</p>` + H.table(['Space', 'Theatre', 'Classroom', 'Banquet', 'Cocktail', 'Boardroom'], spaces.map(([n, cp, f]) => [`<b>${esc(n)}</b>`, ...['theatre', 'classroom', 'banquet', 'cocktail', 'boardroom'].map(k => Math.max(8, Math.round(cp * L[k])))]), 1)],
-        ['Packages', `<p class="detail-subtitle">Per-guest prices, set by the venue. Minimum spend applies on Thu–Sat evenings.</p>` + live(c, 'pk', () => H.opts('pk', st, pk.map(p => ({ ...p, p: p.pp ? M(p.pp) + '<span style="font-weight:500;color:var(--ink3)"> /guest</span>' : 'Included' }))))],
+        ['Packages', `<p class="detail-subtitle">Per-guest prices, set by the venue. Minimum spend applies on Thu–Sat evenings.</p>` + live(c, 'pk', () => H.opts('pk', st, pk.map(p => ({ ...p, p: p.pp ? M(p.pp) + '<span style="font-weight:500;color:var(--color-text-muted)"> /guest</span>' : 'Included' }))))],
         ['Event essentials', H.chk([[A.catering === 'inhouse', 'In-house catering'], [A.catering !== 'none', 'Outside caterers ' + (A.catering === 'outside' ? 'welcome' : 'on request')], ...['AV & screen', 'Sound system', 'Stage', 'Lighting rig', 'Wi-Fi', 'Dance floor'].map(x => [A.equipment.includes(x), x]), [A.parking === 'valet', 'Valet parking'], [1, 'Event coordinator on the day']])]
       ],
       bk: () => H.price(c.l, money(ph), '/hour') + H.lab('Event date') + H.days('d', st, 6, 3) + H.lab('Session') + H.seg('ses', st, [['morning', 'AM'], ['afternoon', 'PM'], ['evening', 'Eve'], ['fullday', 'Full day']]) +

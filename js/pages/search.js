@@ -16,16 +16,16 @@ const {
 const { controlHTML } = UPF;
 const PER = 24;
 let S = parseState();
-let pillOpen = null,
-  hlId = null;
+let hlId = null;
 
-document.getElementById("hdr").innerHTML = UPUI.header(S.v);
+document.getElementById("hdr").innerHTML = UPUI.header(S.v, { nav: false }); // the category tabs under it already do this job
 document.getElementById("ftr").innerHTML = UPUI.footer();
 UPUI.bindHeader();
 const bar = UPF.SearchBar(document.getElementById("sb"), S, {
   mode: "bar",
   onChange: () => update(),
   onSubmit: () => update(),
+  onFilters: () => openDrawer(),
 });
 
 function update(push = true) {
@@ -92,107 +92,24 @@ function seoTitle() {
   );
 }
 
-/* optional-filter pill row */
-function paintFilterRow() {
-  const O = offer(S);
-  if (!O) {
-    document.getElementById("frow").innerHTML = "";
-    return;
-  }
-  const opt = O.optional.filter((d) => !d.required).slice(0, 6);
-  const act = O.defs.filter(
-    (d) => !empty(S.f[d.id]) && !d.required,
-  ).length;
-  const k = toQuery({ ...S, page: 1, sort: "rec", view: "grid" });
-  const saved = JSON.parse(
-    localStorage.getItem("upnow.alerts") || "[]",
-  ).includes(k);
-  const seg = O.defs.find((d) => d.type === "seg");
-  document.getElementById("frow").innerHTML = `
-    ${seg ? controlHTML(seg, S) + '<span class="divider"></span>' : ""}
-    ${opt
-      .map((d) => {
-        const val = S.f[d.id];
-        const lab = valueLabel(d, val);
-        const set = !!lab;
-        if (d.type === "toggle")
-          return `<div class="filter-pill"><button class="${set ? "is-set" : ""}" data-tg="${d.id}">${val ? ico("check") : ""}${esc(d.label)}</button></div>`;
-        return `<div class="filter-pill"><button class="${set ? "is-set" : ""}" data-pill="${d.id}">${esc(set ? d.label + ": " + lab : d.label)}${ico("chev")}</button>
-        ${pillOpen === d.id ? `<div class="popover"><div class="popover-header">${esc(d.label)}${set ? `<button class="text-link" data-clr="${d.id}">Clear</button>` : ""}</div>${controlHTML(d, S)}<div class="popover-footer"><button class="btn btn-primary btn-sm" data-closepill>Show ${results(S).length} results</button></div></div>` : ""}</div>`;
-      })
-      .join("")}
-    <button class="chip" data-drawer>${ico("sliders")}${t("All filters")}${act ? ` <span class="count" style="background:var(--g7);color:#fff;border-radius:99px;padding:0 6px">${act}</span>` : ""}</button>
-    <div class="spacer"></div>
-    <button class="save-search ${saved ? "is-active" : ""}" id="saveS">${ico("bell")}${saved ? "Alert on" : t("Save search")}</button>`;
+/* save search (alert) button beside the sort */
+const alertKey = () => toQuery({ ...S, page: 1, sort: "rec", view: "grid" });
+const alerts = () => JSON.parse(localStorage.getItem("upnow.alerts") || "[]");
+function paintSave() {
+  const el = document.getElementById("saveS");
+  const on = alerts().includes(alertKey());
+  el.hidden = !offer(S);
+  el.classList.toggle("is-active", on);
+  el.innerHTML = `${ico("bell")}${on ? "Alert on" : t("Save search")}`;
 }
-const frow = document.getElementById("frow");
-frow.addEventListener("click", (e) => {
-  const tt = e.target;
-  if (tt.closest("[data-drawer]")) {
-    pillOpen = null;
-    openDrawer();
-    return;
-  }
-  const tg = tt.closest("[data-tg]");
-  if (tg) {
-    const d = offer(S).def(tg.dataset.tg);
-    UPF.setVal(S, d, S.f[d.id] ? null : true);
-    bar.render();
-    update();
-    return;
-  }
-  const p = tt.closest("[data-pill]");
-  if (p) {
-    pillOpen = pillOpen === p.dataset.pill ? null : p.dataset.pill;
-    paintFilterRow();
-    return;
-  }
-  const c = tt.closest("[data-clr]");
-  if (c) {
-    delete S.f[c.dataset.clr];
-    bar.render();
-    update();
-    return;
-  }
-  if (tt.closest("[data-closepill]")) {
-    pillOpen = null;
-    paintFilterRow();
-    return;
-  }
-  const ctl = tt.closest("[data-ctl]");
-  if (ctl && ctl.tagName !== "INPUT") {
-    if (UPF.handleControl(ctl, S)) {
-      bar.render();
-      update();
-    }
-    return;
-  }
-  if (tt.closest("#saveS")) {
-    const k = toQuery({ ...S, page: 1, sort: "rec", view: "grid" });
-    let a = JSON.parse(localStorage.getItem("upnow.alerts") || "[]");
-    const on = a.includes(k);
-    a = on ? a.filter((x) => x !== k) : [...a, k];
-    localStorage.setItem("upnow.alerts", JSON.stringify(a));
-    UPUI.toast(
-      on
-        ? "Search alert removed"
-        : "Saved — we'll WhatsApp you new matches",
-    );
-    paintFilterRow();
-  }
-});
-frow.addEventListener("change", (e) => {
-  const c = e.target.closest("[data-ctl]");
-  if (c && UPF.handleControl(c, S)) {
-    bar.render();
-    update();
-  }
-});
-document.addEventListener("mousedown", (e) => {
-  if (pillOpen && !e.target.closest(".filter-pill")) {
-    pillOpen = null;
-    paintFilterRow();
-  }
+document.getElementById("saveS").addEventListener("click", () => {
+  const k = alertKey();
+  let a = alerts();
+  const on = a.includes(k);
+  a = on ? a.filter((x) => x !== k) : [...a, k];
+  localStorage.setItem("upnow.alerts", JSON.stringify(a));
+  UPUI.toast(on ? "Search alert removed" : "Saved — we'll WhatsApp you new matches");
+  paintSave();
 });
 
 /* all-filters drawer */
@@ -218,7 +135,7 @@ function paintDrawer() {
     : 0;
   const sec = (title, defs) =>
     defs.length
-      ? `<div class="filter-group-label">${title}</div>` +
+      ? (title ? `<div class="filter-group-label">${title}</div>` : "") +
         defs
           .map(
             (d) =>
@@ -226,26 +143,12 @@ function paintDrawer() {
           )
           .join("")
       : "";
-  const locs = AREAS.map((a) => ({
-    a,
-    c: LISTINGS.filter(
-      (l) =>
-        l.v === S.v &&
-        l.cat === O.id &&
-        (l.loc === a.id || (l.coverage || []).includes(a.id)),
-    ).length,
-  })).filter((x) => x.c);
-  drawer.innerHTML = `<div class="filter-drawer-header"><div style="flex:1"><h3>${esc(O.label)} filters</h3><div style="color:var(--ink3);font-size:12.5px;margin-top:2px">Priced ${esc(O.basis)}</div></div><button class="close-btn" aria-label="Close" data-dclose>${ico("x")}</button></div>
+  const extra = O.optional;
+  const nSet = extra.filter((d) => !d.required && !empty(S.f[d.id])).length;
+  drawer.innerHTML = `<div class="filter-drawer-header"><div style="flex:1"><h3>${t("Filters")}${nSet ? ` <span class="filter-drawer-count">${nSet}</span>` : ""}</h3><div style="color:var(--color-text-muted);font-size:12.5px;margin-top:2px">${esc(O.label)} · priced ${esc(O.basis)}</div></div><button class="close-btn" aria-label="Close" data-dclose>${ico("x")}</button></div>
     <div class="filter-drawer-body">
-      ${O.locAll ? "" : `<div class="filter-section"><h5>${esc(O.locLabel || "Location")}</h5><div class="option-chips">${locs.map(({ a, c }) => `<button class="chip ${S.loc.includes(a.id) ? "is-active" : ""}" data-dloc="${a.id}">${esc(a.n)} <span class="count">${c}</span></button>`).join("")}</div></div>`}
-      ${sec(
-        "Main",
-        O.fields
-          .filter((f) => f !== "loc")
-          .map((f) => O.def(f))
-          .filter(Boolean),
-      )}
-      ${sec("More filters", O.optional)}
+      ${sec("", extra.filter((d) => d.type !== "toggle"))}
+      ${sec("Only show", extra.filter((d) => d.type === "toggle"))}
     </div>
     <div class="filter-drawer-footer"><button class="btn btn-ghost" data-dreset>Reset all</button><button class="btn btn-primary" data-dclose>Show ${n} ${n === 1 ? "result" : "results"}</button></div>`;
   const db = drawer.querySelector(".filter-drawer-body");
@@ -259,20 +162,12 @@ drawer.addEventListener("click", (e) => {
   }
   if (tt.closest("[data-dreset]")) {
     const B = blankState(S.v, S.o);
-    S.f = B.f;
-    S.loc = [];
-    S.q = "";
-    bar.render();
-    update();
-    paintDrawer();
-    return;
-  }
-  const dl = tt.closest("[data-dloc]");
-  if (dl) {
-    const id = dl.dataset.dloc;
-    S.loc = S.loc.includes(id)
-      ? S.loc.filter((x) => x !== id)
-      : [...S.loc, id];
+    offer(S).optional.forEach((d) => {
+      if (d.type !== "seg") {
+        if (B.f[d.id] === undefined) delete S.f[d.id];
+        else S.f[d.id] = B.f[d.id];
+      }
+    });
     S.page = 1;
     bar.render();
     update();
@@ -373,13 +268,10 @@ function paint() {
         (i ? "<span>/</span>" : "") +
         (h && i < cr.length - 1
           ? `<a href="${h}">${esc(tx)}</a>`
-          : `<span style="color:var(--ink)">${esc(tx)}</span>`),
+          : `<span style="color:var(--color-text)">${esc(tx)}</span>`),
     )
     .join("");
   document.getElementById("h1").textContent = title;
-  document.getElementById("cnt").innerHTML =
-    `<b>${all.length}</b> ${t("results")}${O ? " · priced " + esc(O.basis) : ""}${all.length ? ` · showing ${(S.page - 1) * PER + 1}–${Math.min(S.page * PER, all.length)}` : ""}`;
-
   const sortEl = document.getElementById("sort");
   sortEl.innerHTML = UPUI.SORTS.map(
     ([k, l]) =>
@@ -485,7 +377,7 @@ function paint() {
   const aside = document.getElementById("aside");
   aside.innerHTML = view === "map" ? mapHTML(all) : "";
   aside.style.display = view === "map" ? "" : "none";
-  paintFilterRow();
+  paintSave();
   paintSeo();
   UPUI.updateHdrCounts();
 }

@@ -18,7 +18,7 @@
   function card(l, S) {
     const pt = priceText(l, S);
     return U.ui.card({
-      href: `${HREF.listing}?id=${l.id}`, attrs: { 'data-id': l.id }, image: photo(l),
+      href: `${HREF.listing}?id=${l.id}`, attrs: { 'data-id': l.id }, image: photo(l), images: l.img,
       badges: [l.featured && { label: t('Featured'), tone: 'featured' }, l.a.verified && { label: t('Verified'), tone: 'verified', icon: 'shield' }].filter(Boolean),
       fav: { id: l.id, active: favs.has(l.id) }, count: l.img.length,
       title: l.title, location: locText(l), spec: specOf(l), price: pt.n, unit: pt.u

@@ -19,7 +19,7 @@
   const userSet = (S, k) => { const O = offerOfS(S), d = O && O.def(k); return !empty(S.f[k]) && !(d && (d.required || (O.defaults && O.defaults[k] === S.f[k]))); };
   const filtered = (S, pool) => (S.o && catsOf(pool).length > 1) || S.loc.length || !!S.q || Object.keys(S.f).some(k => userSet(S, k));
 
-  let CUR = null, open = null; // CUR = { pool, S }
+  let CUR = null, open = null, shown = null; // CUR = { pool, S }
 
   const DATE_LIKE = ['date', 'time', 'checkin', 'checkout'];
   /* the sub-category's filter boxes, Bayut-style: type · second field (beds & baths for homes) · price */
@@ -70,7 +70,11 @@
   function render(results = true) {
     if (!CUR) return;
     const bar = document.getElementById('pfBar'), res = document.getElementById('pfRes');
-    if (bar) bar.innerHTML = barHTML(CUR.pool, CUR.S);
+    if (bar) {
+      bar.innerHTML = barHTML(CUR.pool, CUR.S);
+      if (open && open === shown) bar.querySelectorAll('.popover').forEach(p => p.classList.add('is-shown')); // redraw, not a new open
+      shown = open;
+    }
     if (results && res) res.innerHTML = resultsHTML(CUR.pool, CUR.S);
   }
   function mount(pool, S) { CUR = { pool, S }; open = null; render(); }
