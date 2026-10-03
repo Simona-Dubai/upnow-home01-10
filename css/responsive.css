@@ -1,0 +1,86 @@
+@charset "UTF-8";
+/* Breakpoints for the shared components (max-width: 1250 / 1200 / 1180 / 1100 / 1000 / 960 / 900 / 800 / 700 / 640 / 520px).
+   Rules that must stay next to a later override are kept in components.css instead. */
+
+@media (max-width: 1100px) {
+  .wrap {
+    padding: 0 28px;
+  }
+}
+
+@media (max-width: 640px) {
+  .wrap {
+    padding: 0 16px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .header-select {
+    display: none;
+  }
+}
+
+@media (max-width: 960px) {
+  .nav {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .site-header .btn-outline {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .site-footer .footer-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cta {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1100px) {
+  .offer-rail {
+    display: flex;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+  }
+
+  .offer-rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  .offer {
+    flex: 0 0 130px;
+  }
+
+  .rail-arrow {
+    display: grid;
+  }
+}
+
+@media (max-width: 1000px) {
+  .spec-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .calendar-pair,
+  .detail-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .spec-grid,
+  .checklist {
+    grid-template-columns: 1fr;
+  }
+}

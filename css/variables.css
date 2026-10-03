@@ -1,0 +1,34 @@
+@charset "UTF-8";
+/* Design tokens. Change the theme here: brand greens (--g1…--g9), ink (text) colours, lines, background,
+   status colours, radii, shadows and the two font stacks. */
+
+:root {
+  --g9: #0b3d2a;
+  --g8: #0f4f36;
+  --g7: #136142;
+  --g6: #1a7a53;
+  --g5: #25946a;
+  --g2: #d8efe3;
+  --g1: #eef7f2;
+  --ink: #14201a;
+  --ink2: #46534c;
+  --ink3: #5f6b63;
+  --line: #e4e9e5;
+  --line2: #d3dad5;
+  --bg: #f6f8f6;
+  --card: #fff;
+  --wa: #14853f;
+  --amber: #94600f;
+  --red: #c2413b;
+  --warning-bg: #f8eedb;
+  --warning-ink: #8a5a12;
+  --disabled-ink: #c3cbc6;
+  --rating-star: #e0a526;
+  --rating-star-strong: #f2a71b;
+  --r: 14px;
+  --r-sm: 10px;
+  --sh: 0 1px 2px rgba(15, 40, 28, 0.06), 0 4px 16px rgba(15, 40, 28, 0.06);
+  --sh-lg: 0 12px 40px rgba(15, 40, 28, 0.16);
+  --serif: Roboto Serif, Plus Jakarta Sans, serif;
+  --sans: Plus Jakarta Sans, system-ui, sans-serif;
+}

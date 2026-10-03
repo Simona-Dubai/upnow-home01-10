@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Search | UpNow Spaces</title>
+    <meta name="description" id="mdesc" content="" />
+    <link rel="icon" href="../assets/logos/upnow-mark.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="../css/main.css" />
+    <link rel="stylesheet" href="../css/pages/search.css" />
+  </head>
+  <body class="search-page">
+    <div id="hdr"></div>
+    <div class="sticky-search">
+      <div class="wrap">
+        <div id="sb"></div>
+        <div class="filter-row" id="frow"></div>
+      </div>
+    </div>
+    <main class="wrap">
+      <nav class="breadcrumbs" id="crumbs" aria-label="Breadcrumb"></nav>
+      <div class="results-header">
+        <div>
+          <h1 id="h1"></h1>
+          <div class="count" id="cnt"></div>
+        </div>
+        <div class="results-controls">
+          <select class="sort-select" id="sort" aria-label="Sort"></select>
+          <div class="view-switch" id="viewsw"></div>
+        </div>
+      </div>
+      <div class="type-chips no-scrollbar" id="qtype"></div>
+      <div class="active-filters" id="active"></div>
+      <div class="layout" id="layout">
+        <div id="res"></div>
+        <aside id="aside"></aside>
+      </div>
+      <div class="seo-links" id="seo"></div>
+    </main>
+    <div id="ftr"></div>
+    <div class="filter-drawer-scrim" id="dscrim"></div>
+    <aside class="filter-drawer" id="drawer" aria-label="All filters"></aside>
+
+    <script src="../js/core/paths.js"></script>
+    <script src="../data/listings.js"></script>
+    <script src="../data/site.js"></script>
+    <script src="../components/icons.js"></script>
+    <script src="../js/core/utils.js"></script>
+    <script src="../components/ui.js"></script>
+    <script src="../components/overlays.js"></script>
+    <script src="../components/layout.js"></script>
+    <script src="../js/marketplace/engine.js"></script>
+    <script src="../js/marketplace/state.js"></script>
+    <script src="../components/marketplace/listing-card.js"></script>
+    <script src="../components/marketplace/contact.js"></script>
+    <script src="../components/marketplace/filters.js"></script>
+    <script src="../js/pages/search.js"></script>
+  </body>
+</html>
