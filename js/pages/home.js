@@ -199,13 +199,7 @@ function paint() {
     Warehouse: "warehouse",
   };
   if (S.v === "all") {
-    cats.innerHTML = VORDER.map((v) =>
-      tile(
-        PATHS.href.search + "?v=" + v,
-        VERTICALS[v].icon,
-        VERTICALS[v].label,
-      ),
-    ).join("");
+    cats.innerHTML = ""; // the tabs and the panel above already list every category
   } else {
     const base = blankState(S.v, S.o),
       skipT = ["price", "term", "billing", "verified"];
@@ -239,6 +233,7 @@ function paint() {
           .join("")
       : "";
   }
+  cats.hidden = !cats.innerHTML;
 
   const blocks =
     S.v === "all"

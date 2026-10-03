@@ -197,6 +197,10 @@ body.mobile-shell {
   margin-bottom: -15px;
 }
 
+.category-rail[hidden] {
+  display: none;
+}
+
 .category-rail::-webkit-scrollbar {
   display: none;
 }
