@@ -15,7 +15,7 @@
       const multi = d.type === 'multi'; const cur = multi ? (val || []) : val;
       return `<div class="option-chips">${d.options.map(o => {
         const on = multi ? cur.includes(o.v) : cur === o.v;
-        const c = counts ? facetCount(S, d.id, multi ? (on ? cur : d.all ? [...cur, o.v] : [o.v]) : o.v) : 1;
+        const c = counts ? facetCount(S, d.id, multi ? (on ? cur : d.all ? [...cur, o.v] : [o.v]) : o.v, opts.pool) : 1;
         return `<button class="chip ${on ? 'is-active' : ''} ${!on && c === 0 ? 'is-disabled' : ''}" data-ctl="${d.id}" data-act="${multi ? 'multi' : 'single'}" data-val="${esc(o.v)}">${esc(o.l)}${counts ? ` <span class="count">${c}</span>` : ''}</button>`;
       }).join('')}</div>`;
     }

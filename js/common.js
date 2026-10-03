@@ -99,7 +99,8 @@
     wave: '<path d="M2 7c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2M2 13c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2M2 19c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2"/>',
     book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5zM4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/>',
     code: '<path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/>',
-    robot: '<rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4M9 4h6M2 14h2M20 14h2M9 13v2M15 13v2"/>'
+    robot: '<rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4M9 4h6M2 14h2M20 14h2M9 13v2M15 13v2"/>',
+    list: '<path d="M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01"/>'
   };
   function initials(n) { return n.split(/\s+/).map(x => x[0]).slice(0, 2).join('').toUpperCase(); }
   const ico = (n, cls = '') => `<svg class="icon ${cls}" viewBox="0 0 24 24">${P[n] || P.grid4}</svg>`;
@@ -167,7 +168,7 @@
         <button class="icon-btn" data-open="saved" title="${t('Saved')}">${ico('heart')}<em id="hdrFav">0</em></button>
         <button class="icon-btn" data-open="enq" title="${t('Enquiries')}">${ico('msg')}<em id="hdrLead">0</em></button>
         <button class="btn btn-outline btn-sm" data-open="signin">${ico('user')}${t('Sign in')}</button>
-        <a class="btn btn-primary btn-sm" href="${ROOT}index.html#provider-cta">${ico('brief')}${t('Become a provider')}</a>
+        <a class="btn btn-primary btn-sm" href="${ROOT}Join.html">${ico('brief')}${t('Become a provider')}</a>
       </div></div></header>`;
   }
   document.addEventListener('click', e => {
@@ -185,13 +186,13 @@
     const cats = VERTICALS.spaces.offers;
     return `<div class="wrap"><section class="cta" id="provider-cta"><div><div class="cta-kicker">FOR OWNERS, AGENTS & OPERATORS</div>
       <h2>List your space.<br>Get leads in 42 minutes.</h2><p style="margin:16px 0 22px">Homes, offices, warehouses, plots, holiday homes, venues, courts and yachts — customers reach you directly by call, WhatsApp or request. Manage every lead in the UpNow provider workspace.</p>
-      <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn" style="background:#fff;color:var(--g9)" href="${ROOT}index.html#provider-cta">${ico('brief')}Become a provider</a><a class="btn" style="border:1.5px solid rgba(255,255,255,.4)" href="${ROOT}index.html#provider-cta">See how leads arrive</a></div></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn" style="background:#fff;color:var(--g9)" href="${ROOT}Join.html">${ico('brief')}Become a provider</a><a class="btn" style="border:1.5px solid rgba(255,255,255,.4)" href="${ROOT}Join.html">See how leads arrive</a></div></div>
       <div class="stats"><div><b>12,000+</b><span>active listings</span></div><div><b>850+</b><span>verified providers</span></div><div><b>42 min</b><span>avg. first reply</span></div><div><b>0 AED</b><span>fees for customers</span></div></div></section></div>
       <footer class="site-footer"><div class="wrap footer-grid">
         <div><a class="logo" href="${ROOT}index.html"><b>U</b>UpNow</a><p>Find verified spaces across Dubai and talk to the owner, agent or operator directly. No booking fees, no checkout.</p></div>
         <div><h5>Spaces</h5>${cats.map(o => `<a href="${ROOT}Search.html?v=spaces&o=${o.id}">${esc(o.label)}</a>`).join('')}</div>
         <div><h5>Popular areas</h5>${['dubai-marina', 'downtown', 'business-bay', 'jvc', 'al-quoz', 'palm-jumeirah', 'dip'].map(a => `<a href="${ROOT}Search.html?v=spaces&o=${['al-quoz', 'dip'].includes(a) ? 'industrial' : 'residential'}&loc=${a}">${esc(areaName(a))}</a>`).join('')}</div>
-        <div><h5>UpNow</h5><a href="#">About</a><a href="#">Help centre</a><a href="#">Report a listing</a><a href="${ROOT}index.html#provider-cta">Provider information</a><a href="#">Terms</a><a href="#">Privacy</a></div>
+        <div><h5>UpNow</h5><a href="#">About</a><a href="#">Help centre</a><a href="#">Report a listing</a><a href="${ROOT}Join.html">Provider information</a><a href="#">Terms</a><a href="#">Privacy</a></div>
       </div><div class="wrap footer-bottom"><span>© 2026 UpNow Technologies FZ-LLC · Dubai, UAE</span><span>Listings show DLD, DTCM or trade-licence numbers where applicable. UpNow never takes payments from customers.</span></div></footer>`;
   }
 
@@ -221,8 +222,8 @@
     if (S.v !== 'all') for (const d of O.defs) { if (d.id === skip) continue; if (!testDef(d, S.f[d.id], l, S)) return false; }
     return true;
   }
-  function results(S) {
-    const r = LISTINGS.filter(l => matches(l, S));
+  function results(S, pool = LISTINGS) {
+    const r = pool.filter(l => matches(l, S));
     const so = {
       rec: (a, b) => (b.featured - a.featured) || (b.rating * Math.log(b.reviews + 2)) - (a.rating * Math.log(a.reviews + 2)),
       plh: (a, b) => priceOf(a, S) - priceOf(b, S), phl: (a, b) => priceOf(b, S) - priceOf(a, S),
@@ -231,7 +232,7 @@
     };
     return r.sort(so[S.sort] || so.rec);
   }
-  const facetCount = (S, id, value) => LISTINGS.filter(l => matches(l, { ...S, f: { ...S.f, [id]: value } })).length;
+  const facetCount = (S, id, value, pool = LISTINGS) => pool.filter(l => matches(l, { ...S, f: { ...S.f, [id]: value } })).length;
   const SORTS = [['rec', 'Recommended'], ['new', 'Newest'], ['plh', 'Price: low to high'], ['phl', 'Price: high to low'], ['szl', 'Largest first'], ['fast', 'Fastest reply']];
 
   /* ---------- URL state ---------- */
@@ -417,7 +418,7 @@
       <div class="field"><label>Mobile number</label><input value="+971 " inputmode="tel"></div>
       <button class="btn btn-primary" style="width:100%;height:46px" onclick="UPUI.closeModal();UPUI.toast('We sent a code by WhatsApp')">${ico('wa')}Continue with WhatsApp code</button>
       <div class="or-divider"><span>or</span></div><button class="btn btn-outline" style="width:100%" onclick="UPUI.closeModal();UPUI.toast('Signed in')">Continue with UAE PASS</button>
-      <p class="fine-print">Listing a space? <a class="text-link" href="${ROOT}index.html#provider-cta">Become a provider</a></p></div>`);
+      <p class="fine-print">Listing a space? <a class="text-link" href="${ROOT}Join.html">Become a provider</a></p></div>`);
   }
 
   document.addEventListener('click', e => {

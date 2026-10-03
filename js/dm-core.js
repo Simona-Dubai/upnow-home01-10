@@ -105,26 +105,44 @@
     return { name, L, p, org, person, reviews, rating, hue, reply: Math.min(...L.map(x => x.provider.reply)), langs: p.langs, brn: (L.find(x => x.provider.brn) || {}).provider?.brn, since: Math.min(...L.map(x => x.provider.since)), v: L[0].v, cats: [...new Set(L.map(x => x.cat))] };
   }
   const provHref = name => ROOT + 'Provider.html?p=' + encodeURIComponent(name);
+  const agencyHref = org => ROOT + 'Agency.html?a=' + encodeURIComponent(org);
+  const isAgency = org => !!org && !/^Private (owner|landlord|host)$/.test(org);
   const orgSub = (P) => { if (P.org === 'Private owner' || P.org === 'Private landlord' || P.org === 'Private host') return 'Title deed verified'; if (P.v === 'spaces' && P.person) return /stays|silkhaus|frank porter/i.test(P.org) ? 'Holiday home operator · DTCM' : 'Real estate broker L.L.C'; return offerOf(P.L[0].v, P.L[0].cat).org[0]; };
   const allLabel = P => P.v === 'spaces' ? (P.cats.every(c => ['venue', 'court', 'yacht'].includes(c)) ? 'View all ' + ({ venue: 'spaces', court: 'courts', yacht: 'yachts' }[P.cats[0]]) : 'View all properties') : 'View all services';
 
   function agentCard(l, o = {}) {
     const P = prov(l.provider.name);
     const reply = P.reply <= 5 ? 'within 5 minutes' : P.reply <= 15 ? 'within ' + P.reply + ' minutes' : 'within 30 minutes';
-    const title = P.person ? (P.org === 'Private owner' ? 'Private owner' : P.org) + (P.brn ? ' • BRN ' + P.brn : '') : offerOf(l.v, l.cat).org[0] + (l.permit ? ' • ' + l.permit : '');
+    const title = P.person ? (isAgency(P.org) ? `<a class="agency-link" href="${agencyHref(P.org)}">${esc(P.org)}</a>` : esc(P.org)) + (P.brn ? ' • BRN ' + P.brn : '') : esc(offerOf(l.v, l.cat).org[0] + (l.permit ? ' • ' + l.permit : ''));
     const langs = P.langs.map(x => NATIVE[x] || x);
     const av = P.person ? `<div class="agent-avatar" style="--hue:${P.hue}">${esc(initials(P.name))}<span class="agent-online"></span></div>` : `<div class="agent-avatar" style="--hue:${P.hue};border-radius:24px">${esc(initials(P.name))}<span class="agent-online"></span></div>`;
-    return `<div class="agent-card" data-screen-label="Agent card">
-      <div class="agent-cover"><svg viewBox="0 0 400 46" preserveAspectRatio="none"><path d="M0 46 L0 30 C90 2 170 4 250 22 C320 38 370 30 400 16 L400 46Z" fill="#fff"/></svg></div>
-      <div class="agent-top">${av}
-        <div class="agent-name"><a href="${provHref(P.name)}">${esc(P.name)}</a>${l.a.verified ? `<span class="agent-verified" title="Verified by UpNow">${ico('badge')}</span>` : ''}</div>
-        <div class="agent-org">${esc(title)}</div></div>
-      <div class="agent-stats">
-        <div><div class="stat-head"><svg class="icon is-star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/></svg><span class="stat-value">${P.rating.toFixed(1)}</span></div><div class="stat-sub">${P.reviews.toLocaleString()} Ratings</div></div>
-        <div><div class="stat-head">${ico('clock')}Usually responds</div><div class="stat-sub"><b>${reply}</b></div></div>
-        <div><div class="stat-head">${ico('globe')}<span>${esc(langs.slice(0, 2).join(' • '))}</span></div>${langs.length > 2 ? `<div class="stat-langs">${esc(langs.slice(2).join(' • '))}</div>` : `<div class="stat-langs">${P.L.length} active listing${P.L.length > 1 ? 's' : ''}</div>`}</div>
-      </div>
-      <div class="agent-body">
+    // o.channels: contact channels only (the profile page header already shows who the agent is)
+    return `<div class="agent-card ${o.channels ? 'is-channels' : ''}" data-screen-label="Agent card">
+      ${o.channels ? '' : `<div class="agent-cover"><svg viewBox="0 0 400 46" preserveAspectRatio="none"><path d="M0 46 L0 30 C90 2 170 4 250 22 C320 38 370 30 400 16 L400 46Z" fill="#fff"/></svg></div>
+      <div class="agent-top">
+        ${av}
+        <div class="agent-info">
+          <div class="agent-name"><a href="${provHref(P.name)}">${esc(P.name)}</a>${l.a.verified ? `<span class="agent-verified" title="Verified by UpNow">${ico('badge')}</span>` : ''}</div>
+          <div class="agent-org">${title}</div></div>
+        </div>
+        <div class="agent-stats">
+          <div class="stat-detail-wrap">
+            <div class="stat-head">
+              <svg class="icon is-star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/></svg>
+              <span class="stat-value">${P.rating.toFixed(1)}</span>
+            </div>
+          <div class="stat-sub">${P.reviews.toLocaleString()} Ratings</div>
+        </div>
+        <div class="stat-detail-wrap">
+          <div class="stat-head">${ico('clock')}Usually responds</div>
+          <div class="stat-sub"><b>${reply}</b></div>
+        </div>
+        <div class="stat-detail-wrap">
+          <div class="stat-head">${ico('globe')}<span>${esc(langs.slice(0, 2).join(' • '))}</span></div>
+          ${langs.length > 2 ? `<div class="stat-langs">${esc(langs.slice(2).join(' • '))}</div>` : `<div class="stat-langs">${P.L.length} active listing${P.L.length > 1 ? 's' : ''}</div>`}
+        </div>
+      </div>`}
+      <div class="agent-body">${o.channels ? `<h4>Contact ${esc(P.person ? P.name.split(' ')[0] : P.name)}</h4>` : ''}
         <div class="agent-actions"><button class="agent-action" data-call="${l.id}">${ico('phone')}<span><b>Call</b><small>Direct call</small></span>${ico('chevR', 'chevron')}</button>
           <button class="agent-action" data-wa="${l.id}">${ico('wa')}<span><b>WhatsApp</b><small>Chat instantly</small></span>${ico('chevR', 'chevron')}</button></div>
         <div class="agent-more">More ways to contact</div>
@@ -132,7 +150,7 @@
           <button class="agent-alt-action is-email" data-email="${l.id}"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><span><b>Email</b><small>Send an email</small></span>${ico('chevR', 'chevron')}</button>
           <button class="agent-alt-action is-chat" data-chat="${l.id}"><svg class="icon" viewBox="0 0 24 24"><path d="M12 4c4.97 0 9 3.36 9 7.5S16.97 19 12 19c-1.1 0-2.15-.16-3.12-.46L4 20l1.4-3.6C4.5 15.1 3 13.4 3 11.5 3 7.36 7.03 4 12 4z"/></svg><span><b>Chat</b><small>Start a chat</small></span>${ico('chevR', 'chevron')}</button></div>
       </div>
-      ${o.noFoot ? '' : `<div class="agent-footer"><span class="agent-logo">${ico(P.v === 'spaces' ? 'office' : 'shop')}</span><span class="agent-agency"><b>${esc(P.person ? P.org : P.name)}</b><small>${esc(orgSub(P))}</small></span><a class="agent-view-all" href="${provHref(P.name)}">${allLabel(P)}${ico('chevR')}</a></div>`}
+      ${o.channels ? '' : `<div class="agent-footer"><span class="agent-logo">${ico(P.v === 'spaces' ? 'office' : 'shop')}</span><span class="agent-agency"><b>${esc(P.person ? P.org : P.name)}</b><small>${esc(orgSub(P))}</small></span><a class="agent-view-all" href="${P.person && isAgency(P.org) ? agencyHref(P.org) : provHref(P.name)}">${allLabel(P)}${ico('chevR')}</a></div>`}
     </div>`;
   }
 
@@ -169,5 +187,5 @@
   /* generic fallback */
   reg('_generic', c => ({ secs: [], bk: () => H.price(c.l, money(c.l.price), c.O.unit(c.l)) + H.go(c.O.action, 'msg'), go: () => ({ title: c.O.action, rows: [['Listing', c.l.title]] }) }));
 
-  window.DM = { _ctx: () => CUR && CUR.ctx, reg, build, rerender, live, H, month, agentCard, prov, provHref, NATIVE, fd, dayN, D0, addD, DW, MN, MNL, M };
+  window.DM = { _ctx: () => CUR && CUR.ctx, reg, build, rerender, live, H, month, agentCard, prov, provHref, agencyHref, isAgency, NATIVE, fd, dayN, D0, addD, DW, MN, MNL, M };
 })();

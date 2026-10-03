@@ -27,7 +27,7 @@
     return H.table(['#', 'Dated', 'Amount'], rows.map(([a, b, v]) => [`<b>${a}</b>`, b, M(v)]), 2);
   }
 
-  /* ---------- RESIDENTIAL — rooms like booking.com, floor plan, move-in cost ---------- */
+  /* ---------- RESIDENTIAL — rooms as entered by the provider, move-in cost ---------- */
   reg('residential', c => {
     const A = c.A, villa = ['villa', 'townhouse'].includes(A.ptype), st = c.st;
     const beds = A.beds, baths = A.baths, sq = A.sqft, rr = n => Math.round(n / 5) * 5;
@@ -43,15 +43,7 @@
     if (A.amenities.includes("Maid's room")) rooms.push(['bed', "Maid's room", rr(sq * .04), 'With own bathroom', 'aux']);
     if (A.amenities.includes('Study')) rooms.push(['brief', 'Study', rr(sq * .05), 'Fits desk + shelving', 'aux']);
     if (A.amenities.includes('Balcony') || villa) rooms.push(['sun', villa ? 'Garden & terrace' : 'Balcony', rr(sq * (villa ? .2 : .06)), A.amenities.includes('Sea view') ? 'Sea view' : A.amenities.includes('Burj view') ? 'Burj Khalifa view' : villa ? 'Landscaped · ' + (A.amenities.includes('Private pool') ? 'private pool' : 'BBQ area') : 'Community view', 'out']);
-    st.hl = st.hl ?? -1;
-    const planRows = (() => {
-      const main = rooms.filter(r => r[4] === 'main'), bed = rooms.filter(r => r[4] === 'bed'), wet = rooms.filter(r => r[4] === 'wet'), aux = rooms.filter(r => r[4] === 'aux'), out = rooms.filter(r => r[4] === 'out');
-      return [[...out, ...main], [...bed.slice(0, 2), ...wet.slice(0, 2)], [...bed.slice(2), ...wet.slice(2), ...aux]].filter(x => x.length);
-    })();
-    const room = (r) => `<div class="floorplan-room ${{ wet: 'is-wet', out: 'is-outdoor' }[r[4]] || ''} ${st.hl === rooms.indexOf(r) ? 'is-highlighted' : ''}" style="flex:${Math.max(r[2], 50)}"><b>${esc(r[1])}</b><small>${r[2]} sqft</small></div>`;
-    const fp = () => `<div class="floorplan"><div class="floorplan-plan">${planRows.map(row => `<div class="floorplan-row" style="flex:${row.reduce((s, r) => s + r[2], 0)}">${row.map(room).join('')}</div>`).join('')}</div>
-      <div class="floorplan-rooms">${rooms.map((r, i) => `<div class="room-item" onmouseenter="DM._hl(${i})" onmouseleave="DM._hl(-1)"><i>${ico(r[0])}</i><div><b>${esc(r[1])}</b><small>${esc(r[3])}</small></div><em>${r[2]} sqft</em></div>`).join('')}</div></div>`;
-    DM._hl = i => { st.hl = i; document.querySelectorAll('[data-live="fp"] .floorplan-plan').forEach(p => { const tmp = document.createElement('div'); tmp.innerHTML = fp(); p.replaceWith(tmp.querySelector('.floorplan-plan')); }); };
+    const roomList = `<div class="room-list">${rooms.map(r => `<div class="room-item"><i>${ico(r[0])}</i><div><b>${esc(r[1])}</b><small>${esc(r[3])}</small></div></div>`).join('')}</div>`;
 
     st.ch = st.ch || Math.min(A.cheques, 4); st.tm = st.tm || 'yearly';
     const rent = () => st.tm === 'monthly' ? Math.round(c.l.price * 1.3 / 12 / 100) * 100 : c.l.price * (1 + ({ 1: 0, 2: 0, 4: .02, 6: .04, 12: .06 }[st.ch] || 0));
@@ -61,7 +53,6 @@
 
     return {
       secs: [
-        ['Rooms & layout', `<p class="detail-subtitle">${beds === 0 ? 'Studio' : beds + ' bedrooms'} · ${baths} bathrooms · ${sq.toLocaleString()} sqft total. Schematic — hover a room to locate it.</p>` + live(c, 'fp', fp)],
         ['Cost to move in', `<p class="detail-subtitle">Everything due on signing, based on the payment option you pick. Typical Dubai charges — confirm with ${esc(c.fname)}.</p>` + live(c, 'mi', () => H.table(['Item', 'Note', 'Amount'], [
           [`<b>First rent ${st.tm === 'monthly' ? 'payment (month 1)' : 'cheque'}</b>`, st.tm === 'monthly' ? 'Monthly rent' : `1 of ${st.ch} cheques`, M(st.tm === 'monthly' ? rent() : rent() / st.ch)],
           ...mi().map(([a, v, n]) => [`<b>${a}</b>`, `<small>${n}</small>`, v ? M(v) : '—']),
@@ -80,13 +71,9 @@
   reg('commercial', c => {
     const A = c.A, st = c.st, psf = c.l.price / A.sqft;
     st.ch = st.ch || Math.min(A.cheques, 4);
-    const sc = Math.round(A.sqft * (A.grade === 'A' ? 22 : 15));
     return {
       secs: [
         ['Unit specification', H.spec([['area', 'Net area', A.sqft.toLocaleString() + ' sqft'], ['tool', 'Fit-out', { fitted: 'Fitted', semi: 'Semi-fitted', shell: 'Shell & core', furnished: 'Furnished' }[A.fitting]], ['building', 'Building grade', 'Grade ' + A.grade], ['users', 'Est. headcount', Math.round(A.sqft / 110) + ' desks'], ['car', 'Parking', A.parkingSpaces + ' bays'], ['bath', 'Washroom', A.washroom === 'private' ? 'Private' : 'Shared on floor'], ['bolt', 'DEWA', A.dewa ? 'Separate meter' : 'Shared'], ['snow', 'A/C', 'Central · chilled water'], ['brief', 'Licence', A.zone === 'freezone' ? 'Free zone' : 'Mainland (DED)']])],
-        ['Annual occupancy cost', `<p class="detail-subtitle">What a ${A.sqft.toLocaleString()} sqft unit costs per year — before fit-out.</p>` + H.table(['Item', 'Basis', 'Per year'], [
-          ['<b>Base rent</b>', M(psf) + ' / sqft', M(c.l.price)], ['<b>Service charge</b>', A.grade === 'A' ? 'AED 22 / sqft' : 'AED 15 / sqft', M(sc)], ['<b>DEWA (est.)</b>', 'AED 4 / sqft', M(A.sqft * 4)], ['<b>Ejari + municipality fee</b>', '5% of rent', M(c.l.price * .05)],
-          { cls: 'total-row', c: ['All-in occupancy', M((c.l.price + sc + A.sqft * 4 + c.l.price * .05) / A.sqft) + ' / sqft', M(c.l.price + sc + A.sqft * 4 + c.l.price * .05)] }], 2)],
         ['Permitted activities', H.chk([[1, 'General trading & office'], [A.ctype === 'clinic' || c.r() > .5, 'Medical / clinic (DHA)'], [A.ctype === 'fnb' || A.frontage, 'Food & beverage'], [A.ctype === 'retail' || A.frontage, 'Retail with frontage'], [A.zone === 'freezone', 'Free-zone licence eligible'], [A.zone !== 'freezone', 'Mainland DED licence']])]
       ],
       bk: () => H.price(c.l, money(c.l.price), '/year') + `<p class="detail-subtitle" style="margin:4px 0 0">${M(psf)} / sqft · ${A.sqft.toLocaleString()} sqft</p>` + H.lab('Payment') + H.seg('ch', st, [1, 2, 4, 6].filter(n => n <= A.cheques).map(n => [n, n + (n > 1 ? ' chqs' : ' chq')])) +
@@ -164,8 +151,8 @@
         ['Where you’ll sleep', `<div class="bed-cards">${bedroomCards.map(([t, [ics, s]]) => `<div><i>${ics.map(x => ico(x)).join('')}</i><b>${esc(t)}</b><span>${esc(s)}</span></div>`).join('')}</div>`],
         ['Availability', `<p class="detail-subtitle">Select check-in, then check-out. Prices per night shown under each date; amber = below usual rate.</p>` + live(c, 'cal', () => calHTML(true) + `<div class="calendar-legend"><span><i></i>Selected</span><span><i class="is-deal"></i>Deal night</span><span><i class="is-booked"></i>Booked</span><span style="margin-left:auto">${st.mo ? `<button class="text-link" data-bk="fn" data-f="mo" data-v="-1">← Earlier</button> · ` : ''}<button class="text-link" data-bk="fn" data-f="mo" data-v="1">Later months →</button></span></div>`)],
         ['What this place offers', H.chk(amenAll.map(x => [A.amenities.includes(x) || ['Full kitchen', 'Fast Wi-Fi'].includes(x), x]).concat([[1, 'Air conditioning'], [1, 'Towels & linen'], [br > 1, 'Washer-dryer'], [0, 'Pets allowed']]))],
-        ['House rules', `<div class="detail-columns">${H.box('Check-in & out', 'clock', [['Check-in', 'From 15:00' + (A.amenities.includes('Self check-in') ? ' · self check-in (smart lock)' : ' · host greets')], ['Check-out', 'By 11:00'], ['Min. stay', A.minNights + ' night' + (A.minNights > 1 ? 's' : '')], ['Cancellation', { free: 'Free up to 7 days before', moderate: '50% refund up to 5 days', strict: 'Non-refundable' }[A.cancellation]]])}
-          ${H.box('Rules', 'doc', [['Guests', 'Up to ' + A.maxGuests], ['Parties / events', 'Not allowed'], ['Smoking', 'Balcony only'], ['ID', 'Passport / Emirates ID for all guests (DTCM)']])}</div>`]
+        ['House rules', `<div class="detail-columns">${H.box('Check-in & out', 'clock', [['Check-in', 'From 15:00' + (A.amenities.includes('Self check-in') ? ' · self check-in (smart lock)' : ' · host greets')], ['Check-out', 'By 11:00'], ['Cancellation', { free: 'Free up to 7 days before', moderate: '50% refund up to 5 days', strict: 'Non-refundable' }[A.cancellation]]])}
+          ${H.box('Rules', 'doc', [['Parties / events', 'Not allowed'], ['Smoking', 'Balcony only'], ['ID', 'Passport / Emirates ID for all guests (DTCM)']])}</div>`]
       ],
       bk: () => H.price(c.l, money(nightly), '/night') +
         `<div style="margin-top:12px" class="booking-dates"><button data-bk="fn" data-f="pick" data-v="${st.ci}"><small>Check-in</small><b>${fd(dayN(st.ci))}</b></button><button><small>Check-out</small><b class="${st.co == null ? 'is-placeholder' : ''}">${st.co != null ? fd(dayN(st.co)) : 'Select date'}</b></button></div>` +

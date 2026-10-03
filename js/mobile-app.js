@@ -59,7 +59,7 @@
       <div class="m-section"><div class="m-section-header"><div><h2>${Oo ? 'Top ' + esc(Oo.label.toLowerCase()) : 'Top rated'}</h2><p>Verified providers · ${feat.length}+ results</p></div><button data-go="results">See all</button></div><div class="h-scroll">${feat.map(hcard).join('')}</div></div>
       ${fresh.length ? `<div class="m-section"><div class="m-section-header"><div><h2>New this week</h2><p>Listed in the last 7 days</p></div><button data-go="results" data-sort="new">See all</button></div><div class="h-scroll">${fresh.map(hcard).join('')}</div></div>` : ''}
       ${ar.length && !(Oo && Oo.locAll) ? `<div class="m-section"><div class="m-section-header"><h2>Popular areas</h2></div><div class="area-tiles">${ar.map((a, i) => `<button data-area="${a.id}"><img src="${areaImg[i % areaImg.length]}" alt=""><span><b>${esc(a.n)}</b><small>${a.c} listings</small></span></button>`).join('')}</div></div>` : ''}
-      <div class="promo"><div style="flex:1"><b>List on UpNow</b><small>Get leads by call & WhatsApp — free.</small></div><a class="btn" href="index.html#provider-cta">Learn more</a></div>
+      <div class="promo"><div style="flex:1"><b>List on UpNow</b><small>Get leads by call & WhatsApp — free.</small></div><a class="btn" href="Join.html">Learn more</a></div>
       </div>${tbar()}`;
   }
 
@@ -113,7 +113,7 @@
       <div class="detail-sheet"><div class="price">${pt.n}<span> ${pt.u}</span></div><h1>${esc(l.title)}</h1><div class="location">${ico('pin')}${esc(UPUI.locText(l))} · <span class="stars">${ico('star')}${l.rating}</span> (${l.reviews})</div>
         <div class="key-row">${meta.map(([i, x]) => `<div>${ico(i)}${esc(x)}</div>`).join('')}</div>
         <div class="m-detail-section" style="border:0;margin-top:6px;padding-top:16px"><p class="m-about">${esc(about)}</p></div>
-        ${DMB.secs.map(([h, b]) => `<div class="m-detail-section"><h2>${esc(h)}</h2>${b}</div>`).join('')}
+        ${DMB.secs.filter(([h, b]) => !/calendar-pair|slot-grid/.test(b) && !['Cost to move in', 'House rules'].includes(h)).map(([h, b]) => `<div class="m-detail-section"><h2>${esc(h)}</h2>${b}</div>`).join('')}
         <div class="m-detail-section"><h2>${lease ? 'Listed by' : 'Your provider'}</h2>${DM.agentCard(l)}</div>
         <div class="m-detail-section"><div class="detail-note" style="margin:0">${ico('shield')}<span><b>Deal safely.</b> ${lease ? 'Never pay a deposit before viewing and checking the permit on Dubai REST.' : 'Confirm details before paying any deposit.'} UpNow never takes payments.</span></div></div>
         <div style="height:24px"></div></div></div>
