@@ -6,7 +6,7 @@
   const HREF = PATHS.href;
 
   /* ---------- lead capture ---------- */
-  function waText(l) { return `Hi ${l.provider.name.split(' ')[0]}, I found your listing on UpNow and I'm interested.\n\n${l.title}\n${locText(l)}\nRef ${l.ref}\n\nIs it still available?`; }
+  function waText(l) { return `Hi ${l.provider.name.split(' ')[0]}, I found your listing on ${SITE.name} and I'm interested.\n\n${l.title}\n${locText(l)}\nRef ${l.ref}\n\nIs it still available?`; }
   const waLink = l => 'https://wa.me/' + l.provider.phone.replace('+', '') + '?text=' + encodeURIComponent(waText(l));
   function providerHead(l, big) {
     return `<div class="profile-head ${big ? 'is-large' : ''}"><div class="avatar">${esc(initials(l.provider.name))}</div>
@@ -32,7 +32,7 @@
     openModal(`${cHead(l, 'Available 9 AM – 9 PM')}
       <div class="contact-body"><a href="tel:${l.provider.phone}" class="contact-number">${ico('phone')}<span>${fmtPhone(l.provider.phone)}</span></a>
         <div class="contact-row"><button class="btn btn-outline" onclick="navigator.clipboard&&navigator.clipboard.writeText('${l.provider.phone}');UPUI.toast('Number copied')">${ico('doc')}Copy number</button><a class="btn btn-primary" href="tel:${l.provider.phone}">${ico('phone')}Call now</a></div>
-        <p class="contact-tip">Say you found it on <b>UpNow</b> and quote <b>${l.ref}</b>.</p>
+        <p class="contact-tip">Say you found it on <b>${SITE.name}</b> and quote <b>${l.ref}</b>.</p>
         <div class="contact-divider"><span>or contact by</span></div>${cSwitch(l, 'call')}</div>`, 'contact-modal');
   }
   function whatsapp(id) {
@@ -54,7 +54,7 @@
           <div class="field is-full"><label>Email</label><input name="email" type="email" required value="${esc(m.email)}" placeholder="you@email.com"></div>
           <div class="field is-full"><label>Message</label><textarea name="msg" rows="4">${esc(`Hi ${fn}, I'm interested in ${l.title} (Ref ${l.ref}). Is it still available?`)}</textarea></div></div>
         <button class="btn btn-primary contact-submit">${ico('msg')}Send email to ${esc(fn)}</button>
-        <p class="contact-tip">Shared only with ${esc(fn)}. UpNow never asks for payment.</p></form>`, 'contact-modal');
+        <p class="contact-tip">Shared only with ${esc(fn)}. ${SITE.name} never asks for payment.</p></form>`, 'contact-modal');
     document.getElementById('leadForm').onsubmit = e => {
       e.preventDefault(); const fd = Object.fromEntries(new FormData(e.target).entries());
       store.set('me', { name: fd.name, phone: fd.phone, email: fd.email });
@@ -81,7 +81,7 @@
         <small>${esc(r.catLabel)} · ${esc(r.area)} · ${esc(r.provider)}</small>
         <small>${{ request: 'Enquiry', email: 'Email enquiry', call: 'Phone call', whatsapp: 'WhatsApp' }[r.type]} · ${ago(r.t)} · ${esc(r.id)}</small></div></a>`; }).join('')
         : `<div class="side-drawer-empty">${ico('msg')}<b>No enquiries yet</b><span>When you request a viewing, call or WhatsApp a provider, it's tracked here.</span></div>`}</div>
-      <div class="side-drawer-footer"><span>Replies arrive by WhatsApp, call or email. UpNow never takes payments.</span></div>`);
+      <div class="side-drawer-footer"><span>Replies arrive by WhatsApp, call or email. ${SITE.name} never takes payments.</span></div>`);
   }
   function saved() {
     const L = [...favs].map(byId).filter(Boolean);
@@ -89,7 +89,7 @@
       <div class="side-drawer-body">${L.length ? `<div class="side-drawer-grid">${L.map(l => card(l)).join('')}</div>` : `<div class="side-drawer-empty">${ico('heart')}<b>Nothing saved yet</b><span>Tap the heart on any listing to keep it here.</span></div>`}</div>`);
   }
   function signin() {
-    openModal(`<div class="modal-header"><h3>Sign in to UpNow</h3><button class="close-btn" aria-label="Close" data-close>${ico('x')}</button></div>
+    openModal(`<div class="modal-header"><h3>Sign in to ${SITE.name}</h3><button class="close-btn" aria-label="Close" data-close>${ico('x')}</button></div>
       <div class="modal-body"><p style="margin:0 0 14px;color:var(--ink2)">Keep your saved spaces and enquiries on every device.</p>
       <div class="field"><label>Mobile number</label><input value="+971 " inputmode="tel"></div>
       <button class="btn btn-primary" style="width:100%;height:46px" onclick="UPUI.closeModal();UPUI.toast('We sent a code by WhatsApp')">${ico('wa')}Continue with WhatsApp code</button>

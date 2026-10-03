@@ -11,7 +11,7 @@
     const times = ['10:00', '12:00', '14:00', '16:00', '18:00', '19:30'].map((t, i) => [t, t, (c.l.id.charCodeAt(2) + i + st.vd) % 5 === 0]);
     return extraTop + H.lab('Book a viewing') + H.days('vd', st) + H.lab('Time') + H.chips('vt', st, times) + H.lab('Viewing type') + H.seg('vm', st, [['person', 'In person'], ['video', 'Video call']]) +
       (rows.length ? H.sum(rows.slice(0, -1), rows[rows.length - 1][1], rows[rows.length - 1][0]) : '') +
-      H.go(c.O.action) + (c.r() > .3 ? H.alert(`${3 + Math.round(c.r() * 6)} viewings booked this week`) : '') + H.fine('No fees on UpNow · pay the landlord directly');
+      H.go(c.O.action) + (c.r() > .3 ? H.alert(`${3 + Math.round(c.r() * 6)} viewings booked this week`) : '') + H.fine('No fees on ' + SITE.name + ' · pay the landlord directly');
   }
   const viewingGo = (c, extra = []) => ({ title: c.O.action, rows: [['Listing', c.l.title], ['Ref', c.l.ref], ['Viewing', fd(dayN(c.st.vd)) + ' · ' + c.st.vt], ['Type', c.st.vm === 'video' ? 'Video call' : 'In person'], ...extra] });
 
@@ -159,7 +159,7 @@
         (c.mobile ? '' : `<div class="booking-calendar">${calHTML(false)}</div>`) +
         H.lab('Guests') + H.step('a', st, 'Adults', 'Age 13+', 1, A.maxGuests - st.k) + H.step('k', st, 'Children', 'Ages 2–12', 0, A.maxGuests - st.a) + H.step('inf', st, 'Infants', 'Under 2 · cot on request', 0, 2) +
         (nights() ? (nights() < A.minNights ? H.alert(`Minimum stay is ${A.minNights} nights`) : H.sum([[`${money(Math.round(sub() / nights()))} × ${nights()} night${nights() > 1 ? 's' : ''}`, M(sub())], ...fees().slice(0, 3).filter(f => f[1]).map(f => [f[0], (f[1] < 0 ? '−' : '') + M(Math.abs(f[1]))])], M(total()))) : '') +
-        H.go('Request to book') + H.fine('You won’t be charged on UpNow · pay the host directly'),
+        H.go('Request to book') + H.fine('You won’t be charged on ' + SITE.name + ' · pay the host directly'),
       go: () => ({ title: 'Request to book', rows: [['Stay', c.l.title], ['Check-in', fd(dayN(st.ci)) + ' · from 15:00'], ['Check-out', st.co != null ? fd(dayN(st.co)) + ' · by 11:00' : '—'], ['Guests', `${st.a} adult${st.a > 1 ? 's' : ''}${st.k ? ', ' + st.k + ' child' + (st.k > 1 ? 'ren' : '') : ''}${st.inf ? ', ' + st.inf + ' infant' : ''}`], ['Nights', nights() + '']], total: M(total()) })
     };
   });

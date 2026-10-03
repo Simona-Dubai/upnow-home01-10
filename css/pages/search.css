@@ -501,33 +501,6 @@
   justify-content: center;
 }
 
-.pager {
-  display: flex;
-  justify-content: center;
-  gap: 6px;
-  margin: 26px 0 8px;
-}
-
-.pager button {
-  min-width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  border: 1px solid var(--line2);
-  background: #fff;
-  font-weight: 700;
-}
-
-.pager button.is-active {
-  background: var(--g8);
-  color: #fff;
-  border-color: var(--g8);
-}
-
-.pager button:disabled {
-  opacity: 0.35;
-  cursor: default;
-}
-
 /* sidebar */
 .sidebar {
   display: flex;

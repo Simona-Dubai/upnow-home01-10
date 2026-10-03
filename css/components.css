@@ -3707,3 +3707,111 @@ h1,
   width: 42px;
   padding: 0;
 }
+
+/* ==========================================================================
+   Tabs, stats row (kpis) and pager — used by the provider / agency and search pages
+   ========================================================================== */
+.kpis {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.kpis div {
+  padding: 16px 18px;
+  min-width: 0;
+}
+
+.kpis div + div {
+  border-left: 1px solid var(--line);
+}
+
+.kpis b {
+  display: block;
+  font-size: 24px;
+  letter-spacing: -0.02em;
+}
+
+.kpis span {
+  font-size: 12.5px;
+  color: var(--ink3);
+}
+
+.kpis em {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--g7);
+  background: var(--g1);
+  border-radius: 99px;
+  padding: 2px 7px;
+  margin-left: 6px;
+  vertical-align: 4px;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--line);
+  margin: -4px -22px 18px;
+  padding: 0 22px;
+  overflow-x: auto;
+}
+
+.tabs button {
+  height: 44px;
+  padding: 0 12px;
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--ink3);
+  border-bottom: 2.5px solid transparent;
+  margin-bottom: -1px;
+  white-space: nowrap;
+}
+
+.tabs button.is-active {
+  color: var(--g8);
+  border-color: var(--g7);
+}
+
+.tabs button em {
+  font-style: normal;
+  font-size: 11.5px;
+  background: var(--bg);
+  border-radius: 99px;
+  padding: 1px 7px;
+  margin-left: 4px;
+  color: var(--ink2);
+}
+
+.pager {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 26px 0 8px;
+}
+
+.pager button {
+  min-width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--line2);
+  background: #fff;
+  font-weight: 700;
+}
+
+.pager button.is-active {
+  background: var(--g8);
+  color: #fff;
+  border-color: var(--g8);
+}
+
+.pager button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}

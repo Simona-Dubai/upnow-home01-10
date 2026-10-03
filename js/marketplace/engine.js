@@ -15,7 +15,7 @@
     if (!off.spec) off.spec = (a, l) => off.meta(a, l).slice(0, 3).map(x => x[1]);
     if (!off.form) off.form = off.fields.filter(f => f !== 'loc').map(f => off.def(f)).filter(Boolean).slice(0, 4).map(d => [d.id, d.label, d.isDate ? 'date' : 'select', d.isDate ? null : d.options.map(o => o.l)]);
   }));
-  VERTICALS.all = { id: 'all', label: 'All', icon: 'grid4', blurb: 'Everything on UpNow', offers: [] };
+  VERTICALS.all = { id: 'all', label: 'All', icon: 'grid4', blurb: 'Everything on ' + SITE.name, offers: [] };
   const TABS = ['all', ...VORDER];
 
 

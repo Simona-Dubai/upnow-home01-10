@@ -89,7 +89,7 @@
     const fn = l.provider.name.split(' ')[0];
     openModal(`<div class="contact-header"><div class="avatar">${ico('cal')}</div><div class="contact-title"><b>${esc(g.title)}</b><span>Sent to ${esc(l.provider.name)} · replies in ~${l.provider.reply} min</span></div><button class="close-btn" aria-label="Close" data-close>${ico('x')}</button></div>
       <div class="contact-body" style="padding-top:4px"><div class="table-wrap"><table class="detail-table"><tbody>${g.rows.filter(Boolean).map(([k, v]) => `<tr><td style="color:var(--ink3)">${esc(k)}</td><td class="numeric">${esc(v)}</td></tr>`).join('')}${g.total ? `<tr class="total-row"><td>${esc(g.tl || 'Estimated total')}</td><td class="numeric">${g.total}</td></tr>` : ''}</tbody></table></div>
-      <p class="contact-tip">Nothing is charged on UpNow. ${esc(fn)} confirms availability and you pay ${l.v === 'spaces' && offerOf(l.v, l.cat).lease ? 'the landlord / agent' : 'the provider'} directly.</p>
+      <p class="contact-tip">Nothing is charged on ${SITE.name}. ${esc(fn)} confirms availability and you pay ${l.v === 'spaces' && offerOf(l.v, l.cat).lease ? 'the landlord / agent' : 'the provider'} directly.</p>
       <div class="contact-divider"><span>send this request by</span></div><div class="contact-alt"><button class="btn btn-whatsapp" data-wa="${l.id}">${ico('wa')}WhatsApp</button><button class="btn btn-outline" data-email="${l.id}">${ico('msg')}Email</button><button class="btn btn-outline" data-call="${l.id}">${ico('phone')}Call</button></div></div>`, 'contact-modal');
   }
 
@@ -122,7 +122,7 @@
       <div class="agent-top">
         ${av}
         <div class="agent-info">
-          <div class="agent-name"><a href="${provHref(P.name)}">${esc(P.name)}</a>${l.a.verified ? `<span class="agent-verified" title="Verified by UpNow">${ico('badge')}</span>` : ''}</div>
+          <div class="agent-name"><a href="${provHref(P.name)}">${esc(P.name)}</a>${l.a.verified ? `<span class="agent-verified" title="Verified by ${SITE.name}">${ico('badge')}</span>` : ''}</div>
           <div class="agent-org">${title}</div></div>
         </div>
         <div class="agent-stats">
@@ -157,7 +157,7 @@
   /* SMS + in-app chat */
   function sms(id) {
     const l = UPUI.byId(id), fn = l.provider.name.split(' ')[0];
-    const txt = `Hi ${fn}, I saw ${l.title} (Ref ${l.ref}) on UpNow. Is it available?`;
+    const txt = `Hi ${fn}, I saw ${l.title} (Ref ${l.ref}) on ${SITE.name}. Is it available?`;
     openModal(`<div class="contact-header"><div class="avatar">${esc(initials(l.provider.name))}</div><div class="contact-title"><b>Text ${esc(fn)}</b><span>${UPUI.fmtPhone(l.provider.phone)}</span></div><button class="close-btn" aria-label="Close" data-close>${ico('x')}</button></div>
       <div class="contact-body"><label class="contact-label">Message</label><textarea class="contact-message" id="smsTxt" style="background:#f7f4fe;border-color:#e6e0f6;color:#2e1f55">${esc(txt)}</textarea>
       <a class="btn contact-submit" style="background:#7c4dd6;color:#fff" id="smsGo" href="sms:${l.provider.phone}?&body=${encodeURIComponent(txt)}">${ico('msg')}Open Messages</a></div>`, 'contact-modal');
