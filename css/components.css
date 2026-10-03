@@ -4088,6 +4088,14 @@ h1,
   color: var(--color-text-muted);
 }
 
+/* the native suggestions arrow of <input list> — the themed menu replaces it (touch screens keep the native list) */
+@media (pointer: fine) {
+  input[list]::-webkit-calendar-picker-indicator,
+  input[data-list]::-webkit-calendar-picker-indicator {
+    display: none !important;
+  }
+}
+
 .select-menu:focus {
   outline: none;
 }
