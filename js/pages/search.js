@@ -14,9 +14,8 @@ const {
   money,
 } = UPUI;
 const { controlHTML } = UPF;
-const PER = 16;
+const PER = 24;
 let S = parseState();
-if (S.view === "list") S.view = "grid";
 let pillOpen = null,
   hlId = null;
 
@@ -306,40 +305,14 @@ drawer.addEventListener("change", (e) => {
   }
 });
 
-/* list card (list view) */
-function lcard(l) {
-  const O = offerOf(l.v, l.cat),
-    pt = UPUI.priceText(l, S);
-  return `<article class="list-card ${hlId === l.id ? "is-highlighted" : ""}" data-id="${l.id}">
-    <a class="photo" href="${PATHS.href.listing}?id=${l.id}" data-ph="0">${UPUI.photo(l, 0)}${UPUI.badges(l)}
-      ${l.img.length > 1 ? `<button class="photo-nav is-prev" data-slide="-1">${ico("chevL")}</button><button class="photo-nav is-next" data-slide="1">${ico("chevR")}</button><div class="photo-dots">${l.img.map((_, i) => `<i class="${i === 0 ? "is-active" : ""}"></i>`).join("")}</div>` : ""}</a>
-    <div class="content">
-      <div class="top-row"><div><div class="category-label">${esc(O.label)}${S.v === "all" ? " · " + VERTICALS[l.v].label : ""}</div><div class="price">${pt.n}<span> ${pt.u}</span></div></div><button class="fav-btn ${UPUI.favs.has(l.id) ? "is-active" : ""}" data-fav="${l.id}" aria-label="Save">${ico("heart")}</button></div>
-      <a class="title" href="${PATHS.href.listing}?id=${l.id}">${esc(l.title)}</a>
-      <div class="location">${ico("pin")}${esc(UPUI.locText(l))}, Dubai</div>
-      <div class="spec">${UPUI.specOf(l)
-        .map((s) => `<span>${esc(s)}</span>`)
-        .join("")}</div>
-      <div class="card-footer"><div class="provider-mini"><i>${esc(UPUI.initials(l.provider.name))}</i><div><b>${esc(l.provider.name)}</b>${esc(l.provider.org)} · replies ~${l.provider.reply} min</div></div>
-        <button class="btn btn-outline btn-sm" data-call="${l.id}">${ico("phone")}<span>${t("Call")}</span></button>
-        <button class="btn btn-whatsapp btn-sm" data-wa="${l.id}">${ico("wa")}<span>${t("WhatsApp")}</span></button></div>
-    </div></article>`;
+/* compact row (list view) — same row as the agent / agency pages, plus call and WhatsApp */
+function row(l) {
+  const pt = UPUI.priceText(l, S);
+  return `<a class="row-item" href="${PATHS.href.listing}?id=${l.id}" data-id="${l.id}">${UPUI.photo(l, 0)}
+    <span>${S.v === "all" || !S.o ? `<small class="row-cat">${esc(offerOf(l.v, l.cat).label)}</small>` : ""}<b>${esc(l.title)}</b><small>${ico("pin")} ${esc(UPUI.locText(l))}</small><small class="row-spec">${UPUI.specOf(l).map(esc).join(" · ")}</small></span>
+    <span class="row-price">${pt.n}<span>${esc(pt.u)}</span></span>
+    <span class="row-acts"><button class="btn btn-outline" data-call="${l.id}" aria-label="${t("Call")}" title="${t("Call")}">${ico("phone")}</button><button class="btn btn-whatsapp" data-wa="${l.id}" aria-label="${t("WhatsApp")}" title="${t("WhatsApp")}">${ico("wa")}</button></span></a>`;
 }
-document.addEventListener("click", (e) => {
-  const b = e.target.closest("[data-slide]");
-  if (!b) return;
-  e.preventDefault();
-  e.stopPropagation();
-  const ph = b.closest(".photo"),
-    l = UPUI.byId(b.closest("[data-id]").dataset.id);
-  const i =
-    (+ph.dataset.ph + +b.dataset.slide + l.img.length) % l.img.length;
-  ph.dataset.ph = i;
-  ph.querySelector("img").src = l.img[i];
-  ph.querySelectorAll(".photo-dots i").forEach((d, k) =>
-    d.classList.toggle("is-active", k === i),
-  );
-});
 
 /* map */
 function mapHTML(list) {
@@ -375,24 +348,6 @@ function mapHTML(list) {
       })
       .join("")}
     <div class="map-note">${list.length} results · ${UPUI.prefs.cur} · illustrative map</div></div>`;
-}
-
-function asideHTML() {
-  const O = offer(S);
-  if (!O) return "";
-  const pool = LISTINGS.filter((l) => l.v === S.v && l.cat === S.o);
-  const areas = AREAS.map((a) => ({
-    a,
-    c: pool.filter((l) => l.loc === a.id).length,
-  }))
-    .filter((x) => x.c)
-    .sort((x, y) => y.c - x.c)
-    .slice(0, 7);
-  return `<div class="sidebar">
-    <div class="side-box steps"><h4>How ${esc(O.label.toLowerCase())} enquiries work</h4><ol>${O.flow.map((f, i) => `<li><i>${i + 1}</i>${esc(f)}</li>`).join("")}</ol><p>Call, WhatsApp or email — it reaches the provider instantly as a lead. No booking or payment on UpNow.</p></div>
-    <div class="side-box"><h4>Popular areas</h4>${areas.map((x) => `<a class="side-link" href="${PATHS.href.search}${toQuery({ ...S, loc: [x.a.id], page: 1 })}">${esc(x.a.n)}<em>${x.c}</em></a>`).join("")}</div>
-    <div class="side-box" style="background:var(--g1);border-color:var(--g2)"><h4>Can't find it?</h4><p style="margin:0 0 12px;color:var(--ink2);font-size:13px">Tell our team what you need — we'll shortlist matching ${esc(O.label.toLowerCase())} and send them on WhatsApp.</p><a class="btn btn-whatsapp btn-sm" style="width:100%" href="https://wa.me/97140000000?text=${encodeURIComponent("Hi UpNow, I'm looking for: " + seoTitle())}" target="_blank">${ico("wa")}Chat with UpNow</a></div>
-  </div>`;
 }
 
 function paint() {
@@ -436,12 +391,13 @@ function paint() {
     update();
   };
   document.getElementById("viewsw").innerHTML = [
-    ["grid", "grid4", t("Grid")],
-    ["map", "map", t("Map")],
+    ["grid", "grid4", t("Grid view")],
+    ["list", "list", t("List view")],
+    ["map", "map", t("Map view")],
   ]
     .map(
       ([k, i, l]) =>
-        `<button class="${S.view === k ? "is-active" : ""}" data-view="${k}">${ico(i)}${l}</button>`,
+        `<button class="${S.view === k ? "is-active" : ""}" data-view="${k}" aria-label="${l}" title="${l}">${ico(i)}</button>`,
     )
     .join("");
 
@@ -488,16 +444,7 @@ function paint() {
   const view = S.view;
   document.getElementById("layout").className =
     "layout" +
-    (view === "map"
-      ? " is-map-view"
-      : view === "grid"
-        ? " is-grid-view"
-        : " is-list-view");
-  const withActs = (l) =>
-    UPUI.card(l, S).replace(
-      /<\/div><\/a>$/,
-      `</div><div class="actions"><button class="btn btn-outline" data-call="${l.id}">${ico("phone")}${t("Call")}</button><button class="btn btn-whatsapp" data-wa="${l.id}">${ico("wa")}${t("WhatsApp")}</button></div></a>`,
-    );
+    (view === "map" ? " is-map-view" : " is-grid-view");
   let body;
   if (!all.length) {
     const relax = [];
@@ -526,16 +473,9 @@ function paint() {
       '<button class="chip" data-rm="*">Clear all filters</button>'
     }</div></div>`;
   } else if (view === "list") {
-    const items = list.map(lcard);
-    if (items.length > 4)
-      items.splice(
-        4,
-        0,
-        `<div class="inline-cta">${ico("bolt")}<div><b>Get new matches first</b><span>Save this search — new ${esc(O ? O.h1.toLowerCase() : "listings")} arrive on WhatsApp.</span></div><button class="btn btn-primary btn-sm" onclick="document.getElementById('saveS').click()">${ico("bell")}Save search</button></div>`,
-      );
-    body = `<div class="results-list">${items.join("")}</div>`;
+    body = `<div class="row-list">${list.map(row).join("")}</div>`;
   } else {
-    body = `<div class="results-grid">${list.map(withActs).join("")}</div>`;
+    body = `<div class="compact-grid">${list.map((l) => UPUI.card(l, S)).join("")}</div>`;
   }
   const pager =
     pages > 1
@@ -543,9 +483,8 @@ function paint() {
       : "";
   document.getElementById("res").innerHTML = body + pager;
   const aside = document.getElementById("aside");
-  aside.innerHTML =
-    view === "map" ? mapHTML(all) : view === "grid" ? "" : asideHTML();
-  aside.style.display = view === "grid" ? "none" : "";
+  aside.innerHTML = view === "map" ? mapHTML(all) : "";
+  aside.style.display = view === "map" ? "" : "none";
   paintFilterRow();
   paintSeo();
   UPUI.updateHdrCounts();

@@ -3725,3 +3725,175 @@ h1,
   opacity: 0.35;
   cursor: default;
 }
+
+/* compact listing cards (grid), compact rows (list) and the grid / list toggle — search results and profile pages */
+.compact-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.compact-grid .card {
+  border-radius: 12px;
+}
+
+.compact-grid .card .photo {
+  aspect-ratio: 3/2;
+}
+
+.compact-grid .card .badges {
+  top: 7px;
+  left: 7px;
+  gap: 4px;
+}
+
+.compact-grid .card .badge {
+  font-size: 10.5px;
+  padding: 2px 6px;
+}
+
+.compact-grid .card .fav-btn {
+  top: 7px;
+  right: 7px;
+  width: 28px;
+  height: 28px;
+}
+
+.compact-grid .card .fav-btn .icon {
+  width: 14px;
+  height: 14px;
+}
+
+.compact-grid .card .photo .count {
+  right: 7px;
+  bottom: 7px;
+}
+
+.compact-grid .card .content {
+  padding: 9px 10px 10px;
+  gap: 1px;
+}
+
+.compact-grid .card .title {
+  font-size: 13.5px;
+}
+
+.compact-grid .card .location {
+  font-size: 12px;
+}
+
+.compact-grid .card .spec {
+  display: none;
+}
+
+/* title · location · price only, like the home page */
+.compact-grid .card .price {
+  font-size: 14.5px;
+  padding-top: 3px;
+}
+
+.compact-grid .card .price span {
+  font-size: 11.5px;
+}
+
+.row-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.row-item {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 10px 14px 10px 10px;
+  background: #fff;
+}
+
+.row-item + .row-item {
+  border-top: 1px solid var(--line);
+}
+
+.row-item:hover {
+  background: #fbfdfc;
+}
+
+.row-item:hover b {
+  color: var(--g7);
+}
+
+.row-item img,
+.row-item .tile {
+  width: 112px;
+  height: 76px;
+  border-radius: 8px;
+  object-fit: cover;
+  display: block;
+}
+
+.row-item b {
+  display: block;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row-item small {
+  display: block;
+  font-size: 12.5px;
+  color: var(--ink3);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row-item .row-spec {
+  color: var(--ink2);
+  font-weight: 600;
+}
+
+.row-item .row-price {
+  text-align: right;
+  font-weight: 800;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.row-item .row-price span {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--ink3);
+}
+
+.view-toggle {
+  display: inline-flex;
+  background: var(--bg);
+  border-radius: 99px;
+  padding: 3px;
+}
+
+.view-toggle button {
+  width: 30px;
+  height: 28px;
+  border-radius: 99px;
+  display: grid;
+  place-items: center;
+  color: var(--ink3);
+}
+
+.view-toggle button.is-active {
+  background: #fff;
+  color: var(--g8);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.view-toggle .icon {
+  width: 15px;
+  height: 15px;
+}

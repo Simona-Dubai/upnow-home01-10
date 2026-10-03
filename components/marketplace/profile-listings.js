@@ -55,11 +55,11 @@
   function resultsHTML(pool, S) {
     const res = UPUI.results(S, pool);
     const meta = `<div class="pf-meta"><span class="pf-count"><b>${res.length}</b> ${res.length === 1 ? 'listing' : 'listings'}</span>${filtered(S, pool) ? `<button class="text-link" data-pf-reset>Clear filters</button>` : ''}
-      <span class="pf-sp"></span><span class="pf-view" role="group" aria-label="View">${[['grid', 'grid4', 'Grid view'], ['list', 'list', 'List view']].map(([k, i, t]) => `<button class="${(S.view === 'list' ? 'list' : 'grid') === k ? 'is-active' : ''}" data-pf-view="${k}" aria-label="${t}" title="${t}">${ico(i)}</button>`).join('')}</span><label class="pf-select"><select data-pf-sort aria-label="Sort">${SORTS.map(([k, t]) => `<option value="${k}" ${S.sort === k ? 'selected' : ''}>${t}</option>`).join('')}</select>${ico('chev')}</label></div>`;
+      <span class="pf-sp"></span><span class="view-toggle" role="group" aria-label="View">${[['grid', 'grid4', 'Grid view'], ['list', 'list', 'List view']].map(([k, i, t]) => `<button class="${(S.view === 'list' ? 'list' : 'grid') === k ? 'is-active' : ''}" data-pf-view="${k}" aria-label="${t}" title="${t}">${ico(i)}</button>`).join('')}</span><label class="pf-select"><select data-pf-sort aria-label="Sort">${SORTS.map(([k, t]) => `<option value="${k}" ${S.sort === k ? 'selected' : ''}>${t}</option>`).join('')}</select>${ico('chev')}</label></div>`;
     const shown = res.slice(0, S.limit), SS = S.o ? S : null;
     const items = S.view === 'list'
-      ? `<div class="pf-list-v">${shown.map(l => { const pt = UPUI.priceText(l, SS); return `<a class="pf-li" href="${PATHS.href.listing}?id=${l.id}">${UPUI.photo(l, 0)}<span><b>${esc(l.title)}</b><small>${ico('pin')} ${esc(UPUI.locText(l))}</small><small class="pf-li-spec">${UPUI.specOf(l).map(esc).join(' · ')}</small></span><span class="pf-li-price">${pt.n}<span>${esc(pt.u)}</span></span></a>`; }).join('')}</div>`
-      : `<div class="pf-grid">${shown.map(l => card(l, SS)).join('')}</div>`;
+      ? `<div class="row-list">${shown.map(l => { const pt = UPUI.priceText(l, SS); return `<a class="row-item" href="${PATHS.href.listing}?id=${l.id}">${UPUI.photo(l, 0)}<span><b>${esc(l.title)}</b><small>${ico('pin')} ${esc(UPUI.locText(l))}</small><small class="row-spec">${UPUI.specOf(l).map(esc).join(' · ')}</small></span><span class="row-price">${pt.n}<span>${esc(pt.u)}</span></span></a>`; }).join('')}</div>`
+      : `<div class="compact-grid">${shown.map(l => card(l, SS)).join('')}</div>`;
     return meta + (res.length ? `${items}
         ${res.length > S.limit ? `<div class="pf-more"><span>Showing ${S.limit} of ${res.length}</span><button class="btn btn-outline" data-pf-more>Show ${Math.min(PAGE, res.length - S.limit)} more</button></div>` : ''}`
       : `<div class="pf-empty">${ico('search')}<b>No listings match these filters</b><button class="btn btn-outline btn-sm" data-pf-reset>Clear filters</button></div>`);
