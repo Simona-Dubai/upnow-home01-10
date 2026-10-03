@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Atlas Coworking — example site</title>
+    <meta name="description" content="Example landing page built from the UpNow components with different content and a blue theme." />
+    <link rel="stylesheet" href="../css/main.css" />
+    <link rel="stylesheet" href="theme.css" />
+  </head>
+  <body>
+    <div id="hdr"></div>
+
+    <section class="ex-hero">
+      <div class="wrap">
+        <span class="kicker" id="kicker"></span>
+        <h1 id="title"></h1>
+        <p id="text"></p>
+        <div class="actions" id="heroActions"></div>
+      </div>
+    </section>
+
+    <main class="wrap">
+      <section class="ex-section">
+        <h2>Why members stay</h2>
+        <p>Everything you need to get work done, in every location.</p>
+        <div class="ex-features" id="features"></div>
+      </section>
+
+      <section class="ex-section">
+        <h2>Popular workspaces</h2>
+        <p>The same card component as the marketplace, with different content.</p>
+        <div class="ex-grid" id="spaces"></div>
+      </section>
+
+      <section class="ex-section" id="pricing">
+        <h2>Pricing</h2>
+        <p>Month-to-month plans or pay as you go.</p>
+        <div class="ex-panel"><div id="planTabs"></div><div class="ex-plans" id="plans"></div></div>
+      </section>
+
+      <section class="ex-section" id="faq">
+        <h2>Questions</h2>
+        <div class="ex-panel ex-faq" id="faqList"></div>
+      </section>
+
+      <section class="ex-section" id="tour">
+        <h2>Book a tour</h2>
+        <p>We reply within the hour on working days.</p>
+        <form class="ex-panel form-grid" id="tourForm"></form>
+      </section>
+    </main>
+
+    <div id="ftr"></div>
+
+    <!-- generic layer only: paths → content → icons → utils → ui → overlays → layout -->
+    <script src="../js/core/paths.js"></script>
+    <script src="content.js"></script>
+    <script src="../components/icons.js"></script>
+    <script src="../js/core/utils.js"></script>
+    <script src="../components/ui.js"></script>
+    <script src="../components/overlays.js"></script>
+    <script src="../components/layout.js"></script>
+    <script src="js/landing.js"></script>
+  </body>
+</html>

@@ -1,0 +1,192 @@
+@charset "UTF-8";
+/* Re-theming example: override the design tokens from css/variables.css. Every component picks the new colours up.
+   Here the brand greens become blues; everything else (type, radius, spacing, layout) stays the same. */
+:root {
+  --g9: #0d2a4a;
+  --g8: #12376a;
+  --g7: #1a4f8f;
+  --g6: #2563ae;
+  --g5: #3b7fd0;
+  --g2: #d6e6f8;
+  --g1: #eef4fc;
+}
+
+/* page styles for the two example pages, written with the same tokens */
+.ex-hero {
+  background: linear-gradient(120deg, var(--g9), var(--g7));
+  color: #fff;
+  padding: 72px 0 64px;
+}
+
+.ex-hero .kicker {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--g2);
+  margin-bottom: 14px;
+}
+
+.ex-hero h1 {
+  font-family: var(--serif);
+  font-size: 54px;
+  line-height: 1.05;
+  max-width: 640px;
+}
+
+.ex-hero p {
+  color: var(--g2);
+  max-width: 520px;
+  font-size: 16px;
+  margin: 16px 0 26px;
+}
+
+.ex-hero .actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ex-section {
+  padding: 48px 0 0;
+}
+
+.ex-section > h2 {
+  font-size: 26px;
+  margin-bottom: 6px;
+}
+
+.ex-section > p {
+  color: var(--ink3);
+  margin: 0 0 20px;
+}
+
+.ex-features {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.ex-features div {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 18px;
+}
+
+.ex-features .icon {
+  width: 22px;
+  height: 22px;
+  color: var(--g6);
+  margin-bottom: 10px;
+}
+
+.ex-features b {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.ex-features span {
+  color: var(--ink3);
+  font-size: 13px;
+}
+
+.ex-panel {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 22px;
+}
+
+.ex-plans {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.ex-plans div {
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 18px;
+}
+
+.ex-plans b {
+  display: block;
+  font-size: 15px;
+}
+
+.ex-plans strong {
+  display: block;
+  font-size: 24px;
+  margin: 8px 0 4px;
+  color: var(--g8);
+}
+
+.ex-plans span {
+  color: var(--ink3);
+  font-size: 13px;
+}
+
+.ex-faq details {
+  border-top: 1px solid var(--line);
+  padding: 14px 0;
+}
+
+.ex-faq summary {
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ex-faq p {
+  color: var(--ink2);
+  margin: 8px 0 0;
+}
+
+.ex-toolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 20px 0 16px;
+}
+
+.ex-toolbar .spacer {
+  flex: 1;
+}
+
+.ex-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.ex-page-title {
+  padding: 36px 0 0;
+}
+
+.ex-page-title h1 {
+  font-family: var(--serif);
+  font-size: 38px;
+  color: var(--g9);
+}
+
+@media (max-width: 900px) {
+  .ex-features,
+  .ex-plans,
+  .ex-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ex-hero h1 {
+    font-size: 40px;
+  }
+}
+
+@media (max-width: 640px) {
+  .ex-features,
+  .ex-plans,
+  .ex-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
