@@ -340,7 +340,7 @@ body {
 /* card — ONE design everywhere: light grey border · photo · title · location · spec · price */
 .card {
   background: #fff;
-  border: 1px solid #f5f5f5;
+  border: 1px solid #eeeeee;
   border-radius: 14px;
   overflow: hidden;
   position: relative;
