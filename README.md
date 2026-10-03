@@ -54,6 +54,8 @@ components/
 data/
   site.js                   UpNow brand content: name, nav, header actions, footer, currencies, languages, translations
   home.js                   Home page copy, hero images, "How it works"
+  markets.js                Provider signup by country: every country + dialling code; phone format, national sign-in,
+                            ID document, licences and suggested cities/areas for AE, SA, GB, IN, US (others get generic wording)
   listings.js               Marketplace data (categories, areas, listings — seeded demo data)
 
 assets/
@@ -144,4 +146,5 @@ All links and images go through `PATHS`, so pages work from `/`, `/pages/` or an
 
 - Pages read the demo data in `data/listings.js`; favourites, enquiries and preferences are kept in the browser's localStorage (`upnow.*`).
 - Fonts are self-hosted, so the site works offline.
+- Provider signup works for any country: add a market profile in `data/markets.js` to give a country its own licences, sign-in and suggested areas.
 - Arabic switches the page to right-to-left; only the strings in `SITE.i18n.ar` are translated.

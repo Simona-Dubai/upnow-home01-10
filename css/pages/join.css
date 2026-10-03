@@ -836,3 +836,70 @@
     display: none;
   }
 }
+
+/* Where you work: city suggestions, area tags, whole-city toggle */
+.ob-suggest {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: -6px 0 16px;
+}
+
+.ob-suggest small {
+  width: 100%;
+  color: var(--ink3);
+  font-size: 12px;
+}
+
+.ob-suggest .chip .icon {
+  width: 13px;
+  height: 13px;
+}
+
+.ob-field .ob-suggest {
+  margin: 10px 0 0;
+}
+
+.ob-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-height: 46px;
+  padding: 6px 10px;
+  border: 1.5px solid var(--line2);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.ob-tags:focus-within {
+  border-color: var(--g6);
+}
+
+.ob-field .ob-tags input {
+  flex: 1;
+  min-width: 180px;
+  height: 32px;
+  border: 0;
+  padding: 0;
+  outline: none;
+}
+
+.ob-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink2);
+  cursor: pointer;
+}
+
+.ob-field .ob-toggle-row input {
+  width: 17px;
+  height: 17px;
+  padding: 0;
+  accent-color: var(--g7);
+}
