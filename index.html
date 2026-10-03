@@ -4,75 +4,75 @@
 <meta name="description" content="Residential, commercial, industrial, land, holiday homes, venues, courts and yachts — plus services, experiences, memberships, programs and insurance across Dubai. Call or WhatsApp verified providers directly.">
 <link rel="stylesheet" href="css/styles.css"><link rel="stylesheet" href="css/search.css"><link rel="stylesheet" href="css/detail.css"><link rel="stylesheet" href="css/mobile.css">
 <style>
-body.mb{display:block;gap:0;padding:0;background:#fff;overflow:auto}
+body.mobile-shell{display:block;gap:0;padding:0;background:#fff;overflow:auto}
 #mobile-app{display:none}
-#mobile-app .phone{display:none}
-@media(max-width:700px){body.mb{height:100vh;height:100dvh;overflow:hidden}#desktop-site{display:none}#mobile-app,#mobile-app .phone{display:block}#mobile-app .phone{width:100vw;height:100vh;height:100dvh;border-radius:0;padding:0;box-shadow:none}#mobile-app .scr{border-radius:0}#mobile-app .isl{display:none}}
-.herosec{position:relative;padding:40px 0 34px;background:#1b2a22;z-index:20}
-.herosec .wrap{position:relative;z-index:2}
-.herosec .pop,.herosec .more-pop{z-index:100}
-.herosec .bg{position:absolute;inset:0;overflow:hidden}
-.herosec .bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.04);transition:opacity .7s ease,transform 6s ease}
-.herosec .bg img.on{opacity:1;transform:scale(1)}
-.herosec .bg::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(244,247,244,.97) 0%,rgba(244,247,244,.88) 36%,rgba(244,247,244,.15) 70%)}
-.kick{white-space:nowrap;display:inline-flex;align-items:center;gap:7px;background:var(--g1);color:var(--g8);border:1px solid var(--g2);padding:6px 12px;border-radius:99px;font-weight:700;font-size:12.5px}
-.kick .ico{width:14px;height:14px}
-.herosec h1{font-family:var(--serif);font-weight:500;font-size:60px;line-height:1.04;letter-spacing:-.015em;margin:18px 0 12px;color:var(--g9);max-width:640px;min-height:125px;display:flex;align-items:flex-end}
-.herosec .sub{font-size:16px;color:var(--ink2);max-width:460px;margin:0 0 28px;min-height:72px}
-.herosec .sw{max-width:1180px}
-.herosec .credit{position:absolute;right:20px;bottom:12px;font-size:11px;font-weight:700;color:#fff;background:rgba(11,61,42,.55);backdrop-filter:blur(6px);padding:4px 10px;border-radius:99px;z-index:2}
-.trust{display:flex;gap:26px;padding:14px 0;border-bottom:1px solid var(--line);background:#fff;font-weight:600;color:var(--ink2);font-size:13px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1}
-.trust span{display:flex;align-items:center;gap:7px}.trust .ico{color:var(--g6)}
+#mobile-app .phone-frame{display:none}
+@media(max-width:700px){body.mobile-shell{height:100vh;height:100dvh;overflow:hidden}#desktop-site{display:none}#mobile-app,#mobile-app .phone-frame{display:block}#mobile-app .phone-frame{width:100vw;height:100vh;height:100dvh;border-radius:0;padding:0;box-shadow:none}#mobile-app .phone-screen{border-radius:0}#mobile-app .phone-island{display:none}#mobile-app .status-bar>*{display:none}#mobile-app .status-bar:not(.is-overlay){height:0}#mobile-app .screen-view.is-under-bar{margin-top:0}}
+.home-hero{position:relative;padding:40px 0 34px;background:#1b2a22;z-index:20}
+.home-hero .wrap{position:relative;z-index:2}
+.home-hero .popover,.home-hero .more-filters-popover{z-index:100}
+.home-hero .hero-bg{position:absolute;inset:0;overflow:hidden}
+.home-hero .hero-bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.04);transition:opacity .7s ease,transform 6s ease}
+.home-hero .hero-bg img.is-active{opacity:1;transform:scale(1)}
+.home-hero .hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(244,247,244,.97) 0%,rgba(244,247,244,.88) 36%,rgba(244,247,244,.15) 70%)}
+.hero-kicker{white-space:nowrap;display:inline-flex;align-items:center;gap:7px;background:var(--g1);color:var(--g8);border:1px solid var(--g2);padding:6px 12px;border-radius:99px;font-weight:700;font-size:12.5px}
+.hero-kicker .icon{width:14px;height:14px}
+.home-hero h1{font-family:var(--serif);font-weight:500;font-size:60px;line-height:1.04;letter-spacing:-.015em;margin:18px 0 12px;color:var(--g9);max-width:640px;min-height:125px;display:flex;align-items:flex-end}
+.home-hero .subtitle{font-size:16px;color:var(--ink2);max-width:460px;margin:0 0 28px;min-height:72px}
+.home-hero .hero-search{max-width:1180px}
+.home-hero .hero-credit{position:absolute;right:20px;bottom:12px;font-size:11px;font-weight:700;color:#fff;background:rgba(11,61,42,.55);backdrop-filter:blur(6px);padding:4px 10px;border-radius:99px;z-index:2}
+.trust-bar{display:flex;gap:26px;padding:14px 0;border-bottom:1px solid var(--line);background:#fff;font-weight:600;color:var(--ink2);font-size:13px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1}
+.trust-bar span{display:flex;align-items:center;gap:7px}.trust-bar .icon{color:var(--g6)}
 /* category rail — compact icon tiles for the main type of the selected category */
-.cats{display:flex;gap:4px;padding:20px 0 4px;overflow-x:auto;scrollbar-width:none}
-.cats::-webkit-scrollbar{display:none}
-.cats a{flex:none;display:flex;flex-direction:column;align-items:center;gap:5px;width:84px;padding:6px 2px;border-radius:10px;font-weight:600;font-size:11.5px;line-height:1.2;color:var(--ink2);text-align:center;transition:.15s}
-.cats a:hover{color:var(--ink)}
-.cats a i{width:38px;height:38px;border-radius:11px;background:var(--g1);display:grid;place-items:center;color:var(--g7);transition:.15s}
-.cats a i .ico{width:17px;height:17px;stroke-width:1.6}
-.cats a:hover i{transform:translateY(-2px);background:var(--g2)}
-.cats a small{color:var(--ink3);font-weight:500;font-size:10px;margin-top:-3px}
-.sec{margin-top:40px}
-.sec-h{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:16px;gap:20px}
-.sec-h h2{font-size:24px;letter-spacing:-.02em}
-.sec-h p{margin:4px 0 0;color:var(--ink3)}
-.sec-h a{color:var(--g7);font-weight:700;display:flex;align-items:center;gap:4px;white-space:nowrap}
-.row{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:22px 18px}
-.pop-areas{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.pop-areas a{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;font-weight:700}
-.pop-areas a:hover{border-color:var(--g5)}
-.pop-areas a small{display:block;color:var(--ink3);font-weight:500;font-size:12px;margin-top:2px}
-.pop-areas .ico{color:var(--ink3)}
-.why{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-.why div{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:18px}
-.why .n{width:28px;height:28px;border-radius:50%;background:#fff;color:var(--g8);display:grid;place-items:center;font-weight:800;font-size:12.5px;margin-bottom:10px}
-.why b{display:block;margin-bottom:4px}.why span{color:var(--ink3);font-size:13px}
-@media (max-width:1200px){.row{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media (max-width:900px){.herosec h1{font-size:44px}.row{grid-template-columns:repeat(2,1fr)}.pop-areas,.why{grid-template-columns:repeat(2,1fr)}}
+.category-rail{display:flex;gap:4px;padding:20px 0 4px;overflow-x:auto;scrollbar-width:none}
+.category-rail::-webkit-scrollbar{display:none}
+.category-rail a{flex:none;display:flex;flex-direction:column;align-items:center;gap:5px;width:84px;padding:6px 2px;border-radius:10px;font-weight:600;font-size:11.5px;line-height:1.2;color:var(--ink2);text-align:center;transition:.15s}
+.category-rail a:hover{color:var(--ink)}
+.category-rail a i{width:38px;height:38px;border-radius:11px;background:var(--g1);display:grid;place-items:center;color:var(--g7);transition:.15s}
+.category-rail a i .icon{width:17px;height:17px;stroke-width:1.6}
+.category-rail a:hover i{transform:translateY(-2px);background:var(--g2)}
+.category-rail a small{color:var(--ink3);font-weight:500;font-size:11px;margin-top:-3px}
+.section{margin-top:40px}
+.section-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:16px;gap:20px}
+.section-header h2{font-size:24px;letter-spacing:-.02em}
+.section-header p{margin:4px 0 0;color:var(--ink3)}
+.section-header a{color:var(--g7);font-weight:700;display:flex;align-items:center;gap:4px;white-space:nowrap}
+.card-row{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:22px 18px}
+.popular-areas{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.popular-areas a{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;font-weight:700}
+.popular-areas a:hover{border-color:var(--g5)}
+.popular-areas a small{display:block;color:var(--ink3);font-weight:500;font-size:12px;margin-top:2px}
+.popular-areas .icon{color:var(--ink3)}
+.how-it-works{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.how-it-works div{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:18px}
+.how-it-works .step-number{width:28px;height:28px;border-radius:50%;background:#fff;color:var(--g8);display:grid;place-items:center;font-weight:800;font-size:12.5px;margin-bottom:10px}
+.how-it-works b{display:block;margin-bottom:4px}.how-it-works span{color:var(--ink3);font-size:13px}
+@media (max-width:1200px){.card-row{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:900px){.home-hero h1{font-size:44px}.card-row{grid-template-columns:repeat(2,1fr)}.popular-areas,.how-it-works{grid-template-columns:repeat(2,1fr)}}
 </style></head>
-<body class="mb">
+<body class="mobile-shell">
 <div id="desktop-site">
 <div id="hdr"></div>
-<section class="herosec" data-screen-label="Home hero">
-  <div class="bg" id="bg"><img alt=""><img alt=""></div>
+<section class="home-hero" data-screen-label="Home hero">
+  <div class="hero-bg" id="bg"><img alt=""><img alt=""></div>
   <div class="wrap">
-    <span class="kick" id="kick"></span>
+    <span class="hero-kicker" id="kick"></span>
     <h1 id="h1"></h1>
-    <p class="sub" id="sub"></p>
-    <div class="sw" id="sw"></div>
+    <p class="subtitle" id="sub"></p>
+    <div class="hero-search" id="sw"></div>
   </div>
-  <span class="credit" id="credit"></span>
+  <span class="hero-credit" id="credit"></span>
 </section>
-<div class="trust" id="trust"></div>
+<div class="trust-bar" id="trust"></div>
 <main class="wrap">
-  <div id="cats" class="cats"></div>
+  <div id="cats" class="category-rail"></div>
   <div id="sections"></div>
-  <section class="sec"><div class="sec-h"><div><h2 id="areasH">Popular areas</h2><p>Jump straight to results in Dubai's most-searched communities.</p></div></div><div class="pop-areas" id="areas"></div></section>
-  <section class="sec"><div class="sec-h"><div><h2>How UpNow works</h2><p>No checkout and no booking fee. You deal with the verified provider directly.</p></div></div><div class="why" id="why"></div></section>
+  <section class="section"><div class="section-header"><div><h2 id="areasH">Popular areas</h2><p>Jump straight to results in Dubai's most-searched communities.</p></div></div><div class="popular-areas" id="areas"></div></section>
+  <section class="section"><div class="section-header"><div><h2>How UpNow works</h2><p>No checkout and no booking fee. You deal with the verified provider directly.</p></div></div><div class="how-it-works" id="why"></div></section>
 </main>
 <div id="ftr"></div>
 </div>
-<div id="mobile-app"><div class="phone"><div class="isl"></div><div class="scr" id="scr"></div></div></div>
+<div id="mobile-app"><div class="phone-frame"><div class="phone-island"></div><div class="phone-screen" id="scr"></div></div></div>
 <script src="js/data.js"></script><script src="js/common.js"></script><script src="js/filters-ui.js"></script>
 <script src="js/dm-core.js"></script><script src="js/dm-spaces.js"></script><script src="js/dm-others.js"></script>
 <script>
@@ -101,7 +101,7 @@ const OICO = UPF.OICO || { cleaning: 'spark', ac: 'snow', haircut: 'user', denti
 const iconOf = (v, o) => o.icon || OICO[o.id] || VERTICALS[v].icon;
 
 const bgImgs = [...document.querySelectorAll('#bg img')]; let bgIdx = 0, bgCur = null;
-function setHero(src) { if (src === bgCur) return; bgCur = src; const next = bgImgs[1 - bgIdx]; const pre = new Image(); pre.onload = pre.onerror = () => { next.src = src; requestAnimationFrame(() => { next.classList.add('on'); bgImgs[bgIdx].classList.remove('on'); bgIdx = 1 - bgIdx; }); }; pre.src = src; }
+function setHero(src) { if (src === bgCur) return; bgCur = src; const next = bgImgs[1 - bgIdx]; const pre = new Image(); pre.onload = pre.onerror = () => { next.src = src; requestAnimationFrame(() => { next.classList.add('is-active'); bgImgs[bgIdx].classList.remove('is-active'); bgIdx = 1 - bgIdx; }); }; pre.src = src; }
 
 function paint() {
   localStorage.setItem('upnow.home', JSON.stringify({ v: S.v, o: S.o }));
@@ -115,7 +115,7 @@ function paint() {
 
   const inV = LISTINGS.filter(l => S.v === 'all' || l.v === S.v);
   document.getElementById('trust').innerHTML = [
-    ['check', `${inV.filter(l => l.a.verified).length} verified ${S.v === 'all' ? 'listings' : VERTICALS[S.v].label.toLowerCase()} results`],
+    ['check', `${inV.filter(l => l.a.verified).length} verified listings`],
     ['phone', 'Direct provider contact'],
     ['clock', `${Math.round(inV.reduce((s, l) => s + l.provider.reply, 0) / inV.length)} min average reply`],
     ['star', `${(inV.reduce((s, l) => s + l.rating, 0) / inV.length).toFixed(1)} · ${inV.reduce((s, l) => s + l.reviews, 0).toLocaleString()} verified reviews`]
@@ -161,8 +161,8 @@ function paint() {
     ? VORDER.map(v => ({ t: VERTICALS[v].label, p: COPY[v][1], list: LISTINGS.filter(l => l.v === v).sort((a, b) => b.rating - a.rating), href: '?v=' + v }))
     : VERTICALS[S.v].offers.map(o => { const B = blankState(S.v, o.id); return { t: o.h1, p: o.basis + ' · verified providers', list: results(B), href: toQuery(B), on: o.id === S.o }; }).sort((a, b) => (b.on || 0) - (a.on || 0));
   document.getElementById('sections').innerHTML = blocks.filter(b => b.list.length).map(b => `
-    <section class="sec"><div class="sec-h"><div><h2>${esc(b.t)}</h2>${b.p ? `<p>${esc(b.p)}</p>` : ''}</div><a href="Search.html${b.href}">See all ${b.list.length} ${ico('chevR')}</a></div>
-    <div class="row">${b.list.slice(0, 6).map(l => card(l)).join('')}</div></section>`).join('');
+    <section class="section"><div class="section-header"><div><h2>${esc(b.t)}</h2>${b.p ? `<p>${esc(b.p)}</p>` : ''}</div><a href="Search.html${b.href}">See all ${b.list.length} ${ico('chevR')}</a></div>
+    <div class="card-row">${b.list.slice(0, 6).map(l => card(l)).join('')}</div></section>`).join('');
 
   const pool = S.v === 'all' ? inV : inV.filter(l => l.cat === S.o);
   const areas = AREAS.map(a => ({ ...a, c: pool.filter(l => l.loc === a.id || (l.coverage || []).includes(a.id)).length })).filter(a => a.c).sort((a, b) => b.c - a.c).slice(0, 8);
@@ -174,7 +174,7 @@ function paint() {
     ['Compare verified providers', 'Check photos, pricing, permits and provider details.'],
     ['Call, WhatsApp or email', 'It reaches the provider instantly as a lead with your details.'],
     ['Deal directly', 'Viewings, contracts and payments are agreed with the provider — UpNow never takes your money.']
-  ].map(([b, s], i) => `<div><span class="n">${i + 1}</span><b>${b}</b><span>${s}</span></div>`).join('');
+  ].map(([b, s], i) => `<div><span class="step-number">${i + 1}</span><b>${b}</b><span>${s}</span></div>`).join('');
 }
 UPF.SearchBar(document.getElementById('sw'), S, { mode: 'hero', onChange: paint, onSubmit: go });
 paint();

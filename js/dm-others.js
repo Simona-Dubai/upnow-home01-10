@@ -18,12 +18,12 @@
     return {
       secs: [
         ['Choose a service', live(c, 'sv', () => H.opts('sv', st, SV.map(s => ({ ...s, p: M(ph * s.mult) + '<span style="font-weight:500;color:var(--ink3)">/hr</span>' }))))],
-        ['What’s included', `<div class="dm-cols">${H.box('Every visit', 'check', [['Kitchen', 'Counters, hob, sink, outside of appliances'], ['Bathrooms', 'Toilet, shower, tiles, mirrors'], ['Rooms', 'Dusting, beds, vacuum & mop'], ['Bins', 'Emptied & relined']])}${H.box('Not included', 'x', [['Inside oven / fridge', 'Deep clean only'], ['Windows (outside)', 'Building access needed'], ['Laundry & ironing', 'Add-on · AED 30/hr'], ['Pest control', 'Separate service']])}</div>`],
+        ['What’s included', `<div class="detail-columns">${H.box('Every visit', 'check', [['Kitchen', 'Counters, hob, sink, outside of appliances'], ['Bathrooms', 'Toilet, shower, tiles, mirrors'], ['Rooms', 'Dusting, beds, vacuum & mop'], ['Bins', 'Emptied & relined']])}${H.box('Not included', 'x', [['Inside oven / fridge', 'Deep clean only'], ['Windows (outside)', 'Building access needed'], ['Laundry & ironing', 'Add-on · AED 30/hr'], ['Pest control', 'Separate service']])}</div>`],
         ['Your team', H.spec([['users', 'Team size', 'Up to ' + A.team + ' cleaners'], ['shield', 'Vetting', 'Emirates ID + police check'], ['clock', 'Minimum', A.minHours + ' hours'], ['tool', 'Materials', A.materials ? 'Brought by team' : 'Customer provides / +AED 10/hr'], ['pin', 'Covers', (c.l.coverage || []).length + ' areas'], ['star', 'Rating', c.l.rating + ' · ' + c.l.reviews + ' visits']])]
       ],
       bk: () => H.price(c.l, money(ph), '/hour per cleaner') + H.lab('How often') + H.chips('fr', st, Object.entries(FR).map(([k, [, t]]) => [k, t])) + H.lab('Date') + H.days('d', st) + H.lab('Start time') + H.chips('t', st, slotTimes(c, st.d, ['08:00', '09:00', '11:00', '13:00', '15:00', '17:00'])) +
         H.step('hrs', st, st.hrs + ' hours', 'Min ' + A.minHours, A.minHours, 8) + H.step('cl', st, st.cl + ' cleaner' + (st.cl > 1 ? 's' : ''), 'Up to ' + A.team, 1, A.team) +
-        `<div class="bk-st"><div><b>Cleaning materials</b><small>+ AED 10 / hour</small></div><div><button data-bk="flag" data-k="mat" style="width:auto;padding:0 12px;border-radius:99px;${st.mat ? 'background:var(--g7);color:#fff;border-color:var(--g7)' : ''}">${st.mat ? 'Added' : 'Add'}</button></div></div>` +
+        `<div class="booking-stepper"><div><b>Cleaning materials</b><small>+ AED 10 / hour</small></div><div><button data-bk="flag" data-k="mat" style="width:auto;padding:0 12px;border-radius:99px;${st.mat ? 'background:var(--g7);color:#fff;border-color:var(--g7)' : ''}">${st.mat ? 'Added' : 'Add'}</button></div></div>` +
         H.sum([[`${M(rate())} × ${st.hrs} hrs × ${st.cl}`, M(sub())], disc() ? [FR[st.fr][1].split(' · ')[0] + ' discount', '−' + M(disc())] : null, mat() ? ['Materials', M(mat())] : null, ['VAT 5%', M((sub() - disc() + mat()) * .05)]], M(tot()), st.fr === 'once' ? 'Total' : 'Per visit') + H.go('Request booking') + H.fine('Pay the company after the visit'),
       go: () => ({ title: 'Request booking', rows: [['Company', c.l.provider.name], ['Service', sel(SV, st.sv).t], ['When', fd(dayN(st.d)) + ' · ' + st.t], ['Team', st.cl + ' × ' + st.hrs + ' hrs'], ['Frequency', FR[st.fr][1]]], total: M(tot()) })
     };
@@ -37,7 +37,7 @@
     return {
       secs: [
         ['Service menu', live(c, 'svm', () => { st.sv = st.sv ?? 'svc'; return menuOpts(SV.map(s => ({ ...s, s: s.s + ' · per unit' })), st, 'sv'); })],
-        ['Annual maintenance contract (AMC)', H.table(['', 'Basic', 'Comprehensive'], [['<b>Scheduled visits</b>', A.visits + ' / year', (A.visits + 1) + ' / year'], ['<b>Emergency call-outs</b>', A.emergency ? '2 free' : 'Paid', 'Unlimited'], ['<b>Response time</b>', A.sla + ' hrs', Math.max(4, A.sla / 2) + ' hrs'], ['<b>Parts</b>', 'Charged', A.parts === 'included' ? 'Included' : 'Up to AED 500'], ['<b>Duct cleaning</b>', H.no, '1 / year'], { cls: 'tot', c: ['Per unit / year', M(ph * 3), M(ph * 4.2)] }], 1)],
+        ['Annual maintenance contract (AMC)', H.table(['', 'Basic', 'Comprehensive'], [['<b>Scheduled visits</b>', A.visits + ' / year', (A.visits + 1) + ' / year'], ['<b>Emergency call-outs</b>', A.emergency ? '2 free' : 'Paid', 'Unlimited'], ['<b>Response time</b>', A.sla + ' hrs', Math.max(4, A.sla / 2) + ' hrs'], ['<b>Parts</b>', 'Charged', A.parts === 'included' ? 'Included' : 'Up to AED 500'], ['<b>Duct cleaning</b>', H.no, '1 / year'], { cls: 'total-row', c: ['Per unit / year', M(ph * 3), M(ph * 4.2)] }], 1)],
         ['Coverage', H.spec([['clock', 'Response SLA', A.sla + ' hours'], ['bolt', '24/7 emergency', A.emergency ? 'Yes' : 'No'], ['tool', 'AC types', A.acType.join(', ')], ['pin', 'Areas covered', (c.l.coverage || []).length + ' communities']])]
       ],
       bk: () => H.price(c.l, money(st.m === 'annual' ? ph * 3 : ph), st.m === 'annual' ? '/unit/year' : '/unit') + H.lab('Service type') + H.seg('m', st, [['once', 'One-time'], ['annual', 'Annual (AMC)']]) +
@@ -57,7 +57,7 @@
     const tot = () => items().reduce((s, m) => s + m.p, 0) + (st.pro !== 'any' ? 20 : 0) + (st.at === 'home' ? 100 : 0);
     return {
       secs: [
-        ['Service menu', `<p class="dm-sub">Tap to add to your booking.</p>` + live(c, 'menu', () => `<div class="optl">${menu.map(m => `<button class="opt ${st.tr.includes(m.id) ? 'on' : ''}" data-bk="tg" data-k="tr" data-v="${m.id}"><span class="rd" style="border-radius:5px"></span><div><b>${esc(m.t)}</b><small>${m.d} min</small></div><em>${M(m.p)}</em></button>`).join('')}</div>`)],
+        ['Service menu', `<p class="detail-subtitle">Tap to add to your booking.</p>` + live(c, 'menu', () => `<div class="option-list">${menu.map(m => `<button class="option ${st.tr.includes(m.id) ? 'is-active' : ''}" data-bk="tg" data-k="tr" data-v="${m.id}"><span class="radio" style="border-radius:5px"></span><div><b>${esc(m.t)}</b><small>${m.d} min</small></div><em>${M(m.p)}</em></button>`).join('')}</div>`)],
         ['Team', live(c, 'team', () => H.opts('pro', st, [{ id: 'any', t: 'Any professional', s: 'Fastest available', p: '' }, ...team.map(x => ({ ...x, p: x.p ? '+' + M(x.p) : '' }))]))],
         ['Opening hours', H.box('This week', 'clock', [['Sat – Thu', '10:00 – 22:00'], ['Friday', '14:00 – 23:00'], ['Home visits', A.setting.includes('home') ? 'Yes · + AED 100' : 'Not offered']])]
       ],
@@ -74,12 +74,12 @@
     const covered = () => A.insurance.includes(st.ins) && st.ins !== 'Self-pay';
     return {
       secs: [
-        ['Doctors', live(c, 'docs', () => `<div class="optl">${docs.map(([n, s, y], i) => `<button class="opt ${st.dr === i ? 'on' : ''}" data-bk="set" data-k="dr" data-v="${i}"><span class="rd"></span><div><b>${n}</b><small>${s} · ${y} yrs experience · DHA licensed · ${A.language.slice(0, 2).join(', ')}</small></div><em>${(4.7 + i * .1).toFixed(1)}★</em></button>`).join('')}</div>`)],
-        ['Treatment prices', `<p class="dm-sub">Self-pay guide prices. Final plan after consultation.</p>` + H.table(['Treatment', 'Duration', 'From'], [['Consultation & X-ray', '30 min', M(ph)], ['Scale & polish', '45 min', M(ph * 1.3)], ['Whitening (in-chair)', '90 min', M(ph * 6)], ['Clear aligners (full)', '6–18 months', M(ph * 45)], ['Root canal (molar)', '2 visits', M(ph * 9)], ['Implant incl. crown', '3–6 months', M(ph * 22)]].map(r => [`<b>${r[0]}</b>`, r[1], r[2]]), 2)],
+        ['Doctors', live(c, 'docs', () => `<div class="option-list">${docs.map(([n, s, y], i) => `<button class="option ${st.dr === i ? 'is-active' : ''}" data-bk="set" data-k="dr" data-v="${i}"><span class="radio"></span><div><b>${n}</b><small>${s} · ${y} yrs experience · DHA licensed · ${A.language.slice(0, 2).join(', ')}</small></div><em>${(4.7 + i * .1).toFixed(1)}★</em></button>`).join('')}</div>`)],
+        ['Treatment prices', `<p class="detail-subtitle">Self-pay guide prices. Final plan after consultation.</p>` + H.table(['Treatment', 'Duration', 'From'], [['Consultation & X-ray', '30 min', M(ph)], ['Scale & polish', '45 min', M(ph * 1.3)], ['Whitening (in-chair)', '90 min', M(ph * 6)], ['Clear aligners (full)', '6–18 months', M(ph * 45)], ['Root canal (molar)', '2 visits', M(ph * 9)], ['Implant incl. crown', '3–6 months', M(ph * 22)]].map(r => [`<b>${r[0]}</b>`, r[1], r[2]]), 2)],
         ['Insurance accepted', H.chk(['Daman', 'AXA', 'Bupa', 'MetLife', 'Cigna', 'Direct billing'].map(x => [A.insurance.includes(x), x]))]
       ],
       bk: () => H.price(c.l, money(ph), '/consultation') + H.lab('Visit') + H.seg('ty', st, [['new', 'New patient'], ['ret', 'Returning'], ['emg', 'Emergency']]) +
-        H.lab('Doctor') + `<select class="bk-in" onchange="DM._set('dr',+this.value)">${docs.map((d, i) => `<option value="${i}" ${st.dr === i ? 'selected' : ''}>${d[0]} · ${d[1]}</option>`).join('')}</select>` +
+        H.lab('Doctor') + `<select class="booking-input" onchange="DM._set('dr',+this.value)">${docs.map((d, i) => `<option value="${i}" ${st.dr === i ? 'selected' : ''}>${d[0]} · ${d[1]}</option>`).join('')}</select>` +
         H.lab('Date') + H.days('d', st, 6, 0) + H.lab('Time') + H.chips('t', st, slotTimes(c, st.d + st.dr, ['09:00', '10:30', '12:00', '14:30', '16:00', '18:30'])) +
         H.lab('Payment') + H.chips('ins', st, [...A.insurance.slice(0, 4), 'Self-pay']) +
         H.sum([['Consultation', M(ph)], covered() ? ['Insurance (est. 80%)', '−' + M(ph * .8)] : null], M(covered() ? ph * .2 : ph), covered() ? 'You pay (co-pay)' : 'You pay') + H.go('Request appointment') + H.fine('Clinic verifies insurance before your visit'),
@@ -96,7 +96,7 @@
     return {
       secs: [
         ['Itinerary', H.tl(itin)],
-        ['What’s included', `<div class="dm-cols"><div class="dm-box"><h4>${ico('check')}Included</h4>${H.chk(inc.map(x => [1, x]))}</div><div class="dm-box"><h4>${ico('x')}Not included</h4>${H.chk(exc.map(x => [0, x]))}</div></div>`],
+        ['What’s included', `<div class="detail-columns"><div class="detail-box"><h4>${ico('check')}Included</h4>${H.chk(inc.map(x => [1, x]))}</div><div class="detail-box"><h4>${ico('x')}Not included</h4>${H.chk(exc.map(x => [0, x]))}</div></div>`],
         ['Options', live(c, 'xo', () => H.opts('op', st, opts.map(x => ({ ...x, p: M(pp * x.m) + '<span style="font-weight:500;color:var(--ink3)">' + unit + '</span>' }))))],
         ['Good to know', H.spec([['users', 'Group size', A.format === 'private' ? 'Private' : 'Up to ' + (A.groupMax || 20)], ['globe', 'Languages', (A.language || ['English']).slice(0, 3).join(', ')], ['user', 'Min. age', (A.minAge || 3) + '+'], ['clock', 'Cancellation', 'Free up to 24h'], ['shield', 'Licence', 'DTCM-licensed'], ['car', 'Pickup', (A.transport || []).includes?.('4x4') || A.transport === 'pickup' ? 'Hotel pickup' : 'Meeting point']])]
       ],
@@ -136,7 +136,7 @@
     const price = () => pm * sel(plans, st.pl).m * (st.bl === 'annual' ? 10 : 1);
     return {
       secs: [
-        ['Compare plans', H.table(['', 'Off-peak', 'Standard', 'All-access'], [['<b>Access</b>', 'Limited hours', '24/7 home club', A.branches + ' clubs'], ['<b>Group classes</b>', H.no, A.classes.slice(0, 2).join(', '), 'All ' + A.classes.length + ' types'], ['<b>Pool & sauna</b>', H.no, A.classes.includes('Pool') ? H.yes : H.no, H.yes], ['<b>Guest passes</b>', H.no, '1 / month', '4 / month'], ['<b>Freeze</b>', H.no, A.freeze ? 'Up to 1 month' : H.no, 'Up to 3 months'], { cls: 'tot', c: ['Monthly', M(pm * .7), M(pm), M(pm * 1.45)] }], 1)],
+        ['Compare plans', H.table(['', 'Off-peak', 'Standard', 'All-access'], [['<b>Access</b>', 'Limited hours', '24/7 home club', A.branches + ' clubs'], ['<b>Group classes</b>', H.no, A.classes.slice(0, 2).join(', '), 'All ' + A.classes.length + ' types'], ['<b>Pool & sauna</b>', H.no, A.classes.includes('Pool') ? H.yes : H.no, H.yes], ['<b>Guest passes</b>', H.no, '1 / month', '4 / month'], ['<b>Freeze</b>', H.no, A.freeze ? 'Up to 1 month' : H.no, 'Up to 3 months'], { cls: 'total-row', c: ['Monthly', M(pm * .7), M(pm), M(pm * 1.45)] }], 1)],
         ['Class timetable', H.table(['Time', 'Today', 'Tomorrow', 'Sat'], [['07:00', 'HIIT', 'Spin', 'Yoga'], ['12:30', 'Pilates', 'HIIT', '—'], ['18:30', 'Spin', 'Yoga', 'HIIT'], ['20:00', 'Yoga', 'Pilates', 'Spin']].map(r => [`<b>${r[0]}</b>`, ...r.slice(1)]))],
         ['Terms', H.spec([['tag', 'Joining fee', A.noJoin ? 'Waived' : M(199)], ['clock', 'Contract', st.bl === 'annual' ? '12 months' : 'Monthly rolling'], ['moon', 'Freeze', A.freeze ? 'Allowed' : 'Not allowed'], ['x', 'Cancel', '30 days notice']])]
       ],
@@ -164,12 +164,12 @@
     const gf = g => Math.round(fee * (0.72 + grades.indexOf(g) * .07) / 500) * 500;
     return {
       secs: [
-        ['Fees by year group', `<p class="dm-sub">KHDA-approved fees for ${A.intake[0]} intake. Most schools allow payment in 3 terms.</p>` + H.table(['Year group', 'Annual fee', 'Per term'], grades.map(g => [`<b>${g}</b>`, M(gf(g)), M(gf(g) / 3)]), 1)],
+        ['Fees by year group', `<p class="detail-subtitle">KHDA-approved fees for ${A.intake[0]} intake. Most schools allow payment in 3 terms.</p>` + H.table(['Year group', 'Annual fee', 'Per term'], grades.map(g => [`<b>${g}</b>`, M(gf(g)), M(gf(g) / 3)]), 1)],
         ['Admissions timeline', H.tl([['Step 1', 'Submit enquiry', 'Get the prospectus'], ['Step 2', 'School tour', 'Meet the admissions team'], ['Step 3', 'Assessment', 'Age-appropriate, 45–60 min'], ['Step 4', 'Offer & registration fee', M(500) + ' (non-refundable)'], ['Step 5', 'Seat deposit & enrolment', '10% of annual fee']])],
         ['School at a glance', H.spec([['star', 'KHDA rating', ['', 'Outstanding', 'Very good', 'Good', 'Acceptable'][A.khda]], ['grad', 'Curriculum', A.curriculum], ['users', 'Students', (900 + Math.round(c.r() * 1800)).toLocaleString()], ['user', 'Teacher ratio', '1 : ' + (11 + Math.round(c.r() * 6))], ['car', 'Transport', A.transport ? 'Bus · AED 7,500/yr' : 'Not offered'], ['check', 'Places', A.admissions === 'open' ? 'Available' : 'Waitlist']])],
         ['Facilities', H.chk(['Swimming pool', 'Sports hall', 'Theatre', 'Science labs', 'Football pitch'].map(x => [A.facilities.includes(x), x]))]
       ],
-      bk: () => H.price(c.l, money(gf(st.g)), '/year') + H.lab('Year group') + `<select class="bk-in" onchange="DM._set('g',this.value)">${grades.map(g => `<option ${st.g === g ? 'selected' : ''}>${g}</option>`).join('')}</select>` + H.lab('Book a school tour') + H.days('d', st, 6, 2) +
+      bk: () => H.price(c.l, money(gf(st.g)), '/year') + H.lab('Year group') + `<select class="booking-input" onchange="DM._set('g',this.value)">${grades.map(g => `<option ${st.g === g ? 'selected' : ''}>${g}</option>`).join('')}</select>` + H.lab('Book a school tour') + H.days('d', st, 6, 2) +
         H.sum([['Registration fee', M(500)], ['Seat deposit (10%)', M(gf(st.g) * .1)], ['Term 1 fee', M(gf(st.g) / 3)]], M(500 + gf(st.g) * .1 + gf(st.g) / 3), 'Due on acceptance') + H.go('Enquire about admission', 'msg') + H.fine('Fees are paid to the school directly'),
       go: () => ({ title: 'Enquire about admission', rows: [['School', c.l.provider.name], ['Year group', st.g + ' · ' + A.intake[0]], ['Tour', fd(dayN(st.d))]], total: M(gf(st.g)), tl: 'Annual fee' })
     };
@@ -209,7 +209,7 @@
     const mult = () => Object.entries(fields).reduce((m, [k, v]) => m * (v[1].find(x => x[0] === st[k]) || [0, 0, 1])[2], 1);
     const p = () => Math.round(pr * tiers[st.tr][1] * mult() / 10) * 10;
     return {
-      secs: [['Compare cover', H.table(['', ...tiers.map(t => t[0])], [...rows.map(r => [`<b>${r[0]}</b>`, ...r.slice(1).map(x => x === 1 ? H.yes : x === 0 ? H.no : x)]), { cls: 'tot', c: ['Annual premium', ...tiers.map(t => M(pr * t[1]))] }], 1)],
+      secs: [['Compare cover', H.table(['', ...tiers.map(t => t[0])], [...rows.map(r => [`<b>${r[0]}</b>`, ...r.slice(1).map(x => x === 1 ? H.yes : x === 0 ? H.no : x)]), { cls: 'total-row', c: ['Annual premium', ...tiers.map(t => M(pr * t[1]))] }], 1)],
         ['How it works', H.tl([['1', 'Get a quote', 'Takes 2 minutes'], ['2', 'Upload documents', 'Emirates ID' + (c.l.cat === 'motor' ? ', licence, Mulkiya' : '')], ['3', 'Pay the insurer', 'Card or bank transfer'], ['4', 'Policy issued', 'Same day, by email']])]],
       bk: () => H.price(c.l, money(p()), '/year') + H.lab('Plan') + H.seg('tr', st, tiers.map((t, i) => [i, t[0]])) + Object.entries(fields).map(([k, [lab, opts]]) => H.lab(lab) + H.chips(k, st, opts.map(o => [o[0], o[1]]))).join('') +
         H.sum([['Base premium', M(p() / 1.05)], ['VAT 5%', M(p() - p() / 1.05)]], M(p()), 'Indicative premium') + H.go('Get exact quote', 'doc') + H.fine('Licensed by the Central Bank of the UAE'),

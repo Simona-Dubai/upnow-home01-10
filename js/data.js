@@ -103,7 +103,7 @@
       priceOf: (l, S) => S && S.f.term === 'monthly' ? Math.round(l.price * 1.3 / 12 / 100) * 100 : l.price,
       unit: (l, S) => S && S.f.term === 'monthly' ? '/month' : '/year',
       title: (a, c) => `${a.beds === 0 ? 'Studio' : a.beds + '-Bed'} ${lab(c.def('ptype'), a.ptype)}${a.amenities.includes('Sea view') ? ' with Sea View' : a.amenities.includes('Burj view') ? ' with Burj View' : a.amenities.includes('Private pool') ? ' · Private Pool' : a.furnishing === 'furnished' ? ' · Fully Furnished' : ' · Ready to Move'}`,
-      spec: a => [a.beds === 0 ? 'Studio' : a.beds + ' Beds', a.baths + ' Baths', sq(a.sqft)],
+      spec: a => [a.beds === 0 ? 'Studio' : a.beds + (a.beds === 1 ? ' Bed' : ' Beds'), a.baths + (a.baths === 1 ? ' Bath' : ' Baths'), sq(a.sqft)],
       meta: a => [['bed', a.beds === 0 ? 'Studio' : a.beds + ' Bedrooms'], ['bath', a.baths + ' Bathrooms'], ['area', sq(a.sqft)], ['sofa', { furnished: 'Furnished', semi: 'Semi-furnished', unfurnished: 'Unfurnished' }[a.furnishing]]],
       form: [F.movein, ['occupants', 'Occupants', 'select', ['Just me', 'Couple', 'Family', 'Sharing']], ['cheques', 'Preferred cheques', 'select', ['1', '2', '4', '6', '12']], F.viewing, F.slot] },
 

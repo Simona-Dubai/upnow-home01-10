@@ -10,21 +10,21 @@
 
   function controlHTML(d, S, opts = {}) {
     const val = S.f[d.id]; const counts = opts.counts !== false;
-    if (d.type === 'seg') return `<div class="seg">${d.options.map(o => `<button class="${val === o.v ? 'on' : ''}" data-ctl="${d.id}" data-act="seg" data-val="${o.v}">${esc(o.l)}</button>`).join('')}</div>`;
+    if (d.type === 'seg') return `<div class="segmented">${d.options.map(o => `<button class="${val === o.v ? 'is-active' : ''}" data-ctl="${d.id}" data-act="seg" data-val="${o.v}">${esc(o.l)}</button>`).join('')}</div>`;
     if (d.type === 'multi' || d.type === 'select') {
       const multi = d.type === 'multi'; const cur = multi ? (val || []) : val;
-      return `<div class="opts">${d.options.map(o => {
+      return `<div class="option-chips">${d.options.map(o => {
         const on = multi ? cur.includes(o.v) : cur === o.v;
         const c = counts ? facetCount(S, d.id, multi ? (on ? cur : d.all ? [...cur, o.v] : [o.v]) : o.v) : 1;
-        return `<button class="chip ${on ? 'on' : ''} ${!on && c === 0 ? 'dis' : ''}" data-ctl="${d.id}" data-act="${multi ? 'multi' : 'single'}" data-val="${esc(o.v)}">${esc(o.l)}${counts ? ` <span class="c">${c}</span>` : ''}</button>`;
+        return `<button class="chip ${on ? 'is-active' : ''} ${!on && c === 0 ? 'is-disabled' : ''}" data-ctl="${d.id}" data-act="${multi ? 'multi' : 'single'}" data-val="${esc(o.v)}">${esc(o.l)}${counts ? ` <span class="count">${c}</span>` : ''}</button>`;
       }).join('')}</div>`;
     }
-    if (d.type === 'toggle') return `<label class="tgl"><span><b>${esc(d.label)}</b></span><input type="checkbox" data-ctl="${d.id}" data-act="toggle" ${val ? 'checked' : ''}><i></i></label>`;
+    if (d.type === 'toggle') return `<label class="toggle"><span><b>${esc(d.label)}</b></span><input type="checkbox" data-ctl="${d.id}" data-act="toggle" ${val ? 'checked' : ''}><i></i></label>`;
     if (d.type === 'range') {
       const r = val || {}; const pre = (d.presets && d.presets(S)) || []; const u = d.unit === 'sqft' ? 'sqft' : 'AED';
-      return `<div class="rng"><div class="rng-in"><label><span>Min</span><input inputmode="numeric" data-ctl="${d.id}" data-act="min" value="${r.min != null ? r.min : ''}" placeholder="Any"></label><em>–</em>
+      return `<div class="rng"><div class="range-inputs"><label><span>Min</span><input inputmode="numeric" data-ctl="${d.id}" data-act="min" value="${r.min != null ? r.min : ''}" placeholder="Any"></label><em>–</em>
         <label><span>Max</span><input inputmode="numeric" data-ctl="${d.id}" data-act="max" value="${r.max != null ? r.max : ''}" placeholder="Any"></label><b>${u}</b></div>
-        ${pre.length ? `<div class="opts">${pre.map(p => `<button class="chip ${val && r.min == p[0] && r.max == p[1] ? 'on' : ''}" data-ctl="${d.id}" data-act="preset" data-val="${p[0] ?? ''}|${p[1] ?? ''}">${UPUI.rangeLabel({ min: p[0], max: p[1] }, d.unit)}</button>`).join('')}</div>` : ''}</div>`;
+        ${pre.length ? `<div class="option-chips">${pre.map(p => `<button class="chip ${val && r.min == p[0] && r.max == p[1] ? 'is-active' : ''}" data-ctl="${d.id}" data-act="preset" data-val="${p[0] ?? ''}|${p[1] ?? ''}">${UPUI.rangeLabel({ min: p[0], max: p[1] }, d.unit)}</button>`).join('')}</div>` : ''}</div>`;
     }
     return '';
   }
@@ -55,23 +55,23 @@
     }
     function locPanel() {
       const sug = locSuggestions();
-      return `<div class="pop-h">${esc((O() && O().locLabel) || t('Location'))}${S.loc.length ? `<button class="lnk" data-b="clearloc">Clear</button>` : ''}</div>
-        ${S.loc.length ? `<div class="opts" style="margin-bottom:10px">${S.loc.map(id => `<button class="chip on" data-b="rmloc" data-val="${id}">${esc(areaName(id))} ${ico('x')}</button>`).join('')}</div>` : ''}
-        <div class="loc-list">${sug.map(a => `<button data-b="addloc" data-val="${a.id}">${ico('pin')}<span>${esc(a.n)}<small>Dubai</small></span><em>${a.c}</em></button>`).join('') || `<div class="empty-s">${locQuery ? `Press Enter to search “${esc(locQuery)}”` : 'No areas'}</div>`}</div>`;
+      return `<div class="popover-header">${esc((O() && O().locLabel) || t('Location'))}${S.loc.length ? `<button class="text-link" data-b="clearloc">Clear</button>` : ''}</div>
+        ${S.loc.length ? `<div class="option-chips" style="margin-bottom:10px">${S.loc.map(id => `<button class="chip is-active" data-b="rmloc" data-val="${id}">${esc(areaName(id))} ${ico('x')}</button>`).join('')}</div>` : ''}
+        <div class="location-list">${sug.map(a => `<button data-b="addloc" data-val="${a.id}">${ico('pin')}<span>${esc(a.n)}<small>Dubai</small></span><em>${a.c}</em></button>`).join('') || `<div class="empty-hint">${locQuery ? `Press Enter to search “${esc(locQuery)}”` : 'No areas'}</div>`}</div>`;
     }
     function segHTML(fid) {
       const Oo = O();
       if (fid === 'loc') {
         const ph = S.v === 'all' ? 'Search anything — apartments, warehouses, dentists, yachts…' : Oo.locLabel === 'Marina' ? 'Marina or harbour' : 'Area, community, building or keyword';
-        return `<div class="seg-f loc ${open === 'loc' ? 'open' : ''}" data-seg="loc"><span class="lbl">${esc(S.v === 'all' ? t('Search') : (Oo.locLabel || t('Location')))}</span>
-          <div class="loc-in">${ico(S.v === 'all' ? 'search' : 'pin')}${S.loc.slice(0, 2).map(id => `<span class="tok">${esc(areaName(id))}<button data-b="rmloc" data-val="${id}">${ico('x')}</button></span>`).join('')}${S.loc.length > 2 ? `<span class="tok">+${S.loc.length - 2}</span>` : ''}
+        return `<div class="search-field location ${open === 'loc' ? 'is-open' : ''}" data-seg="loc"><span class="field-label">${esc(S.v === 'all' ? t('Search') : (Oo.locLabel || t('Location')))}</span>
+          <div class="location-input">${ico(S.v === 'all' ? 'search' : 'pin')}${S.loc.slice(0, 2).map(id => `<span class="loc-token">${esc(areaName(id))}<button data-b="rmloc" data-val="${id}">${ico('x')}</button></span>`).join('')}${S.loc.length > 2 ? `<span class="loc-token">+${S.loc.length - 2}</span>` : ''}
           <input id="locInput" autocomplete="off" placeholder="${S.loc.length ? 'Add area' : esc(ph)}" value="${esc(locQuery || (S.loc.length ? '' : S.q))}"></div>
-          ${open === 'loc' ? `<div class="pop wide">${locPanel()}</div>` : ''}</div>`;
+          ${open === 'loc' ? `<div class="popover is-wide">${locPanel()}</div>` : ''}</div>`;
       }
       const d = Oo.def(fid); if (!d) return '';
       const sum = valueLabel(d, S.f[fid]);
-      return `<div class="seg-f ${open === fid ? 'open' : ''}" data-seg="${fid}"><button class="seg-b" data-b="open" data-val="${fid}"><span class="lbl">${esc(d.label)}</span><span class="val ${sum ? '' : 'ph'}">${esc(sum || (d.isDate ? 'Any date' : 'Any'))}</span>${ico('chev')}</button>
-        ${open === fid ? `<div class="pop ${d.type === 'range' ? 'rngp' : ''}"><div class="pop-h">${esc(d.label)}${!empty(S.f[fid]) && !d.required ? `<button class="lnk" data-b="clearf" data-val="${fid}">Clear</button>` : ''}</div>${controlHTML(d, S)}<div class="pop-f"><button class="btn btn-g btn-sm" data-b="close">Done</button></div></div>` : ''}</div>`;
+      return `<div class="search-field ${open === fid ? 'is-open' : ''}" data-seg="${fid}"><button class="search-field-btn" data-b="open" data-val="${fid}"><span class="field-label">${esc(d.label)}</span><span class="field-value ${sum ? '' : 'is-placeholder'}">${esc(sum || (d.isDate ? 'Any date' : 'Any'))}</span>${ico('chev')}</button>
+        ${open === fid ? `<div class="popover ${d.type === 'range' ? 'is-range' : ''}"><div class="popover-header">${esc(d.label)}${!empty(S.f[fid]) && !d.required ? `<button class="text-link" data-b="clearf" data-val="${fid}">Clear</button>` : ''}</div>${controlHTML(d, S)}<div class="popover-footer"><button class="btn btn-primary btn-sm" data-b="close">Done</button></div></div>` : ''}</div>`;
     }
     function render() {
       const Oo = O();
@@ -79,16 +79,16 @@
       const offers = S.v === 'all' ? VORDER.map(v => ({ id: v, label: VERTICALS[v].label, basis: VERTICALS[v].blurb, icon: VERTICALS[v].icon, all: 1 })) : VERTICALS[S.v].offers;
       const extra = Oo ? Oo.optional.filter(d => d.id !== 'verified').slice(0, mode === 'hero' ? 7 : 0) : [];
       root.innerHTML = `
-        <div class="vtabs ${mode} skip-scroll">${UPUI.TABS.map(id => `<button class="${S.v === id ? 'on' : ''}" data-b="vert" data-val="${id}">${ico(VERTICALS[id].icon)}${esc(t(VERTICALS[id].label))}</button>`).join('')}</div>
-        <div class="spanel ${mode}">
-          <div class="offers-w"><button class="oarr l" data-b="oscroll" data-val="-1">${ico('chevL')}</button><div class="offers">${offers.map(x => `<button class="offer ${!x.all && S.o === x.id ? 'on' : ''}" data-b="${x.all ? 'vert' : 'offer'}" data-val="${x.id}"><i>${ico(x.icon || OICO[x.id] || VERTICALS[S.v].icon)}</i><span><b>${esc(t(x.label))}</b><small>${esc(x.basis)}</small></span></button>`).join('')}</div><button class="oarr r" data-b="oscroll" data-val="1">${ico('chevR')}</button></div>
-          <div class="sbar ${mode}">${fields.map(segHTML).join('')}<button class="go" data-b="submit">${ico('search')}<span>${t('Search')}</span></button></div>
-          ${mode === 'hero' && !Oo ? `<div class="more"><span>Pick a vertical above, or search everything at once.</span></div>` : ''}${mode === 'hero' && Oo ? `<div class="more"><span>${t('More filters')}:</span>${extra.map(d => { const sv = valueLabel(d, S.f[d.id]); return `<button class="chip ${sv && !d.required ? 'on' : ''}" data-b="${d.type === 'toggle' ? 'tgl' : 'open'}" data-val="${d.id}">${d.type === 'toggle' && sv ? ico('check') : ''}${esc(sv && d.type !== 'toggle' ? d.label + ': ' + sv : d.label)}${d.type === 'toggle' ? '' : ico('chev')}</button>`; }).join('')}<span class="sp"></span><span class="basis">${ico('tag')}Priced ${esc(Oo.basis)}</span></div>
-            ${open && extra.some(d => d.id === open) ? `<div class="more-pop"><div class="pop-h">${esc(Oo.def(open).label)}${!empty(S.f[open]) && !Oo.def(open).required ? `<button class="lnk" data-b="clearf" data-val="${open}">Clear</button>` : ''}</div>${controlHTML(Oo.def(open), S)}<div class="pop-f"><button class="btn btn-g btn-sm" data-b="close">Done</button></div></div>` : ''}` : ''}
+        <div class="vertical-tabs ${mode} no-scrollbar">${UPUI.TABS.map(id => `<button class="${S.v === id ? 'is-active' : ''}" data-b="vert" data-val="${id}">${ico(VERTICALS[id].icon)}${esc(t(VERTICALS[id].label))}</button>`).join('')}</div>
+        <div class="search-panel ${mode}">
+          <div class="offer-rail-wrap"><button class="rail-arrow is-prev" data-b="oscroll" data-val="-1">${ico('chevL')}</button><div class="offer-rail">${offers.map(x => `<button class="offer ${!x.all && S.o === x.id ? 'is-active' : ''}" data-b="${x.all ? 'vert' : 'offer'}" data-val="${x.id}"><i>${ico(x.icon || OICO[x.id] || VERTICALS[S.v].icon)}</i><span><b>${esc(t(x.label))}</b><small>${esc(x.basis)}</small></span></button>`).join('')}</div><button class="rail-arrow is-next" data-b="oscroll" data-val="1">${ico('chevR')}</button></div>
+          <div class="search-bar ${mode}">${fields.map(segHTML).join('')}<button class="search-submit" data-b="submit">${ico('search')}<span>${t('Search')}</span></button></div>
+          ${mode === 'hero' && !Oo ? `<div class="more-filters"><span>Pick a vertical above, or search everything at once.</span></div>` : ''}${mode === 'hero' && Oo ? `<div class="more-filters"><span>${t('More filters')}:</span>${extra.map(d => { const sv = valueLabel(d, S.f[d.id]); return `<button class="chip ${sv && !d.required ? 'is-active' : ''}" data-b="${d.type === 'toggle' ? 'tgl' : 'open'}" data-val="${d.id}">${d.type === 'toggle' && sv ? ico('check') : ''}${esc(sv && d.type !== 'toggle' ? d.label + ': ' + sv : d.label)}${d.type === 'toggle' ? '' : ico('chev')}</button>`; }).join('')}<span class="spacer"></span><span class="price-basis">${ico('tag')}Priced ${esc(Oo.basis)}</span></div>
+            ${open && extra.some(d => d.id === open) ? `<div class="more-filters-popover"><div class="popover-header">${esc(Oo.def(open).label)}${!empty(S.f[open]) && !Oo.def(open).required ? `<button class="text-link" data-b="clearf" data-val="${open}">Clear</button>` : ''}</div>${controlHTML(Oo.def(open), S)}<div class="popover-footer"><button class="btn btn-primary btn-sm" data-b="close">Done</button></div></div>` : ''}` : ''}
         </div>`;
       const inp = root.querySelector('#locInput'); if (!inp) return;
       inp.addEventListener('focus', () => { if (open !== 'loc') { open = 'loc'; locQuery = S.loc.length ? '' : S.q; render(); const i = root.querySelector('#locInput'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); } });
-      inp.addEventListener('input', e => { locQuery = e.target.value; const p = root.querySelector('.seg-f.loc .pop'); if (p) p.innerHTML = locPanel(); });
+      inp.addEventListener('input', e => { locQuery = e.target.value; const p = root.querySelector('.search-field.location .popover'); if (p) p.innerHTML = locPanel(); });
       inp.addEventListener('keydown', e => {
         if (e.key === 'Enter') { e.preventDefault(); const q = locQuery.trim(); const ex = locSuggestions().find(a => a.n.toLowerCase() === q.toLowerCase()); if (ex) addLoc(ex.id); else { S.q = q; locQuery = ''; open = null; S.page = 1; commit(true); render(); } }
         if (e.key === 'Backspace' && !inp.value && S.loc.length) { S.loc.pop(); commit(); render(); root.querySelector('#locInput').focus(); }
@@ -106,7 +106,7 @@
       const a = b.dataset.b, v = b.dataset.val;
       if (a === 'vert') { switchVertical(S, v); open = null; locQuery = ''; commit(); render(); }
       else if (a === 'offer') { switchOffer(S, v); open = null; commit(); render(); }
-      else if (a === 'oscroll') { const o = root.querySelector('.offers'); o.scrollLeft += +v * o.clientWidth * .7; }
+      else if (a === 'oscroll') { const o = root.querySelector('.offer-rail'); o.scrollLeft += +v * o.clientWidth * .7; }
       else if (a === 'open') { open = open === v ? null : v; render(); }
       else if (a === 'close') { open = null; render(); }
       else if (a === 'tgl') { const d = O().def(v); setVal(S, d, S.f[v] ? null : true); commit(); render(); }
@@ -118,7 +118,7 @@
     });
     root.addEventListener('change', e => { const c = e.target.closest('[data-ctl]'); if (c && handleControl(c, S)) { commit(); render(); } });
     document.addEventListener('mousedown', e => { if (open && !root.contains(e.target)) { open = null; locQuery = ''; render(); } });
-    root.addEventListener('wheel', e => { const o = e.target.closest('.offers'); if (o && o.scrollWidth > o.clientWidth && Math.abs(e.deltaY) > Math.abs(e.deltaX)) { e.preventDefault(); o.scrollLeft += e.deltaY; } }, { passive: false });
+    root.addEventListener('wheel', e => { const o = e.target.closest('.offer-rail'); if (o && o.scrollWidth > o.clientWidth && Math.abs(e.deltaY) > Math.abs(e.deltaX)) { e.preventDefault(); o.scrollLeft += e.deltaY; } }, { passive: false });
     render();
     return { render };
   }

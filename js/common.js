@@ -102,7 +102,7 @@
     robot: '<rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4M9 4h6M2 14h2M20 14h2M9 13v2M15 13v2"/>'
   };
   function initials(n) { return n.split(/\s+/).map(x => x[0]).slice(0, 2).join('').toUpperCase(); }
-  const ico = (n, cls = '') => `<svg class="ico ${cls}" viewBox="0 0 24 24">${P[n] || P.grid4}</svg>`;
+  const ico = (n, cls = '') => `<svg class="icon ${cls}" viewBox="0 0 24 24">${P[n] || P.grid4}</svg>`;
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   /* ---------- normalise defs ---------- */
@@ -144,7 +144,7 @@
   const leads = () => store.get('leads') || [];
   function toggleFav(id) {
     favs.has(id) ? favs.delete(id) : favs.add(id); store.set('favs', [...favs]);
-    document.querySelectorAll(`[data-fav="${id}"]`).forEach(b => b.classList.toggle('on', favs.has(id)));
+    document.querySelectorAll(`[data-fav="${id}"]`).forEach(b => { b.classList.toggle('is-active', favs.has(id)); b.setAttribute('aria-pressed', favs.has(id)); });
     toast(favs.has(id) ? 'Saved to your shortlist' : 'Removed from shortlist'); updateHdrCounts();
   }
   const recent = () => (store.get('recent') || []).map(id => LISTINGS.find(l => l.id === id)).filter(Boolean);
@@ -155,24 +155,24 @@
   const COUNTRIES = { AED: ['🇦🇪', 'UAE'], USD: ['🇺🇸', 'USD view'], EUR: ['🇪🇺', 'EUR view'], GBP: ['🇬🇧', 'GBP view'], SAR: ['🇸🇦', 'Saudi Arabia'], INR: ['🇮🇳', 'INR view'] };
   function header(active) {
     const main = NAV.slice(0, 3), rest = NAV.slice(3), restOn = rest.some(x => x[0] === active);
-    return `<header class="hdr"><div class="wrap">
+    return `<header class="site-header"><div class="wrap">
       <a class="logo" href="${ROOT}index.html"><b>U</b><span>UpNow</span></a>
-      <nav class="nav">${main.map(([id, l]) => `<a href="${ROOT}Search.html?v=${id}" data-nav="${id}" class="${active === id ? 'on' : ''}">${esc(t(l))}</a>`).join('')}
-        <div class="nmore"><button class="${restOn ? 'on' : ''}" type="button">${restOn ? esc(t(rest.find(x => x[0] === active)[1])) : 'More'}${ico('chev')}</button>
-          <div class="ndrop">${rest.map(([id, l]) => `<a href="${ROOT}Search.html?v=${id}" data-nav="${id}" class="${active === id ? 'on' : ''}">${ico(VERTICALS[id].icon)}<span><b>${esc(t(l))}</b><small>${esc(VERTICALS[id].blurb)}</small></span></a>`).join('')}</div></div></nav>
-      <span class="sp"></span>
-      <div class="hdr-r">
-        <label class="tsel"><select id="hCur">${Object.keys(CUR).map(k => `<option value="${k}" ${prefs.cur === k ? 'selected' : ''}>${COUNTRIES[k][0]} ${k}</option>`).join('')}</select>${ico('chev')}</label>
-        <label class="tsel g"><select id="hLang"><option value="en" ${prefs.lang === 'en' ? 'selected' : ''}>EN</option><option value="ar" ${prefs.lang === 'ar' ? 'selected' : ''}>عربي</option></select>${ico('chev')}</label>
-        <button class="ib" data-open="saved" title="${t('Saved')}">${ico('heart')}<em id="hdrFav">0</em></button>
-        <button class="ib" data-open="enq" title="${t('Enquiries')}">${ico('msg')}<em id="hdrLead">0</em></button>
-        <button class="btn btn-o btn-sm" data-open="signin">${ico('user')}${t('Sign in')}</button>
-        <a class="btn btn-g btn-sm" href="${ROOT}index.html#provider-cta">${ico('brief')}${t('Become a provider')}</a>
+      <nav class="nav">${main.map(([id, l]) => `<a href="${ROOT}Search.html?v=${id}" data-nav="${id}" class="${active === id ? 'is-active' : ''}">${esc(t(l))}</a>`).join('')}
+        <div class="nav-more"><button class="${restOn ? 'is-active' : ''}" type="button">${restOn ? esc(t(rest.find(x => x[0] === active)[1])) : 'More'}${ico('chev')}</button>
+          <div class="nav-dropdown">${rest.map(([id, l]) => `<a href="${ROOT}Search.html?v=${id}" data-nav="${id}" class="${active === id ? 'is-active' : ''}">${ico(VERTICALS[id].icon)}<span><b>${esc(t(l))}</b><small>${esc(VERTICALS[id].blurb)}</small></span></a>`).join('')}</div></div></nav>
+      <span class="spacer"></span>
+      <div class="header-actions">
+        <label class="header-select"><select id="hCur">${Object.keys(CUR).map(k => `<option value="${k}" ${prefs.cur === k ? 'selected' : ''}>${COUNTRIES[k][0]} ${k}</option>`).join('')}</select>${ico('chev')}</label>
+        <label class="header-select is-subtle"><select id="hLang"><option value="en" ${prefs.lang === 'en' ? 'selected' : ''}>EN</option><option value="ar" ${prefs.lang === 'ar' ? 'selected' : ''}>عربي</option></select>${ico('chev')}</label>
+        <button class="icon-btn" data-open="saved" title="${t('Saved')}">${ico('heart')}<em id="hdrFav">0</em></button>
+        <button class="icon-btn" data-open="enq" title="${t('Enquiries')}">${ico('msg')}<em id="hdrLead">0</em></button>
+        <button class="btn btn-outline btn-sm" data-open="signin">${ico('user')}${t('Sign in')}</button>
+        <a class="btn btn-primary btn-sm" href="${ROOT}index.html#provider-cta">${ico('brief')}${t('Become a provider')}</a>
       </div></div></header>`;
   }
   document.addEventListener('click', e => {
-    const m = e.target.closest('.nmore > button'); document.querySelectorAll('.nmore').forEach(x => { if (!m || x !== m.parentNode) x.classList.remove('open'); });
-    if (m) m.parentNode.classList.toggle('open');
+    const m = e.target.closest('.nav-more > button'); document.querySelectorAll('.nav-more').forEach(x => { if (!m || x !== m.parentNode) x.classList.remove('is-open'); });
+    if (m) m.parentNode.classList.toggle('is-open');
   });
   function bindHeader() {
     const L = document.getElementById('hLang'), C = document.getElementById('hCur');
@@ -183,16 +183,16 @@
   function updateHdrCounts() { const f = document.getElementById('hdrFav'), l = document.getElementById('hdrLead'); if (f) { f.textContent = favs.size; f.hidden = !favs.size; } if (l) { l.textContent = leads().length; l.hidden = !leads().length; } }
   function footer() {
     const cats = VERTICALS.spaces.offers;
-    return `<div class="wrap"><section class="cta" id="provider-cta"><div><div class="cta-k">FOR OWNERS, AGENTS & OPERATORS</div>
+    return `<div class="wrap"><section class="cta" id="provider-cta"><div><div class="cta-kicker">FOR OWNERS, AGENTS & OPERATORS</div>
       <h2>List your space.<br>Get leads in 42 minutes.</h2><p style="margin:16px 0 22px">Homes, offices, warehouses, plots, holiday homes, venues, courts and yachts — customers reach you directly by call, WhatsApp or request. Manage every lead in the UpNow provider workspace.</p>
       <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn" style="background:#fff;color:var(--g9)" href="${ROOT}index.html#provider-cta">${ico('brief')}Become a provider</a><a class="btn" style="border:1.5px solid rgba(255,255,255,.4)" href="${ROOT}index.html#provider-cta">See how leads arrive</a></div></div>
       <div class="stats"><div><b>12,000+</b><span>active listings</span></div><div><b>850+</b><span>verified providers</span></div><div><b>42 min</b><span>avg. first reply</span></div><div><b>0 AED</b><span>fees for customers</span></div></div></section></div>
-      <footer class="foot"><div class="wrap fgrid">
+      <footer class="site-footer"><div class="wrap footer-grid">
         <div><a class="logo" href="${ROOT}index.html"><b>U</b>UpNow</a><p>Find verified spaces across Dubai and talk to the owner, agent or operator directly. No booking fees, no checkout.</p></div>
         <div><h5>Spaces</h5>${cats.map(o => `<a href="${ROOT}Search.html?v=spaces&o=${o.id}">${esc(o.label)}</a>`).join('')}</div>
         <div><h5>Popular areas</h5>${['dubai-marina', 'downtown', 'business-bay', 'jvc', 'al-quoz', 'palm-jumeirah', 'dip'].map(a => `<a href="${ROOT}Search.html?v=spaces&o=${['al-quoz', 'dip'].includes(a) ? 'industrial' : 'residential'}&loc=${a}">${esc(areaName(a))}</a>`).join('')}</div>
         <div><h5>UpNow</h5><a href="#">About</a><a href="#">Help centre</a><a href="#">Report a listing</a><a href="${ROOT}index.html#provider-cta">Provider information</a><a href="#">Terms</a><a href="#">Privacy</a></div>
-      </div><div class="wrap fbot"><span>© 2026 UpNow Technologies FZ-LLC · Dubai, UAE</span><span>Listings show DLD, DTCM or trade-licence numbers where applicable. UpNow never takes payments from customers.</span></div></footer>`;
+      </div><div class="wrap footer-bottom"><span>© 2026 UpNow Technologies FZ-LLC · Dubai, UAE</span><span>Listings show DLD, DTCM or trade-licence numbers where applicable. UpNow never takes payments from customers.</span></div></footer>`;
   }
 
   /* ---------- engine ---------- */
@@ -292,7 +292,7 @@
   }
 
   /* ---------- cards: exactly 4 lines — title · location · spec · price ---------- */
-  const badges = l => `<div class="badges">${l.featured ? `<span class="bdg f">${t('Featured')}</span>` : ''}${l.a.verified ? `<span class="bdg v">${ico('shield')}${t('Verified')}</span>` : ''}</div>`;
+  const badges = l => `<div class="badges">${l.featured ? `<span class="badge is-featured">${t('Featured')}</span>` : ''}${l.a.verified ? `<span class="badge is-verified">${ico('shield')}${t('Verified')}</span>` : ''}</div>`;
   function photo(l, i = 0) {
     if (l.img && l.img.length) return `<img src="${ROOT}${l.img[i % l.img.length]}" alt="${esc(l.title)}" loading="lazy">`;
     return `<div class="tile" style="--h:165"><b>${esc(initials(l.provider.name))}</b><span>${esc(l.provider.name)}</span><small>${esc(offerOf(l.v, l.cat).label)} insurance</small></div>`;
@@ -303,28 +303,28 @@
   function card(l, S) {
     const pt = priceText(l, S);
     return `<a class="card" href="${ROOT}Listing.html?id=${l.id}" data-id="${l.id}">
-      <div class="ph">${photo(l)}${badges(l)}<button class="fav ${favs.has(l.id) ? 'on' : ''}" data-fav="${l.id}" aria-label="Save">${ico('heart')}</button>${l.img.length > 1 ? `<span class="cnt">${ico('grid4')}${l.img.length}</span>` : ''}</div>
-      <div class="bd"><div class="t">${esc(l.title)}</div>
-        <div class="loc">${ico('pin')}<span>${esc(locText(l))}</span></div>
+      <div class="photo">${photo(l)}${badges(l)}<button class="fav-btn ${favs.has(l.id) ? 'is-active' : ''}" data-fav="${l.id}" aria-label="Save ${esc(l.title)}" aria-pressed="${favs.has(l.id)}">${ico('heart')}</button>${l.img.length > 1 ? `<span class="count">${ico('grid4')}${l.img.length}</span>` : ''}</div>
+      <div class="content"><div class="title">${esc(l.title)}</div>
+        <div class="location">${ico('pin')}<span>${esc(locText(l))}</span></div>
         <div class="spec">${specOf(l).map(s => `<span>${esc(s)}</span>`).join('')}</div>
-        <div class="pr">${pt.n}<span>${pt.u}</span></div></div></a>`;
+        <div class="price">${pt.n}<span>${pt.u}</span></div></div></a>`;
   }
 
   /* ---------- modal / drawer / toast ---------- */
   let scrim, side;
   function ensure() {
     if (scrim) return;
-    scrim = document.createElement('div'); scrim.className = 'scrim'; scrim.innerHTML = '<div class="modal" role="dialog"></div>';
+    scrim = document.createElement('div'); scrim.className = 'scrim'; scrim.innerHTML = '<div class="modal" role="dialog" aria-modal="true"></div>';
     scrim.addEventListener('click', e => { if (e.target === scrim) closeModal(); }); document.body.appendChild(scrim);
-    side = document.createElement('div'); side.className = 'side-s'; side.innerHTML = '<aside class="side-d"></aside>';
+    side = document.createElement('div'); side.className = 'side-drawer'; side.innerHTML = '<aside class="side-drawer-panel" role="dialog" aria-modal="true"></aside>';
     side.addEventListener('click', e => { if (e.target === side) closeSide(); }); document.body.appendChild(side);
-    const tt = document.createElement('div'); tt.className = 'toast'; tt.id = 'toast'; document.body.appendChild(tt);
+    const tt = document.createElement('div'); tt.className = 'toast'; tt.setAttribute('role', 'status'); tt.setAttribute('aria-live', 'polite'); tt.id = 'toast'; document.body.appendChild(tt);
   }
-  const closeModal = () => { ensure(); const was = scrim.classList.contains('on'); scrim.classList.remove('on'); if (was) document.dispatchEvent(new Event('upnow:leads')); };
-  function openModal(html, cls = '') { ensure(); const m = scrim.firstChild; m.className = 'modal ' + cls; m.innerHTML = html; scrim.classList.add('on'); m.scrollTop = 0; m.querySelectorAll('[data-close]').forEach(b => b.onclick = closeModal); }
-  const closeSide = () => { ensure(); side.classList.remove('on'); };
-  function openSide(html) { ensure(); side.firstChild.innerHTML = html; side.classList.add('on'); side.querySelectorAll('[data-close]').forEach(b => b.onclick = closeSide); }
-  function toast(msg) { ensure(); const tt = document.getElementById('toast'); tt.innerHTML = ico('check') + esc(msg); tt.classList.add('on'); clearTimeout(tt._t); tt._t = setTimeout(() => tt.classList.remove('on'), 2600); }
+  const closeModal = () => { ensure(); const was = scrim.classList.contains('is-active'); scrim.classList.remove('is-active'); if (was) document.dispatchEvent(new Event('upnow:leads')); };
+  function openModal(html, cls = '') { ensure(); const m = scrim.firstChild; m.className = 'modal ' + cls; m.innerHTML = html; scrim.classList.add('is-active'); m.scrollTop = 0; m.querySelectorAll('[data-close]').forEach(b => b.onclick = closeModal); }
+  const closeSide = () => { ensure(); side.classList.remove('is-active'); };
+  function openSide(html) { ensure(); side.firstChild.innerHTML = html; side.classList.add('is-active'); side.querySelectorAll('[data-close]').forEach(b => b.onclick = closeSide); }
+  function toast(msg) { ensure(); const tt = document.getElementById('toast'); tt.innerHTML = ico('check') + esc(msg); tt.classList.add('is-active'); clearTimeout(tt._t); tt._t = setTimeout(() => tt.classList.remove('is-active'), 2600); }
 
   /* ---------- lead capture ---------- */
   const byId = id => LISTINGS.find(l => l.id === id);
@@ -332,8 +332,8 @@
   function waText(l) { return `Hi ${l.provider.name.split(' ')[0]}, I found your listing on UpNow and I'm interested.\n\n${l.title}\n${locText(l)}\nRef ${l.ref}\n\nIs it still available?`; }
   const waLink = l => 'https://wa.me/' + l.provider.phone.replace('+', '') + '?text=' + encodeURIComponent(waText(l));
   function providerHead(l, big) {
-    return `<div class="phead ${big ? 'big' : ''}"><div class="av">${esc(initials(l.provider.name))}</div>
-      <div><div class="nm">${esc(l.provider.name)} ${l.a.verified ? `<span class="vt">${ico('shield')}</span>` : ''}</div><div class="or">${esc(l.provider.org)}${l.provider.brn ? ' · BRN ' + l.provider.brn : ''}</div></div></div>`;
+    return `<div class="profile-head ${big ? 'is-large' : ''}"><div class="avatar">${esc(initials(l.provider.name))}</div>
+      <div><div class="name">${esc(l.provider.name)} ${l.a.verified ? `<span class="verified-icon">${ico('shield')}</span>` : ''}</div><div class="org">${esc(l.provider.org)}${l.provider.brn ? ' · BRN ' + l.provider.brn : ''}</div></div></div>`;
   }
   function me() { return store.get('me') || { name: '', phone: '+971 ', email: '' }; }
   function logLead(type, l, extra = {}) {
@@ -345,25 +345,25 @@
   /* contact modals — clean, customer-focused */
   function cHead(l, sub) {
     const pt = priceText(l);
-    return `<div class="cm-h"><div class="av">${esc(initials(l.provider.name))}${l.a.verified ? `<em>${ico('shield')}</em>` : ''}</div>
-      <div class="cm-t"><b>${esc(l.provider.name)}</b><span>${esc(l.provider.org)}</span><span class="rp"><i></i>${esc(sub || 'Usually replies in ~' + l.provider.reply + ' min')}</span></div><button class="x" data-close>${ico('x')}</button></div>
-      <div class="cm-l"><img src="${ROOT}${l.img[0] || 'img/hero.jpg'}" alt=""><div><b>${esc(l.title)}</b><span>${esc(locText(l))} · ${pt.n}${pt.u}</span></div><em>Ref ${l.ref}</em></div>`;
+    return `<div class="contact-header"><div class="avatar">${esc(initials(l.provider.name))}${l.a.verified ? `<em>${ico('shield')}</em>` : ''}</div>
+      <div class="contact-title"><b>${esc(l.provider.name)}</b><span>${esc(l.provider.org)}</span><span class="presence"><i></i>${esc(sub || 'Usually replies in ~' + l.provider.reply + ' min')}</span></div><button class="close-btn" aria-label="Close" data-close>${ico('x')}</button></div>
+      <div class="contact-listing"><img src="${ROOT}${l.img[0] || 'img/hero.jpg'}" alt=""><div><b>${esc(l.title)}</b><span>${esc(locText(l))} · ${pt.n}${pt.u}</span></div><em>Ref ${l.ref}</em></div>`;
   }
-  const cSwitch = (l, skip) => `<div class="cm-alt">${[['call', 'phone', 'Call'], ['wa', 'wa', 'WhatsApp'], ['email', 'msg', 'Email']].filter(x => x[0] !== skip).map(([k, i, lb]) => `<button class="btn btn-o" data-${k}="${l.id}">${ico(i)}${lb}</button>`).join('')}</div>`;
+  const cSwitch = (l, skip) => `<div class="contact-alt">${[['call', 'phone', 'Call'], ['wa', 'wa', 'WhatsApp'], ['email', 'msg', 'Email']].filter(x => x[0] !== skip).map(([k, i, lb]) => `<button class="btn btn-outline" data-${k}="${l.id}">${ico(i)}${lb}</button>`).join('')}</div>`;
   function call(id) {
     const l = byId(id); logLead('call', l, { name: me().name || 'Customer', phone: me().phone, msg: 'Called from listing' });
     openModal(`${cHead(l, 'Available 9 AM – 9 PM')}
-      <div class="cm-b"><a href="tel:${l.provider.phone}" class="cm-num">${ico('phone')}<span>${fmtPhone(l.provider.phone)}</span></a>
-        <div class="cm-row"><button class="btn btn-o" onclick="navigator.clipboard&&navigator.clipboard.writeText('${l.provider.phone}');UPUI.toast('Number copied')">${ico('doc')}Copy number</button><a class="btn btn-g" href="tel:${l.provider.phone}">${ico('phone')}Call now</a></div>
-        <p class="cm-tip">Say you found it on <b>UpNow</b> and quote <b>${l.ref}</b>.</p>
-        <div class="cm-or"><span>or contact by</span></div>${cSwitch(l, 'call')}</div>`, 'cm');
+      <div class="contact-body"><a href="tel:${l.provider.phone}" class="contact-number">${ico('phone')}<span>${fmtPhone(l.provider.phone)}</span></a>
+        <div class="contact-row"><button class="btn btn-outline" onclick="navigator.clipboard&&navigator.clipboard.writeText('${l.provider.phone}');UPUI.toast('Number copied')">${ico('doc')}Copy number</button><a class="btn btn-primary" href="tel:${l.provider.phone}">${ico('phone')}Call now</a></div>
+        <p class="contact-tip">Say you found it on <b>UpNow</b> and quote <b>${l.ref}</b>.</p>
+        <div class="contact-divider"><span>or contact by</span></div>${cSwitch(l, 'call')}</div>`, 'contact-modal');
   }
   function whatsapp(id) {
     const l = byId(id);
     openModal(`${cHead(l)}
-      <div class="cm-b"><label class="cm-lb">Your message</label><textarea class="cm-msg" id="waTxt">${esc(waText(l))}</textarea>
-        <a class="btn btn-wa cm-go" href="${waLink(l)}" target="_blank" id="waGo">${ico('wa')}Continue in WhatsApp</a>
-        <div class="cm-or"><span>or contact by</span></div>${cSwitch(l, 'wa')}</div>`, 'cm');
+      <div class="contact-body"><label class="contact-label">Your message</label><textarea class="contact-message" id="waTxt">${esc(waText(l))}</textarea>
+        <a class="btn btn-whatsapp contact-submit" href="${waLink(l)}" target="_blank" id="waGo">${ico('wa')}Continue in WhatsApp</a>
+        <div class="contact-divider"><span>or contact by</span></div>${cSwitch(l, 'wa')}</div>`, 'contact-modal');
     const tx = document.getElementById('waTxt'), go = document.getElementById('waGo');
     tx.oninput = () => { go.href = 'https://wa.me/' + l.provider.phone.replace('+', '') + '?text=' + encodeURIComponent(tx.value); };
     go.onclick = () => { logLead('whatsapp', l, { name: me().name || 'Customer', phone: me().phone, msg: tx.value.split('\n')[0] }); setTimeout(closeModal, 250); toast('Opening WhatsApp…'); };
@@ -371,53 +371,53 @@
   function request(id) {
     const l = byId(id), m = me(), fn = l.provider.name.split(' ')[0];
     openModal(`${cHead(l)}
-      <form class="cm-b" id="leadForm"><div class="fgrid2">
-          <div class="fld"><label>Full name</label><input required name="name" value="${esc(m.name)}" placeholder="Your name"></div>
-          <div class="fld"><label>Mobile</label><input required name="phone" value="${esc(m.phone)}" inputmode="tel"></div>
-          <div class="fld full"><label>Email</label><input name="email" type="email" required value="${esc(m.email)}" placeholder="you@email.com"></div>
-          <div class="fld full"><label>Message</label><textarea name="msg" rows="4">${esc(`Hi ${fn}, I'm interested in ${l.title} (Ref ${l.ref}). Is it still available?`)}</textarea></div></div>
-        <button class="btn btn-g cm-go">${ico('msg')}Send email to ${esc(fn)}</button>
-        <p class="cm-tip">Shared only with ${esc(fn)}. UpNow never asks for payment.</p></form>`, 'cm');
+      <form class="contact-body" id="leadForm"><div class="form-grid">
+          <div class="field"><label>Full name</label><input required name="name" value="${esc(m.name)}" placeholder="Your name"></div>
+          <div class="field"><label>Mobile</label><input required name="phone" value="${esc(m.phone)}" inputmode="tel"></div>
+          <div class="field is-full"><label>Email</label><input name="email" type="email" required value="${esc(m.email)}" placeholder="you@email.com"></div>
+          <div class="field is-full"><label>Message</label><textarea name="msg" rows="4">${esc(`Hi ${fn}, I'm interested in ${l.title} (Ref ${l.ref}). Is it still available?`)}</textarea></div></div>
+        <button class="btn btn-primary contact-submit">${ico('msg')}Send email to ${esc(fn)}</button>
+        <p class="contact-tip">Shared only with ${esc(fn)}. UpNow never asks for payment.</p></form>`, 'contact-modal');
     document.getElementById('leadForm').onsubmit = e => {
       e.preventDefault(); const fd = Object.fromEntries(new FormData(e.target).entries());
       store.set('me', { name: fd.name, phone: fd.phone, email: fd.email });
       const rec = logLead('email', l, { name: fd.name, phone: fd.phone, email: fd.email, msg: fd.msg, pref: 'Email' });
-      openModal(`<div class="cm-ok"><button class="x" data-close>${ico('x')}</button><div class="okc">${ico('check')}</div><h3>Email sent to ${esc(fn)}</h3><p>${esc(fn)} usually replies within ~${l.provider.reply} min. We’ll let you know on WhatsApp too.</p>
-        <div class="cm-steps"><div class="on"><i>${ico('check')}</i><span>Sent</span></div><div><i>2</i><span>${esc(fn)} replies</span></div><div><i>3</i><span>${LEASE_CAT(l) ? 'Viewing' : 'Confirm'}</span></div></div>
-        <div class="cm-row"><button class="btn btn-o" data-open="enq">${ico('msg')}My enquiries</button><button class="btn btn-wa" data-wa="${l.id}">${ico('wa')}Also WhatsApp</button></div><small>Reference ${rec.id}</small></div>`, 'cm');
+      openModal(`<div class="contact-success"><button class="close-btn" aria-label="Close" data-close>${ico('x')}</button><div class="success-icon">${ico('check')}</div><h3>Email sent to ${esc(fn)}</h3><p>${esc(fn)} usually replies within ~${l.provider.reply} min. We’ll let you know on WhatsApp too.</p>
+        <div class="cm-steps"><div class="is-active"><i>${ico('check')}</i><span>Sent</span></div><div><i>2</i><span>${esc(fn)} replies</span></div><div><i>3</i><span>${LEASE_CAT(l) ? 'Viewing' : 'Confirm'}</span></div></div>
+        <div class="contact-row"><button class="btn btn-outline" data-open="enq">${ico('msg')}My enquiries</button><button class="btn btn-whatsapp" data-wa="${l.id}">${ico('wa')}Also WhatsApp</button></div><small>Reference ${rec.id}</small></div>`, 'contact-modal');
     };
   }
   const LEASE_CAT = l => !!offerOf(l.v, l.cat).lease;
   /* customer-side status (preview of the customer dashboard) */
   function status(r) {
     const m = (Date.now() - r.t) / 60000;
-    if (r.type === 'call') return ['Number viewed', 'mute'];
-    if (m < 1) return ['Sent', 'info'];
-    if (m < 4) return ['Seen by provider', 'warn'];
-    return [r.type === 'whatsapp' ? 'Chat opened' : 'Provider replied', 'ok'];
+    if (r.type === 'call') return ['Number viewed', 'is-muted'];
+    if (m < 1) return ['Sent', 'is-info'];
+    if (m < 4) return ['Seen by provider', 'is-warning'];
+    return [r.type === 'whatsapp' ? 'Chat opened' : 'Provider replied', 'is-success'];
   }
   const ago = ts => { const m = Math.round((Date.now() - ts) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : Math.round(m / 1440) + ' d ago'; };
   function enquiries() {
     const L = leads();
-    openSide(`<div class="sd-h"><div><h3>My enquiries</h3><small>${L.length} sent · replies come by WhatsApp, call or email</small></div><button class="x" data-close>${ico('x')}</button></div>
-      <div class="sd-b">${L.length ? L.map(r => { const [s, k] = status(r); return `<a class="enq" href="${ROOT}Listing.html?id=${r.lid}"><img src="${ROOT}${r.img}" alt=""><div class="bd"><div class="r1"><b>${esc(r.title)}</b><span class="stp ${k}">${s}</span></div>
+    openSide(`<div class="side-drawer-header"><div><h3>My enquiries</h3><small>${L.length} sent · replies come by WhatsApp, call or email</small></div><button class="close-btn" aria-label="Close" data-close>${ico('x')}</button></div>
+      <div class="side-drawer-body">${L.length ? L.map(r => { const [s, k] = status(r); return `<a class="enquiry-row" href="${ROOT}Listing.html?id=${r.lid}"><img src="${ROOT}${r.img}" alt=""><div class="content"><div class="row-head"><b>${esc(r.title)}</b><span class="status-pill ${k}">${s}</span></div>
         <small>${esc(r.catLabel)} · ${esc(r.area)} · ${esc(r.provider)}</small>
         <small>${{ request: 'Enquiry', email: 'Email enquiry', call: 'Phone call', whatsapp: 'WhatsApp' }[r.type]} · ${ago(r.t)} · ${esc(r.id)}</small></div></a>`; }).join('')
-        : `<div class="sd-empty">${ico('msg')}<b>No enquiries yet</b><span>When you request a viewing, call or WhatsApp a provider, it's tracked here.</span></div>`}</div>
-      <div class="sd-f"><span>Full tracking, documents and payments arrive with your UpNow account.</span></div>`);
+        : `<div class="side-drawer-empty">${ico('msg')}<b>No enquiries yet</b><span>When you request a viewing, call or WhatsApp a provider, it's tracked here.</span></div>`}</div>
+      <div class="side-drawer-footer"><span>Replies arrive by WhatsApp, call or email. UpNow never takes payments.</span></div>`);
   }
   function saved() {
     const L = [...favs].map(byId).filter(Boolean);
-    openSide(`<div class="sd-h"><div><h3>Saved</h3><small>${L.length} spaces on your shortlist</small></div><button class="x" data-close>${ico('x')}</button></div>
-      <div class="sd-b">${L.length ? `<div class="sd-grid">${L.map(l => card(l)).join('')}</div>` : `<div class="sd-empty">${ico('heart')}<b>Nothing saved yet</b><span>Tap the heart on any listing to keep it here.</span></div>`}</div>`);
+    openSide(`<div class="side-drawer-header"><div><h3>Saved</h3><small>${L.length} ${L.length === 1 ? 'listing' : 'listings'} on your shortlist</small></div><button class="close-btn" aria-label="Close" data-close>${ico('x')}</button></div>
+      <div class="side-drawer-body">${L.length ? `<div class="side-drawer-grid">${L.map(l => card(l)).join('')}</div>` : `<div class="side-drawer-empty">${ico('heart')}<b>Nothing saved yet</b><span>Tap the heart on any listing to keep it here.</span></div>`}</div>`);
   }
   function signin() {
-    openModal(`<div class="mh"><h3>Sign in to UpNow</h3><button class="x" data-close>${ico('x')}</button></div>
-      <div class="mb"><p style="margin:0 0 14px;color:var(--ink2)">Keep your saved spaces and enquiries on every device.</p>
-      <div class="fld"><label>Mobile number</label><input value="+971 " inputmode="tel"></div>
-      <button class="btn btn-g" style="width:100%;height:46px" onclick="UPUI.closeModal();UPUI.toast('We sent a code by WhatsApp')">${ico('wa')}Continue with WhatsApp code</button>
-      <div class="or"><span>or</span></div><button class="btn btn-o" style="width:100%" onclick="UPUI.closeModal();UPUI.toast('Signed in')">Continue with UAE PASS</button>
-      <p class="fine">Listing a space? <a class="lnk" href="${ROOT}index.html#provider-cta">Become a provider</a></p></div>`);
+    openModal(`<div class="modal-header"><h3>Sign in to UpNow</h3><button class="close-btn" aria-label="Close" data-close>${ico('x')}</button></div>
+      <div class="modal-body"><p style="margin:0 0 14px;color:var(--ink2)">Keep your saved spaces and enquiries on every device.</p>
+      <div class="field"><label>Mobile number</label><input value="+971 " inputmode="tel"></div>
+      <button class="btn btn-primary" style="width:100%;height:46px" onclick="UPUI.closeModal();UPUI.toast('We sent a code by WhatsApp')">${ico('wa')}Continue with WhatsApp code</button>
+      <div class="or-divider"><span>or</span></div><button class="btn btn-outline" style="width:100%" onclick="UPUI.closeModal();UPUI.toast('Signed in')">Continue with UAE PASS</button>
+      <p class="fine-print">Listing a space? <a class="text-link" href="${ROOT}index.html#provider-cta">Become a provider</a></p></div>`);
   }
 
   document.addEventListener('click', e => {
@@ -427,7 +427,7 @@
     const b = e.target.closest('[data-req],[data-email]'); if (b) { e.preventDefault(); e.stopPropagation(); request(b.dataset.req || b.dataset.email); return; }
     const o = e.target.closest('[data-open]'); if (o) { e.preventDefault(); closeModal(); ({ enq: enquiries, saved, signin })[o.dataset.open](); return; }
   });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeSide(); } });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeSide(); document.dispatchEvent(new Event('upnow:escape')); } });
 
   window.UPUI = {
     ICONS: P, ico, esc, t, prefs, money, moneyK, header, bindHeader, footer, updateHdrCounts, card, photo, badges, priceText, priceOf, specOf, locText, offer, defsOf, matches, results, facetCount, SORTS,

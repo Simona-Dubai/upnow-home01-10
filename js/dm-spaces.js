@@ -48,10 +48,10 @@
       const main = rooms.filter(r => r[4] === 'main'), bed = rooms.filter(r => r[4] === 'bed'), wet = rooms.filter(r => r[4] === 'wet'), aux = rooms.filter(r => r[4] === 'aux'), out = rooms.filter(r => r[4] === 'out');
       return [[...out, ...main], [...bed.slice(0, 2), ...wet.slice(0, 2)], [...bed.slice(2), ...wet.slice(2), ...aux]].filter(x => x.length);
     })();
-    const room = (r) => `<div class="fp-r ${r[4]} ${st.hl === rooms.indexOf(r) ? 'hl' : ''}" style="flex:${Math.max(r[2], 50)}"><b>${esc(r[1])}</b><small>${r[2]} sqft</small></div>`;
-    const fp = () => `<div class="fp"><div class="fp-plan">${planRows.map(row => `<div class="fp-row" style="flex:${row.reduce((s, r) => s + r[2], 0)}">${row.map(room).join('')}</div>`).join('')}</div>
-      <div class="fp-list">${rooms.map((r, i) => `<div class="rm" onmouseenter="DM._hl(${i})" onmouseleave="DM._hl(-1)"><i>${ico(r[0])}</i><div><b>${esc(r[1])}</b><small>${esc(r[3])}</small></div><em>${r[2]} sqft</em></div>`).join('')}</div></div>`;
-    DM._hl = i => { st.hl = i; document.querySelectorAll('[data-live="fp"] .fp-plan').forEach(p => { const tmp = document.createElement('div'); tmp.innerHTML = fp(); p.replaceWith(tmp.querySelector('.fp-plan')); }); };
+    const room = (r) => `<div class="floorplan-room ${{ wet: 'is-wet', out: 'is-outdoor' }[r[4]] || ''} ${st.hl === rooms.indexOf(r) ? 'is-highlighted' : ''}" style="flex:${Math.max(r[2], 50)}"><b>${esc(r[1])}</b><small>${r[2]} sqft</small></div>`;
+    const fp = () => `<div class="floorplan"><div class="floorplan-plan">${planRows.map(row => `<div class="floorplan-row" style="flex:${row.reduce((s, r) => s + r[2], 0)}">${row.map(room).join('')}</div>`).join('')}</div>
+      <div class="floorplan-rooms">${rooms.map((r, i) => `<div class="room-item" onmouseenter="DM._hl(${i})" onmouseleave="DM._hl(-1)"><i>${ico(r[0])}</i><div><b>${esc(r[1])}</b><small>${esc(r[3])}</small></div><em>${r[2]} sqft</em></div>`).join('')}</div></div>`;
+    DM._hl = i => { st.hl = i; document.querySelectorAll('[data-live="fp"] .floorplan-plan').forEach(p => { const tmp = document.createElement('div'); tmp.innerHTML = fp(); p.replaceWith(tmp.querySelector('.floorplan-plan')); }); };
 
     st.ch = st.ch || Math.min(A.cheques, 4); st.tm = st.tm || 'yearly';
     const rent = () => st.tm === 'monthly' ? Math.round(c.l.price * 1.3 / 12 / 100) * 100 : c.l.price * (1 + ({ 1: 0, 2: 0, 4: .02, 6: .04, 12: .06 }[st.ch] || 0));
@@ -61,11 +61,11 @@
 
     return {
       secs: [
-        ['Rooms & layout', `<p class="dm-sub">${beds === 0 ? 'Studio' : beds + ' bedrooms'} · ${baths} bathrooms · ${sq.toLocaleString()} sqft total. Schematic — hover a room to locate it.</p>` + live(c, 'fp', fp)],
-        ['Cost to move in', `<p class="dm-sub">Everything due on signing, based on the payment option you pick. Typical Dubai charges — confirm with ${esc(c.fname)}.</p>` + live(c, 'mi', () => H.table(['Item', 'Note', 'Amount'], [
+        ['Rooms & layout', `<p class="detail-subtitle">${beds === 0 ? 'Studio' : beds + ' bedrooms'} · ${baths} bathrooms · ${sq.toLocaleString()} sqft total. Schematic — hover a room to locate it.</p>` + live(c, 'fp', fp)],
+        ['Cost to move in', `<p class="detail-subtitle">Everything due on signing, based on the payment option you pick. Typical Dubai charges — confirm with ${esc(c.fname)}.</p>` + live(c, 'mi', () => H.table(['Item', 'Note', 'Amount'], [
           [`<b>First rent ${st.tm === 'monthly' ? 'payment (month 1)' : 'cheque'}</b>`, st.tm === 'monthly' ? 'Monthly rent' : `1 of ${st.ch} cheques`, M(st.tm === 'monthly' ? rent() : rent() / st.ch)],
           ...mi().map(([a, v, n]) => [`<b>${a}</b>`, `<small>${n}</small>`, v ? M(v) : '—']),
-          { cls: 'tot', c: ['Due at signing', '', M(miTotal())] }], 2) + (st.tm === 'yearly' ? `<div style="margin-top:14px">${cheques(c, rent(), st.ch)}</div>` : ''))],
+          { cls: 'total-row', c: ['Due at signing', '', M(miTotal())] }], 2) + (st.tm === 'yearly' ? `<div style="margin-top:14px">${cheques(c, rent(), st.ch)}</div>` : ''))],
         ['Building & community', H.spec([['building', 'Building', c.l.building || UP.areaName(c.l.loc)], ['layers', 'Floor', villa ? 'G+1' : (8 + Math.round(c.r() * 30)) + ' of 42'], ['car', 'Parking', villa ? '2 covered' : '1 covered'], ['snow', 'Cooling', A.chiller ? 'Chiller-free' : 'Empower (metered)'], ['clock', 'Completed', 2008 + Math.round(c.r() * 15) + ''], ['shield', 'Security', '24h · CCTV · access card']])]
       ],
       bk: () => H.price(c.l, money(rent() / (st.tm === 'monthly' ? 1 : 1)), st.tm === 'monthly' ? '/month' : '/year') +
@@ -84,12 +84,12 @@
     return {
       secs: [
         ['Unit specification', H.spec([['area', 'Net area', A.sqft.toLocaleString() + ' sqft'], ['tool', 'Fit-out', { fitted: 'Fitted', semi: 'Semi-fitted', shell: 'Shell & core', furnished: 'Furnished' }[A.fitting]], ['building', 'Building grade', 'Grade ' + A.grade], ['users', 'Est. headcount', Math.round(A.sqft / 110) + ' desks'], ['car', 'Parking', A.parkingSpaces + ' bays'], ['bath', 'Washroom', A.washroom === 'private' ? 'Private' : 'Shared on floor'], ['bolt', 'DEWA', A.dewa ? 'Separate meter' : 'Shared'], ['snow', 'A/C', 'Central · chilled water'], ['brief', 'Licence', A.zone === 'freezone' ? 'Free zone' : 'Mainland (DED)']])],
-        ['Annual occupancy cost', `<p class="dm-sub">What a ${A.sqft.toLocaleString()} sqft unit costs per year — before fit-out.</p>` + H.table(['Item', 'Basis', 'Per year'], [
+        ['Annual occupancy cost', `<p class="detail-subtitle">What a ${A.sqft.toLocaleString()} sqft unit costs per year — before fit-out.</p>` + H.table(['Item', 'Basis', 'Per year'], [
           ['<b>Base rent</b>', M(psf) + ' / sqft', M(c.l.price)], ['<b>Service charge</b>', A.grade === 'A' ? 'AED 22 / sqft' : 'AED 15 / sqft', M(sc)], ['<b>DEWA (est.)</b>', 'AED 4 / sqft', M(A.sqft * 4)], ['<b>Ejari + municipality fee</b>', '5% of rent', M(c.l.price * .05)],
-          { cls: 'tot', c: ['All-in occupancy', M((c.l.price + sc + A.sqft * 4 + c.l.price * .05) / A.sqft) + ' / sqft', M(c.l.price + sc + A.sqft * 4 + c.l.price * .05)] }], 2)],
+          { cls: 'total-row', c: ['All-in occupancy', M((c.l.price + sc + A.sqft * 4 + c.l.price * .05) / A.sqft) + ' / sqft', M(c.l.price + sc + A.sqft * 4 + c.l.price * .05)] }], 2)],
         ['Permitted activities', H.chk([[1, 'General trading & office'], [A.ctype === 'clinic' || c.r() > .5, 'Medical / clinic (DHA)'], [A.ctype === 'fnb' || A.frontage, 'Food & beverage'], [A.ctype === 'retail' || A.frontage, 'Retail with frontage'], [A.zone === 'freezone', 'Free-zone licence eligible'], [A.zone !== 'freezone', 'Mainland DED licence']])]
       ],
-      bk: () => H.price(c.l, money(c.l.price), '/year') + `<p class="dm-sub" style="margin:4px 0 0">${M(psf)} / sqft · ${A.sqft.toLocaleString()} sqft</p>` + H.lab('Payment') + H.seg('ch', st, [1, 2, 4, 6].filter(n => n <= A.cheques).map(n => [n, n + (n > 1 ? ' chqs' : ' chq')])) +
+      bk: () => H.price(c.l, money(c.l.price), '/year') + `<p class="detail-subtitle" style="margin:4px 0 0">${M(psf)} / sqft · ${A.sqft.toLocaleString()} sqft</p>` + H.lab('Payment') + H.seg('ch', st, [1, 2, 4, 6].filter(n => n <= A.cheques).map(n => [n, n + (n > 1 ? ' chqs' : ' chq')])) +
         viewingBk(c, '', [['Per cheque', M(c.l.price / st.ch)], ['Due at signing', M(c.l.price / st.ch + c.l.price * .2 + 4220)]]),
       go: () => viewingGo(c, [['Payment', st.ch + ' cheques'], ['Rent', M(c.l.price) + ' / year']])
     };
@@ -104,7 +104,7 @@
         ['Suitable for', H.chk([[1, 'Dry storage & distribution'], [A.itype === 'cold', 'Cold chain (−25°C to +8°C)'], [A.powerKw >= 150, 'Light manufacturing'], [A.heightM >= 10, 'High-bay racking (6+ levels)'], [A.zone === 'freezone', 'Re-export (free zone)'], [A.itype === 'workshop' || A.powerKw >= 100, 'Workshop / fabrication']])],
         ['Logistics access', H.box('Drive times', 'car', [['Jebel Ali Port', 12 + Math.round(c.r() * 20) + ' min'], ['Al Maktoum Airport (DWC)', 15 + Math.round(c.r() * 15) + ' min'], ['E311 Sheikh Mohammed Bin Zayed Rd', 3 + Math.round(c.r() * 6) + ' min'], ['Abu Dhabi border', 35 + Math.round(c.r() * 15) + ' min']])]
       ],
-      bk: () => H.price(c.l, money(c.l.price), '/year') + `<p class="dm-sub" style="margin:4px 0 0">${M(c.l.price / A.sqft)} / sqft · ${A.sqft.toLocaleString()} sqft BUA</p>` + viewingBk(c),
+      bk: () => H.price(c.l, money(c.l.price), '/year') + `<p class="detail-subtitle" style="margin:4px 0 0">${M(c.l.price / A.sqft)} / sqft · ${A.sqft.toLocaleString()} sqft BUA</p>` + viewingBk(c),
       go: () => viewingGo(c)
     };
   });
@@ -118,7 +118,7 @@
           H.note(`At the permitted FAR you could build roughly <b>${Math.round(A.gfa * .82 / 850)} apartments</b> or <b>${Math.round(A.gfa * .85).toLocaleString()} sqft</b> of leasable space. Final figures come from the affection plan.`, 'trend')],
         ['Plot documents', H.chk([[1, 'Affection plan'], [1, 'Title deed / lease ownership'], [A.utilities, 'DEWA NOC & connection point'], [c.r() > .4, 'Soil test report'], [A.road, 'RTA access approval'], [c.r() > .5, 'Master developer NOC']])]
       ],
-      bk: () => H.price(c.l, money(c.l.price), '/year') + `<p class="dm-sub" style="margin:4px 0 0">${A.termYrs}-year ${A.tenure} · ${M(c.l.price / A.sqft)} / sqft</p>` + viewingBk(c),
+      bk: () => H.price(c.l, money(c.l.price), '/year') + `<p class="detail-subtitle" style="margin:4px 0 0">${A.termYrs}-year ${A.tenure} · ${M(c.l.price / A.sqft)} / sqft</p>` + viewingBk(c),
       go: () => viewingGo(c, [['Lease term', A.termYrs + ' years']])
     };
   });
@@ -132,11 +132,11 @@
     const gross = mix.reduce((s, m) => s + m[1] * m[3], 0);
     return {
       secs: [
-        ['Unit mix & rent roll', H.table(['Unit type', 'Units', 'Avg size', 'Market rent', 'Annual'], [...mix.map(m => [`<b>${m[0]}</b>`, m[1], m[2] + ' sqft', M(m[3]), M(m[1] * m[3])]), { cls: 'tot', c: ['Gross potential income', A.units, '', '', M(gross)] }], 1) +
+        ['Unit mix & rent roll', H.table(['Unit type', 'Units', 'Avg size', 'Market rent', 'Annual'], [...mix.map(m => [`<b>${m[0]}</b>`, m[1], m[2] + ' sqft', M(m[3]), M(m[1] * m[3])]), { cls: 'total-row', c: ['Gross potential income', A.units, '', '', M(gross)] }], 1) +
           H.note(`Currently <b>${Math.round(occ * 100)}% occupied</b>. Master-lease at ${M(c.l.price)} vs. gross potential ${M(gross)} → indicative margin <b>${Math.round((gross * .92 / c.l.price - 1) * 100)}%</b> after 8% vacancy & costs.`, 'trend')],
         ['Building', H.spec([['building', 'Floors', 'G+' + A.floors], ['area', 'BUA', A.sqft.toLocaleString() + ' sqft'], ['car', 'Parking', A.parking ? Math.round(A.units * 1.1) + ' bays (basement)' : 'Surface'], ['users', 'Occupancy', Math.round(occ * 100) + '%']])]
       ],
-      bk: () => H.price(c.l, money(c.l.price), '/year') + `<p class="dm-sub" style="margin:4px 0 0">${M(c.l.price / A.units)} per unit · ${A.units} units</p>` + viewingBk(c),
+      bk: () => H.price(c.l, money(c.l.price), '/year') + `<p class="detail-subtitle" style="margin:4px 0 0">${M(c.l.price / A.units)} per unit · ${A.units} units</p>` + viewingBk(c),
       go: () => viewingGo(c)
     };
   });
@@ -157,19 +157,19 @@
     const bedroomCards = (br === 0 ? [['Studio', [['bed'], '1 queen bed']], ['Living area', [['sofa'], '1 sofa bed']]] :
       Array.from({ length: br }, (_, i) => [i === 0 ? 'Bedroom 1 · master' : 'Bedroom ' + (i + 1), i === 0 ? [['bed'], '1 king bed · en-suite'] : i === 1 ? [['bed', 'bed'], '2 single beds'] : [['bed'], '1 queen bed']]).concat(A.maxGuests > br * 2 + 1 ? [['Living room', [['sofa'], '1 sofa bed']]] : []));
     const tm = () => { const b = new Date(2026, 9 + st.mo, 1), b2 = new Date(2026, 10 + st.mo, 1); return [b, b2]; };
-    const calHTML = (two) => { const [m1, m2] = tm(); const o = { price, sel: [st.ci, st.co], fn: 'pick', lo: d => price(d) < nightly }; return `<div class="${two ? 'cal2' : ''}">${month(m1.getFullYear(), m1.getMonth(), { ...o, nav: two ? null : 'mo' })}${two ? month(m2.getFullYear(), m2.getMonth(), o) : ''}</div>`; };
+    const calHTML = (two) => { const [m1, m2] = tm(); const o = { price, sel: [st.ci, st.co], fn: 'pick', lo: d => price(d) < nightly }; return `<div class="${two ? 'calendar-pair' : ''}">${month(m1.getFullYear(), m1.getMonth(), { ...o, nav: two ? null : 'mo' })}${two ? month(m2.getFullYear(), m2.getMonth(), o) : ''}</div>`; };
     const amenAll = ['Fast Wi-Fi', 'Full kitchen', 'Washer', 'Free parking', 'Private pool', 'Beach access', 'Sea view', 'Self check-in'];
     return {
       secs: [
-        ['Where you’ll sleep', `<div class="beds">${bedroomCards.map(([t, [ics, s]]) => `<div><i>${ics.map(x => ico(x)).join('')}</i><b>${esc(t)}</b><span>${esc(s)}</span></div>`).join('')}</div>`],
-        ['Availability', `<p class="dm-sub">Select check-in, then check-out. Prices per night shown under each date; amber = below usual rate.</p>` + live(c, 'cal', () => calHTML(true) + `<div class="cal-lg"><span><i></i>Selected</span><span><i class="l"></i>Deal night</span><span><i class="b"></i>Booked</span><span style="margin-left:auto">${st.mo ? `<button class="lnk" data-bk="fn" data-f="mo" data-v="-1">← Earlier</button> · ` : ''}<button class="lnk" data-bk="fn" data-f="mo" data-v="1">Later months →</button></span></div>`)],
+        ['Where you’ll sleep', `<div class="bed-cards">${bedroomCards.map(([t, [ics, s]]) => `<div><i>${ics.map(x => ico(x)).join('')}</i><b>${esc(t)}</b><span>${esc(s)}</span></div>`).join('')}</div>`],
+        ['Availability', `<p class="detail-subtitle">Select check-in, then check-out. Prices per night shown under each date; amber = below usual rate.</p>` + live(c, 'cal', () => calHTML(true) + `<div class="calendar-legend"><span><i></i>Selected</span><span><i class="is-deal"></i>Deal night</span><span><i class="is-booked"></i>Booked</span><span style="margin-left:auto">${st.mo ? `<button class="text-link" data-bk="fn" data-f="mo" data-v="-1">← Earlier</button> · ` : ''}<button class="text-link" data-bk="fn" data-f="mo" data-v="1">Later months →</button></span></div>`)],
         ['What this place offers', H.chk(amenAll.map(x => [A.amenities.includes(x) || ['Full kitchen', 'Fast Wi-Fi'].includes(x), x]).concat([[1, 'Air conditioning'], [1, 'Towels & linen'], [br > 1, 'Washer-dryer'], [0, 'Pets allowed']]))],
-        ['House rules', `<div class="dm-cols">${H.box('Check-in & out', 'clock', [['Check-in', 'From 15:00' + (A.amenities.includes('Self check-in') ? ' · self check-in (smart lock)' : ' · host greets')], ['Check-out', 'By 11:00'], ['Min. stay', A.minNights + ' night' + (A.minNights > 1 ? 's' : '')], ['Cancellation', { free: 'Free up to 7 days before', moderate: '50% refund up to 5 days', strict: 'Non-refundable' }[A.cancellation]]])}
+        ['House rules', `<div class="detail-columns">${H.box('Check-in & out', 'clock', [['Check-in', 'From 15:00' + (A.amenities.includes('Self check-in') ? ' · self check-in (smart lock)' : ' · host greets')], ['Check-out', 'By 11:00'], ['Min. stay', A.minNights + ' night' + (A.minNights > 1 ? 's' : '')], ['Cancellation', { free: 'Free up to 7 days before', moderate: '50% refund up to 5 days', strict: 'Non-refundable' }[A.cancellation]]])}
           ${H.box('Rules', 'doc', [['Guests', 'Up to ' + A.maxGuests], ['Parties / events', 'Not allowed'], ['Smoking', 'Balcony only'], ['ID', 'Passport / Emirates ID for all guests (DTCM)']])}</div>`]
       ],
       bk: () => H.price(c.l, money(nightly), '/night') +
-        `<div style="margin-top:12px" class="bk-dates"><button data-bk="fn" data-f="pick" data-v="${st.ci}"><small>Check-in</small><b>${fd(dayN(st.ci))}</b></button><button><small>Check-out</small><b class="${st.co == null ? 'ph' : ''}">${st.co != null ? fd(dayN(st.co)) : 'Select date'}</b></button></div>` +
-        (c.mobile ? '' : `<div class="bk-cal">${calHTML(false)}</div>`) +
+        `<div style="margin-top:12px" class="booking-dates"><button data-bk="fn" data-f="pick" data-v="${st.ci}"><small>Check-in</small><b>${fd(dayN(st.ci))}</b></button><button><small>Check-out</small><b class="${st.co == null ? 'is-placeholder' : ''}">${st.co != null ? fd(dayN(st.co)) : 'Select date'}</b></button></div>` +
+        (c.mobile ? '' : `<div class="booking-calendar">${calHTML(false)}</div>`) +
         H.lab('Guests') + H.step('a', st, 'Adults', 'Age 13+', 1, A.maxGuests - st.k) + H.step('k', st, 'Children', 'Ages 2–12', 0, A.maxGuests - st.a) + H.step('inf', st, 'Infants', 'Under 2 · cot on request', 0, 2) +
         (nights() ? (nights() < A.minNights ? H.alert(`Minimum stay is ${A.minNights} nights`) : H.sum([[`${money(Math.round(sub() / nights()))} × ${nights()} night${nights() > 1 ? 's' : ''}`, M(sub())], ...fees().slice(0, 3).filter(f => f[1]).map(f => [f[0], (f[1] < 0 ? '−' : '') + M(Math.abs(f[1]))])], M(total()))) : '') +
         H.go('Request to book') + H.fine('You won’t be charged on UpNow · pay the host directly'),
@@ -190,8 +190,8 @@
     const tot = () => (hire() + food()) * 1.05;
     return {
       secs: [
-        ['Spaces & capacity', `<p class="dm-sub">Max guests by room layout.</p>` + H.table(['Space', 'Theatre', 'Classroom', 'Banquet', 'Cocktail', 'Boardroom'], spaces.map(([n, cp, f]) => [`<b>${esc(n)}</b>`, ...['theatre', 'classroom', 'banquet', 'cocktail', 'boardroom'].map(k => Math.max(8, Math.round(cp * L[k])))]), 1)],
-        ['Packages', `<p class="dm-sub">Per-guest prices, set by the venue. Minimum spend applies on Thu–Sat evenings.</p>` + live(c, 'pk', () => H.opts('pk', st, pk.map(p => ({ ...p, p: p.pp ? M(p.pp) + '<span style="font-weight:500;color:var(--ink3)"> /guest</span>' : 'Included' }))))],
+        ['Spaces & capacity', `<p class="detail-subtitle">Max guests by room layout.</p>` + H.table(['Space', 'Theatre', 'Classroom', 'Banquet', 'Cocktail', 'Boardroom'], spaces.map(([n, cp, f]) => [`<b>${esc(n)}</b>`, ...['theatre', 'classroom', 'banquet', 'cocktail', 'boardroom'].map(k => Math.max(8, Math.round(cp * L[k])))]), 1)],
+        ['Packages', `<p class="detail-subtitle">Per-guest prices, set by the venue. Minimum spend applies on Thu–Sat evenings.</p>` + live(c, 'pk', () => H.opts('pk', st, pk.map(p => ({ ...p, p: p.pp ? M(p.pp) + '<span style="font-weight:500;color:var(--ink3)"> /guest</span>' : 'Included' }))))],
         ['Event essentials', H.chk([[A.catering === 'inhouse', 'In-house catering'], [A.catering !== 'none', 'Outside caterers ' + (A.catering === 'outside' ? 'welcome' : 'on request')], ...['AV & screen', 'Sound system', 'Stage', 'Lighting rig', 'Wi-Fi', 'Dance floor'].map(x => [A.equipment.includes(x), x]), [A.parking === 'valet', 'Valet parking'], [1, 'Event coordinator on the day']])]
       ],
       bk: () => H.price(c.l, money(ph), '/hour') + H.lab('Event date') + H.days('d', st, 6, 3) + H.lab('Session') + H.seg('ses', st, [['morning', 'AM'], ['afternoon', 'PM'], ['evening', 'Eve'], ['fullday', 'Full day']]) +
@@ -211,18 +211,18 @@
     const taken = (ci, hi) => ((c.l.id.charCodeAt(3) * (ci + 3) + hi * 7 + st.d * 5) % 9) < 4;
     const courts = Array.from({ length: n }, (_, i) => [`Court ${i + 1}`, i === 0 && A.setting === 'indoor' ? 'Panoramic glass' : A.setting === 'indoor' ? 'Indoor · A/C' : 'Outdoor · floodlit']);
     const rate = h => Math.round(ph * (peak(h) ? 1.25 : .85) / 10) * 10;
-    const grid = () => `<div class="slotg" style="grid-template-columns:110px repeat(${hours.length},1fr)"><span></span>${hours.map(h => `<span class="h">${h}</span>`).join('')}${courts.map(([nm, s], ci) => `<span class="c">${nm}</span>${hours.map((h, hi) => { const id = ci + '|' + h; return `<button class="${peak(h) ? 'pk' : ''} ${st.sl === id ? 'on' : ''}" ${taken(ci, hi) ? 'disabled' : ''} data-bk="set" data-k="sl" data-v="${id}">${taken(ci, hi) ? '—' : 'AED ' + rate(h) * st.dur / 60}</button>`; }).join('')}`).join('')}</div>`;
+    const grid = () => `<div class="slot-grid" style="grid-template-columns:110px repeat(${hours.length},1fr)"><span></span>${hours.map(h => `<span class="slot-hour">${h}</span>`).join('')}${courts.map(([nm, s], ci) => `<span class="slot-court">${nm}</span>${hours.map((h, hi) => { const id = ci + '|' + h; return `<button class="${peak(h) ? 'is-peak' : ''} ${st.sl === id ? 'is-active' : ''}" ${taken(ci, hi) ? 'disabled' : ''} data-bk="set" data-k="sl" data-v="${id}">${taken(ci, hi) ? '—' : 'AED ' + rate(h) * st.dur / 60}</button>`; }).join('')}`).join('')}</div>`;
     const sel = () => st.sl ? st.sl.split('|') : null;
     const amount = () => sel() ? rate(sel()[1]) * st.dur / 60 : 0;
     return {
       secs: [
-        ['Book a court', `<p class="dm-sub">Live availability for ${fd(dayN(st.d))}. Amber = peak (after 17:00). Price shown for ${st.dur} min.</p>` + live(c, 'grid', () => H.days('d', st, 7, 0) + '<div style="height:12px"></div>' + grid())],
+        ['Book a court', `<p class="detail-subtitle">Live availability for ${fd(dayN(st.d))}. Amber = peak (after 17:00). Price shown for ${st.dur} min.</p>` + live(c, 'grid', () => H.days('d', st, 7, 0) + '<div style="height:12px"></div>' + grid())],
         ['Courts', H.table(['Court', 'Surface', 'Type', 'Off-peak', 'Peak'], courts.map(([nm, s]) => [`<b>${nm}</b>`, A.sport === 'padel' ? 'Mondo artificial turf' : A.sport === 'tennis' ? 'Hard court' : /football/.test(A.sport) ? '3G turf' : 'Sprung wood', s, M(rate('10:00')) + '/hr', M(rate('19:00')) + '/hr']), 3)],
         ['At the club', H.chk(['Racket / ball rental', 'Changing rooms', 'Showers', 'Floodlights', 'Coaching', 'Café', 'Parking'].map(x => [A.amenities.includes(x), x]))]
       ],
       bk: () => H.price(c.l, money(ph), '/hour') + H.lab('Duration') + H.seg('dur', st, [[60, '60 min'], [90, '90 min'], [120, '120 min']]) +
-        (sel() ? `<div class="dm-note" style="margin-top:12px">${ico('racket')}<span><b>Court ${+sel()[0] + 1} · ${fd(dayN(st.d))}</b><br>${sel()[1]} – ${(() => { const [h, m] = sel()[1].split(':').map(Number); const t = h * 60 + m + st.dur; return String(Math.floor(t / 60) % 24).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); })()}</span></div>` +
-          H.sum([['Court fee', M(amount())], ['Per player (4)', M(amount() / 4)]], M(amount()), 'Total') : `<div class="dm-note" style="margin-top:12px">${ico('grid4')}<span>Pick a free slot in the grid to continue.</span></div>`) +
+        (sel() ? `<div class="detail-note" style="margin-top:12px">${ico('racket')}<span><b>Court ${+sel()[0] + 1} · ${fd(dayN(st.d))}</b><br>${sel()[1]} – ${(() => { const [h, m] = sel()[1].split(':').map(Number); const t = h * 60 + m + st.dur; return String(Math.floor(t / 60) % 24).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); })()}</span></div>` +
+          H.sum([['Court fee', M(amount())], ['Per player (4)', M(amount() / 4)]], M(amount()), 'Total') : `<div class="detail-note" style="margin-top:12px">${ico('grid4')}<span>Pick a free slot in the grid to continue.</span></div>`) +
         H.go(sel() ? 'Request this slot' : 'Choose a slot', 'clock') + H.fine('Pay at the club · free cancellation up to 24h'),
       go: () => ({ title: 'Request this slot', rows: [['Club', c.l.title], ['Date', fd(dayN(st.d))], ['Court', sel() ? 'Court ' + (+sel()[0] + 1) : '—'], ['Start', sel() ? sel()[1] : '—'], ['Duration', st.dur + ' min']], total: M(amount()) })
     };
