@@ -1,7 +1,7 @@
 /* Detail-module core: toolkit for category-specific sections + booking widgets, the agent card,
    SMS / chat sheets and the "request to book" confirmation. Category modules register with DM.reg(). */
 (function () {
-  const { ico, esc, money, initials, openModal, closeModal, toast, ROOT } = UPUI;
+  const { ico, esc, money, initials, openModal, closeModal, toast } = UPUI;
   const { LISTINGS, offerOf, areaName } = UP;
   const D0 = new Date(2026, 9, 1); // marketplace "today" — Thu 1 Oct 2026
   const DW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], MN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -104,8 +104,8 @@
     let hue = 0; for (const c of name) hue = (hue * 31 + c.charCodeAt(0)) % 360;
     return { name, L, p, org, person, reviews, rating, hue, reply: Math.min(...L.map(x => x.provider.reply)), langs: p.langs, brn: (L.find(x => x.provider.brn) || {}).provider?.brn, since: Math.min(...L.map(x => x.provider.since)), v: L[0].v, cats: [...new Set(L.map(x => x.cat))] };
   }
-  const provHref = name => ROOT + 'Provider.html?p=' + encodeURIComponent(name);
-  const agencyHref = org => ROOT + 'Agency.html?a=' + encodeURIComponent(org);
+  const provHref = name => PATHS.href.provider + '?p=' + encodeURIComponent(name);
+  const agencyHref = org => PATHS.href.agency + '?a=' + encodeURIComponent(org);
   const isAgency = org => !!org && !/^Private (owner|landlord|host)$/.test(org);
   const orgSub = (P) => { if (P.org === 'Private owner' || P.org === 'Private landlord' || P.org === 'Private host') return 'Title deed verified'; if (P.v === 'spaces' && P.person) return /stays|silkhaus|frank porter/i.test(P.org) ? 'Holiday home operator · DTCM' : 'Real estate broker L.L.C'; return offerOf(P.L[0].v, P.L[0].cat).org[0]; };
   const allLabel = P => P.v === 'spaces' ? (P.cats.every(c => ['venue', 'court', 'yacht'].includes(c)) ? 'View all ' + ({ venue: 'spaces', court: 'courts', yacht: 'yachts' }[P.cats[0]]) : 'View all properties') : 'View all services';

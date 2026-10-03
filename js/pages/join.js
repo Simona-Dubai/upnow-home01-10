@@ -1,4 +1,4 @@
-/* Provider onboarding (Join.html): account → business type → details → verification → submitted.
+/* Provider onboarding (pages/join.html): account → business type → details → verification → submitted.
    One flow for every vertical; the fields and documents asked for depend on the provider type. */
 (function () {
   const { VERTICALS, AREAS, LISTINGS } = UP;
@@ -136,7 +136,7 @@
         <li class="is-now"><i>2</i><span><b>Documents under review</b><small>Usually within 24 hours</small></span></li>
         <li><i>3</i><span><b>Profile goes live</b><small>With your “Verified by UpNow” badge</small></span></li>
         <li><i>4</i><span><b>Add your first ${S.v === 'spaces' ? 'listing' : 'service'}</b><small>Leads start arriving by ${esc(S.channels.map(c => CHANNELS.find(x => x[0] === c)[1]).join(', '))}</small></span></li></ol>
-      <div class="ob-done-cta"><button class="btn btn-primary" data-act="first">${ico('plus')}Prepare your first ${S.v === 'spaces' ? 'listing' : 'service'}</button><a class="btn btn-outline" href="index.html">Back to UpNow</a></div>
+      <div class="ob-done-cta"><button class="btn btn-primary" data-act="first">${ico('plus')}Prepare your first ${S.v === 'spaces' ? 'listing' : 'service'}</button><a class="btn btn-outline" href="${PATHS.href.home}">Back to UpNow</a></div>
       <button class="text-link" data-act="restart">Start a new application</button></div>`;
   }
 

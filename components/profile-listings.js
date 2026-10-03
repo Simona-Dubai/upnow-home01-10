@@ -1,4 +1,4 @@
-/* Shared pieces for the agent (Provider.html) and agency (Agency.html) pages:
+/* Shared pieces for the agent (pages/provider.html) and agency (pages/agency.html) pages:
    a compact one-row filter (dropdown pills, like Bayut's profile pages) over the profile's own listings. */
 (function () {
   const { ico, esc, card, valueLabel, empty, areaName = UP.areaName } = UPUI;
@@ -6,7 +6,7 @@
   const PAGE = 12; // 3 rows of 4
   const SORTS = [['rec', 'Recommended'], ['new', 'Newest'], ['plh', 'Price: low to high'], ['phl', 'Price: high to low']];
 
-  const agencyHref = org => 'Agency.html?a=' + encodeURIComponent(org);
+  const agencyHref = org => PATHS.href.agency + '?a=' + encodeURIComponent(org);
   const isAgency = org => !!org && !PRIVATE.test(org);
   const catsOf = pool => [...new Set(pool.map(l => l.cat))];
 
@@ -58,7 +58,7 @@
       <span class="pf-sp"></span><span class="pf-view" role="group" aria-label="View">${[['grid', 'grid4', 'Grid view'], ['list', 'list', 'List view']].map(([k, i, t]) => `<button class="${(S.view === 'list' ? 'list' : 'grid') === k ? 'is-active' : ''}" data-pf-view="${k}" aria-label="${t}" title="${t}">${ico(i)}</button>`).join('')}</span><label class="pf-select"><select data-pf-sort aria-label="Sort">${SORTS.map(([k, t]) => `<option value="${k}" ${S.sort === k ? 'selected' : ''}>${t}</option>`).join('')}</select>${ico('chev')}</label></div>`;
     const shown = res.slice(0, S.limit), SS = S.o ? S : null;
     const items = S.view === 'list'
-      ? `<div class="pf-list-v">${shown.map(l => { const pt = UPUI.priceText(l, SS); return `<a class="pf-li" href="Listing.html?id=${l.id}">${UPUI.photo(l, 0)}<span><b>${esc(l.title)}</b><small>${ico('pin')} ${esc(UPUI.locText(l))}</small><small class="pf-li-spec">${UPUI.specOf(l).map(esc).join(' · ')}</small></span><span class="pf-li-price">${pt.n}<span>${esc(pt.u)}</span></span></a>`; }).join('')}</div>`
+      ? `<div class="pf-list-v">${shown.map(l => { const pt = UPUI.priceText(l, SS); return `<a class="pf-li" href="${PATHS.href.listing}?id=${l.id}">${UPUI.photo(l, 0)}<span><b>${esc(l.title)}</b><small>${ico('pin')} ${esc(UPUI.locText(l))}</small><small class="pf-li-spec">${UPUI.specOf(l).map(esc).join(' · ')}</small></span><span class="pf-li-price">${pt.n}<span>${esc(pt.u)}</span></span></a>`; }).join('')}</div>`
       : `<div class="pf-grid">${shown.map(l => card(l, SS)).join('')}</div>`;
     return meta + (res.length ? `${items}
         ${res.length > S.limit ? `<div class="pf-more"><span>Showing ${S.limit} of ${res.length}</span><button class="btn btn-outline" data-pf-more>Show ${Math.min(PAGE, res.length - S.limit)} more</button></div>` : ''}`

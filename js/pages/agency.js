@@ -1,0 +1,193 @@
+const { LISTINGS, offerOf, areaName } = UP;
+const { ico, esc, money, initials } = UPUI;
+const AGENCIES = [
+  ...new Set(
+    LISTINGS.filter(
+      (l) =>
+        DM.isAgency(l.provider.org) && DM.prov(l.provider.name).person,
+    ).map((l) => l.provider.org),
+  ),
+];
+const qa = new URLSearchParams(location.search).get("a");
+const org = AGENCIES.includes(qa) ? qa : AGENCIES[0];
+const L = LISTINGS.filter((l) => l.provider.org === org);
+const L0 = L[0],
+  v = L0.v,
+  SP = v === "spaces",
+  LEASE = !!offerOf(v, L0.cat).lease;
+document.getElementById("hdr").innerHTML = UPUI.header(v);
+document.getElementById("ftr").innerHTML = UPUI.footer();
+UPUI.bindHeader();
+document.title = `${org} · ${SP ? "Real estate agency" : "Provider"} in Dubai | UpNow`;
+
+let s = 0;
+for (const c of org) s += c.charCodeAt(0) * 17;
+const r = () => {
+  s = (s * 9301 + 49297) % 233280;
+  return s / 233280;
+};
+// people at this agency, with what they list for it
+const agents = [...new Set(L.map((l) => l.provider.name))]
+  .map((n) => ({
+    ...DM.prov(n),
+    here: L.filter((l) => l.provider.name === n),
+  }))
+  .sort((a, b) => b.here.length - a.here.length);
+const reviews = L.reduce((t, l) => t + l.reviews, 0),
+  rating = +(
+    L.reduce((t, l) => t + l.rating * l.reviews, 0) / reviews
+  ).toFixed(1);
+const areas = Object.entries(
+  L.reduce((m, l) => ((m[l.loc] = (m[l.loc] || 0) + 1), m), {}),
+).sort((a, b) => b[1] - a[1]);
+const cats = [...new Set(L.map((l) => l.cat))];
+const prices = L.map((l) => l.price).sort((a, b) => a - b);
+const since = Math.min(...L.map((l) => l.provider.since)),
+  reply = Math.min(...agents.map((a) => a.reply));
+const orn = 10000 + Math.round(r() * 89999),
+  ded = 700000 + Math.round(r() * 299999);
+const office = areaName(areas[0][0]);
+const kind = SP
+  ? LEASE
+    ? "Real estate brokerage"
+    : "Property operator"
+  : offerOf(v, L0.cat).org[0];
+const roleOf = (a) =>
+  SP
+    ? offerOf(a.v, a.L[0].cat).lease
+      ? "Leasing consultant"
+      : "Sales & operations"
+    : "Specialist";
+
+let tab = "listings";
+const pf = PROFILE.newState(L);
+const listingsHTML = () => PROFILE.listingsPanel();
+// agents tab: search by name, filter by language, sort — then call / WhatsApp straight from the list
+const ag = { q: "", lang: "", sort: "listings" };
+const langs = [...new Set(agents.flatMap((a) => a.langs))].sort();
+function agentTiles() {
+  const q = ag.q.trim().toLowerCase();
+  const list = agents
+    .filter(
+      (a) =>
+        (!q || a.name.toLowerCase().includes(q)) &&
+        (!ag.lang || a.langs.includes(ag.lang)),
+    )
+    .sort(
+      ag.sort === "rating"
+        ? (x, y) => y.rating - x.rating
+        : ag.sort === "reply"
+          ? (x, y) => x.reply - y.reply
+          : (x, y) => y.here.length - x.here.length,
+    );
+  return list.length
+    ? list
+        .map(
+          (a) => `<div class="agent-tile">
+    <a href="${DM.provHref(a.name)}" class="avatar" style="--hue:${a.hue}">${initials(a.name)}</a><a href="${DM.provHref(a.name)}"><b>${esc(a.name)}</b></a><small>${roleOf(a)}${a.brn ? " · BRN " + a.brn : ""}</small>
+    <span class="meta"><span class="stars">${ico("star")}${a.rating.toFixed(1)}</span><span>${a.here.length} ${a.here.length === 1 ? "listing" : "listings"}</span><span>${ico("clock")}~${a.reply} min</span></span>
+    <small>${ico("globe")} ${esc(a.langs.join(", "))}</small>
+    <div class="agent-tile-actions"><button class="btn btn-outline btn-sm" data-call="${a.here[0].id}" aria-label="Call ${esc(a.name)}">${ico("phone")}Call</button><button class="btn btn-whatsapp btn-sm" data-wa="${a.here[0].id}" aria-label="WhatsApp ${esc(a.name)}">${ico("wa")}WhatsApp</button></div>
+    <a class="text-link" href="${DM.provHref(a.name)}">View profile</a></div>`,
+        )
+        .join("")
+    : `<div class="pf-empty" style="grid-column:1/-1">${ico("user")}<b>No agents match</b><button class="btn btn-outline btn-sm" data-ag-reset>Clear</button></div>`;
+}
+const agentsHTML =
+  () => `<div class="ag-toolbar"><label class="ag-search">${ico("search")}<input data-ag="q" placeholder="Search agents by name" value="${esc(ag.q)}" aria-label="Search agents by name"></label>
+    ${langs.length > 1 ? `<label class="pf-select"><select data-ag="lang" aria-label="Language"><option value="">Any language</option>${langs.map((x) => `<option ${ag.lang === x ? "selected" : ""}>${esc(x)}</option>`).join("")}</select>${ico("chev")}</label>` : ""}
+    <label class="pf-select is-sort"><select data-ag="sort" aria-label="Sort agents">${[
+      ["listings", "Most listings"],
+      ["rating", "Top rated"],
+      ["reply", "Fastest reply"],
+    ]
+      .map(
+        ([k, t]) =>
+          `<option value="${k}" ${ag.sort === k ? "selected" : ""}>${t}</option>`,
+      )
+      .join("")}</select>${ico("chev")}</label></div>
+  <div class="agent-grid" id="agGrid">${agentTiles()}</div>`;
+document.addEventListener("input", (e) => {
+  const i = e.target.closest("[data-ag]");
+  if (!i) return;
+  ag[i.dataset.ag] = i.value;
+  document.getElementById("agGrid").innerHTML = agentTiles();
+});
+document.addEventListener("click", (e) => {
+  if (e.target.closest("[data-ag-reset]")) {
+    Object.assign(ag, { q: "", lang: "" });
+    paint();
+  }
+});
+const areasHTML = () => `<div class="area-map">${areas
+  .map(([id, n]) => {
+    const a = UP.areaById[id];
+    const sz = 34 + n * 16;
+    return `<i style="left:${a.x}%;top:${a.y}%;width:${sz}px;height:${sz}px"></i><span style="left:${a.x}%;top:${a.y}%">${esc(a.n)}</span>`;
+  })
+  .join("")}</div>
+    <div class="link-chips">${areas.map(([id, n]) => `<a href="${PATHS.href.search}?v=${v}&o=${L0.cat}&loc=${id}">${ico("pin")}${esc(areaName(id))}<em>${n}</em></a>`).join("")}</div>`;
+
+function paint() {
+  const T = [
+    ["listings", SP ? "Properties" : "Services", L.length],
+    ["agents", SP ? "Agents" : "Team", agents.length],
+    ["areas", "Areas served", areas.length],
+  ];
+  document.getElementById("ag").innerHTML = `
+  <div class="provider-cover"><svg viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0 70 L0 46 C260 4 520 0 820 30 C1080 56 1280 44 1440 20 L1440 70Z" fill="var(--bg)"/></svg></div>
+  <div class="wrap">
+    <div class="provider-header" data-screen-label="Agency header">
+      <div class="provider-avatar is-business" style="--hue:${(org.length * 47) % 360}">${initials(org)}</div>
+      <div><div class="provider-name">${esc(org)}<svg class="icon" viewBox="0 0 24 24">${UPUI.ICONS.badge}</svg></div>
+        <div class="provider-meta"><span>${ico("brief")}${esc(kind)}</span><span class="rating">${ico("star")}<b>${rating.toFixed(1)}</b>&nbsp;(${reviews.toLocaleString()} reviews)</span><span>${ico("pin")}${esc(office)}, Dubai</span><span>${ico("cal")}On UpNow since ${since}</span></div></div>
+      <div class="provider-actions"><button class="btn btn-outline" onclick="navigator.clipboard&&navigator.clipboard.writeText(location.href);UPUI.toast('Agency link copied')">${ico("share")}Share</button><button class="btn btn-outline" onclick="UPUI.toast('Following ${esc(org)} — you’ll get new listings')">${ico("bell")}Follow</button></div>
+    </div>
+    <div class="provider-layout"><div>
+      <div class="kpis"><div><b>${agents.length}</b><span>${SP ? "Agents" : "Team members"}</span></div><div><b>${L.length}</b><span>Active ${SP ? "listings" : "offers"}</span></div><div><b>${areas.length}</b><span>Areas covered</span></div><div><b>~${reply} min</b><span>Typical reply</span></div></div>
+      <div class="provider-card" data-screen-label="About agency"><h2>About ${esc(org)}</h2>
+        <p class="provider-about">${esc(org)} is a ${esc(kind.toLowerCase())} with ${agents.length} ${agents.length === 1 ? "agent" : "agents"} on UpNow, listing ${esc(cats.map((c) => offerOf(v, c).label.toLowerCase()).join(", "))} across ${esc(
+          areas
+            .slice(0, 3)
+            .map((a) => areaName(a[0]))
+            .join(", "),
+        )}${areas.length > 3 ? " and " + (areas.length - 3) + " more communities" : ""}. Every enquiry goes straight to the agent handling the listing — no middleman, no fees for you.</p>
+        <div class="facts">
+          <div><small>Specialises in</small><b>${esc(cats.map((c) => offerOf(v, c).label).join(", "))}</b></div>
+          <div><small>Price range</small><b>${money(prices[0])} – ${UP.K(prices[prices.length - 1])}</b></div>
+          <div><small>Head office</small><b>${esc(office)}, Dubai</b> <a class="text-link" href="https://maps.google.com/?q=${encodeURIComponent(org + " " + office + " Dubai")}" target="_blank" rel="noopener">Directions</a></div>
+          <div><small>Working hours</small><b>Mon–Sat · 9 AM–7 PM</b></div>
+        </div></div>
+      <div class="provider-card" data-screen-label="Agency tabs"><div class="tabs">${T.map(([k, t, n]) => `<button class="${tab === k ? "is-active" : ""}" data-tab="${k}">${t}<em>${n.toLocaleString()}</em></button>`).join("")}</div>
+        ${{ listings: listingsHTML, agents: agentsHTML, areas: areasHTML }[tab]()}</div>
+    </div>
+    <aside class="provider-sidebar">
+      <div class="agent-card is-channels" data-screen-label="Contact agency"><div class="agent-body"><h4>Contact ${esc(org)}</h4>
+        <div class="agent-actions"><button class="agent-action" data-call="${L0.id}">${ico("phone")}<span><b>Call</b><small>Office line</small></span>${ico("chevR", "chevron")}</button>
+          <button class="agent-action" data-wa="${L0.id}">${ico("wa")}<span><b>WhatsApp</b><small>Chat instantly</small></span>${ico("chevR", "chevron")}</button></div>
+        <div class="agent-more">Or pick an agent</div>
+        <div class="team">${agents
+          .slice(0, 4)
+          .map(
+            (a) =>
+              `<a href="${DM.provHref(a.name)}"><div class="avatar" style="--hue:${a.hue}">${initials(a.name)}</div><b>${esc(a.name.split(" ")[0])}</b><small>${a.rating.toFixed(1)}★</small></a>`,
+          )
+          .join("")}</div></div></div>
+      <div class="verification-box" data-screen-label="Verification"><h4>${ico("shield")}Verified by UpNow</h4>
+        ${SP && LEASE ? `<div class="verification-row">${ico("check")}<span>RERA office registration</span><b>ORN ${orn}</b></div>` : ""}
+        <div class="verification-row">${ico("check")}<span>Trade licence</span><b>DED ${ded}</b></div>
+        <div class="verification-row">${ico("check")}<span>${SP && LEASE ? "Agents with BRN" : "Team ID checked"}</span><b>${SP && LEASE ? agents.filter((a) => a.brn).length : agents.length}/${agents.length}</b></div>
+        ${SP && LEASE ? `<div class="verification-row">${ico("check")}<span>Listings with DLD permit</span><b>${L.filter((l) => l.a.verified).length}/${L.length}</b></div>` : ""}
+        <p style="font-size:12px;color:var(--ink3);margin:10px 0 0">UpNow never takes payments. <a class="text-link" href="#" onclick="UPUI.toast('Thanks — our trust team will review');return false">Report agency</a></p></div>
+    </aside></div>
+  </div>`;
+  if (tab === "listings") PROFILE.mount(L, pf);
+}
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("[data-tab]");
+  if (t) {
+    tab = t.dataset.tab;
+    paint();
+  }
+});
+paint();

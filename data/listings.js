@@ -11,7 +11,7 @@
   const pickN = (a, n) => { const c = [...a], o = []; while (o.length < n && c.length) o.push(c.splice(Math.floor(rnd() * c.length), 1)[0]); return o; };
   const between = (a, b, step = 1) => Math.round((a + rnd() * (b - a)) / step) * step;
   const chance = p => rnd() < p;
-  const IMG = /provider-workspace\//.test(location.pathname) ? '../img/' : 'img/';
+  const IMG = PATHS.img(''); // absolute …/assets/images/ — works from any page folder
   const im = a => a.map(x => IMG + x + '.jpg');
 
   /* ---------- areas (x/y = position on the illustrative map) ---------- */

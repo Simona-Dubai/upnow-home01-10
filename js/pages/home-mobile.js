@@ -45,7 +45,7 @@
     const fresh = (Oo ? UPUI.results({ ...base, sort: 'new' }) : []).slice(0, 8);
     const typeDef = Oo && Oo.defs.find(d => (d.type === 'multi' || d.type === 'select') && !d.isDate && d.options && d.options.length <= 8 && !['price', 'term', 'amenities', 'time'].includes(d.id));
     const rec = UPUI.recent().slice(0, 6);
-    const areaImg = ['img/hero.jpg', 'img/apt2.jpg', 'img/villa1.jpg', 'img/office1.jpg', 'img/apt3.jpg', 'img/hotel1.jpg'];
+    const areaImg = [PATHS.img('hero.jpg'), PATHS.img('apt2.jpg'), PATHS.img('villa1.jpg'), PATHS.img('office1.jpg'), PATHS.img('apt3.jpg'), PATHS.img('hotel1.jpg')];
     const pool = Oo ? LISTINGS.filter(l => l.cat === S.o) : LISTINGS;
     const ar = AREAS.map(a => ({ ...a, c: pool.filter(l => l.loc === a.id).length })).filter(a => a.c).sort((a, b) => b.c - a.c).slice(0, 4);
     return `${sbar()}<div class="screen-view" data-screen-label="M01 Home">
@@ -59,7 +59,7 @@
       <div class="m-section"><div class="m-section-header"><div><h2>${Oo ? 'Top ' + esc(Oo.label.toLowerCase()) : 'Top rated'}</h2><p>Verified providers · ${feat.length}+ results</p></div><button data-go="results">See all</button></div><div class="h-scroll">${feat.map(hcard).join('')}</div></div>
       ${fresh.length ? `<div class="m-section"><div class="m-section-header"><div><h2>New this week</h2><p>Listed in the last 7 days</p></div><button data-go="results" data-sort="new">See all</button></div><div class="h-scroll">${fresh.map(hcard).join('')}</div></div>` : ''}
       ${ar.length && !(Oo && Oo.locAll) ? `<div class="m-section"><div class="m-section-header"><h2>Popular areas</h2></div><div class="area-tiles">${ar.map((a, i) => `<button data-area="${a.id}"><img src="${areaImg[i % areaImg.length]}" alt=""><span><b>${esc(a.n)}</b><small>${a.c} listings</small></span></button>`).join('')}</div></div>` : ''}
-      <div class="promo"><div style="flex:1"><b>List on UpNow</b><small>Get leads by call & WhatsApp — free.</small></div><a class="btn" href="Join.html">Learn more</a></div>
+      <div class="promo"><div style="flex:1"><b>List on UpNow</b><small>Get leads by call & WhatsApp — free.</small></div><a class="btn" href="${PATHS.href.join}">Learn more</a></div>
       </div>${tbar()}`;
   }
 
@@ -144,7 +144,7 @@
   function inbox() {
     const L = UPUI.leads();
     return `${sbar()}<div class="screen-view" data-screen-label="M07 Enquiries"><div class="top-bar"><h1 style="text-align:left;font-size:24px">Enquiries</h1></div>
-      ${L.length ? L.map(r => `<button class="enquiry-row" style="width:100%;padding:12px 16px;text-align:left" data-l="${r.lid}"><img src="${r.img}" alt=""><div class="content"><div class="row-head"><b>${esc(r.title)}</b></div><small>${esc(r.provider)} · ${esc(r.area)}</small><small>${{ request: 'Enquiry', email: 'Email', call: 'Call', whatsapp: 'WhatsApp' }[r.type]} · ${new Date(r.t).toLocaleDateString()}</small></div></button>`).join('') : `<div class="m-empty">${ico('msg')}<b>No enquiries yet</b>Calls, WhatsApps and booking requests you send appear here.</div>`}</div>${tbar()}`;
+      ${L.length ? L.map(r => `<button class="enquiry-row" style="width:100%;padding:12px 16px;text-align:left" data-l="${r.lid}"><img src="${PATHS.img(r.img)}" alt=""><div class="content"><div class="row-head"><b>${esc(r.title)}</b></div><small>${esc(r.provider)} · ${esc(r.area)}</small><small>${{ request: 'Enquiry', email: 'Email', call: 'Call', whatsapp: 'WhatsApp' }[r.type]} · ${new Date(r.t).toLocaleDateString()}</small></div></button>`).join('') : `<div class="m-empty">${ico('msg')}<b>No enquiries yet</b>Calls, WhatsApps and booking requests you send appear here.</div>`}</div>${tbar()}`;
   }
   function account() {
     return `${sbar()}<div class="screen-view" data-screen-label="M08 Account"><div class="top-bar"><h1 style="text-align:left;font-size:24px">Account</h1></div>
@@ -214,7 +214,7 @@
   });
   scr.addEventListener('change', e => { const c = e.target.closest('[data-ctl]'); if (c && UPF.handleControl(c, S)) { if (sheet) reSheet(); else render(); } });
   /* agent-card links → in-app provider screen */
-  scr.addEventListener('click', e => { const a = e.target.closest('a[href^="Provider.html"]'); if (a) { e.preventDefault(); e.stopPropagation(); ptab = 'list'; go('provider', { p: new URLSearchParams(a.getAttribute('href').split('?')[1]).get('p') }); } }, true);
+  scr.addEventListener('click', e => { const a = e.target.closest('a[href^="' + PATHS.href.provider + '"]'); if (a) { e.preventDefault(); e.stopPropagation(); ptab = 'list'; go('provider', { p: new URLSearchParams(a.getAttribute('href').split('?')[1]).get('p') }); } }, true);
   document.addEventListener('upnow:leads', () => { if (cur().s !== 'listing') render(); });
 
   /* move modals/toast into the phone */

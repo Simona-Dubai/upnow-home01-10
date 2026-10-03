@@ -1,0 +1,19 @@
+/* Visitor state kept in this browser: saved listings (favourites), sent enquiries (leads) and recently viewed. */
+(function () {
+  const U = window.UPUI = window.UPUI || {};
+  const { store } = U;
+  const { LISTINGS } = UP;
+
+  /* ---------- favourites + leads ---------- */
+  const favs = new Set(store.get('favs') || []);
+  const leads = () => store.get('leads') || [];
+  function toggleFav(id) {
+    favs.has(id) ? favs.delete(id) : favs.add(id); store.set('favs', [...favs]);
+    document.querySelectorAll(`[data-fav="${id}"]`).forEach(b => { b.classList.toggle('is-active', favs.has(id)); b.setAttribute('aria-pressed', favs.has(id)); });
+    U.toast(favs.has(id) ? 'Saved to your shortlist' : 'Removed from shortlist'); U.updateHdrCounts();
+  }
+  const recent = () => (store.get('recent') || []).map(id => LISTINGS.find(l => l.id === id)).filter(Boolean);
+  const pushRecent = id => store.set('recent', [id, ...(store.get('recent') || []).filter(x => x !== id)].slice(0, 12));
+
+  Object.assign(U, { favs, leads, toggleFav, recent, pushRecent });
+})();
