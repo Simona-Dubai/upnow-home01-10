@@ -9,7 +9,7 @@ let per = seg ? seg.options[0].v : null;
 UPUI.pushRecent(l.id);
 const DMB = DM.build(l);
 document.getElementById("hdr").innerHTML = UPUI.header(l.v);
-document.getElementById("ftr").innerHTML = UPUI.footer();
+document.getElementById("ftr").innerHTML = UPUI.footer({ cta: false }); // no "list your space" band on listing detail pages
 UPUI.bindHeader();
 const where = UPUI.locText(l);
 document.title = `${l.title} · ${areaName(l.loc)} | UpNow`;

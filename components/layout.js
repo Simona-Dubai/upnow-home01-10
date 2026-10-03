@@ -1,7 +1,7 @@
 /* Site header and footer, rendered from the SITE config (data/site.js).
    header(activeNavId, { nav: false }) → logo, navigation (nav: false leaves it out, e.g. where the page has its own category tabs) (with "More" dropdown), currency / language selects, saved / enquiries counters,
    sign-in and a call-to-action button — each part can be switched off in SITE.header.
-   footer() → optional CTA band, about text, link columns and legal lines. */
+   footer({ cta: false }) → optional CTA band (cta: false leaves it out), about text, link columns and legal lines. */
 (function () {
   const U = window.UPUI = window.UPUI || {};
   const { ico, esc, t, prefs, store, CUR } = U;
@@ -42,8 +42,8 @@
     if (l && U.leads) { l.textContent = U.leads().length; l.hidden = !U.leads().length; }
   }
   const BTN = { light: 'background:#fff;color:var(--color-primary-darkest)', outline: 'border:1.5px solid rgba(255,255,255,.4)' };
-  function footer() {
-    const F = SITE.footer, C = F.cta;
+  function footer({ cta = true } = {}) {
+    const F = SITE.footer, C = cta && F.cta;
     return `${C ? `<div class="wrap"><section class="cta"${C.id ? ` id="${C.id}"` : ''}><div><div class="cta-kicker">${esc(C.kicker)}</div>
       <h2>${C.title}</h2><p style="margin:16px 0 22px">${esc(C.text)}</p>
       <div style="display:flex;gap:10px;flex-wrap:wrap">${C.buttons.map(b => `<a class="btn" style="${BTN[b.style] || ''}" href="${b.href}">${b.icon ? ico(b.icon) : ''}${esc(b.label)}</a>`).join('')}</div></div>

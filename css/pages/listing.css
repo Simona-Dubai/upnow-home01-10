@@ -19,9 +19,10 @@ body {
 
 .listing-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 380px;
+  grid-template-columns: minmax(0, 1fr) 400px;
   gap: 48px;
   align-items: start;
+  margin-bottom: 4rem;
 }
 
 .title-row h1 {
@@ -86,7 +87,7 @@ body {
   margin-bottom: 28px;
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
-  grid-template-rows: 240px 240px;
+  grid-template-rows: 160px 240px;
   gap: 8px;
   border-radius: 16px;
   overflow: hidden;
@@ -94,7 +95,7 @@ body {
 }
 
 .gallery > div {
-  background: var(--color-primary-tint-light);
+  /* background: var(--color-primary-tint-light); */
   position: relative;
   overflow: hidden;
   cursor: zoom-in;

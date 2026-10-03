@@ -52,21 +52,26 @@
     return `<div class="pf-row">${out.join('')}</div>`;
   }
 
+  /* count (only when filtered — the tab already shows the total) · grid / list · sort; sits at the end of the tabs row */
+  function toolsHTML(pool, S) {
+    const n = UPUI.results(S, pool).length;
+    return `${filtered(S, pool) ? `<span class="pf-count"><b>${n}</b> of ${pool.length} · <button class="text-link" data-pf-reset>Clear</button></span>` : ''}<span class="view-toggle" role="group" aria-label="View">${[['grid', 'grid4', 'Grid view'], ['list', 'list', 'List view']].map(([k, i, t]) => `<button class="${(S.view === 'list' ? 'list' : 'grid') === k ? 'is-active' : ''}" data-pf-view="${k}" aria-label="${t}" title="${t}">${ico(i)}</button>`).join('')}</span><label class="pf-select"><select data-pf-sort aria-label="Sort">${SORTS.map(([k, t]) => `<option value="${k}" ${S.sort === k ? 'selected' : ''}>${t}</option>`).join('')}</select>${ico('chev')}</label>`;
+  }
   function resultsHTML(pool, S) {
     const res = UPUI.results(S, pool);
-    const meta = `<div class="pf-meta"><span class="pf-count"><b>${res.length}</b> ${res.length === 1 ? 'listing' : 'listings'}</span>${filtered(S, pool) ? `<button class="text-link" data-pf-reset>Clear filters</button>` : ''}
-      <span class="pf-sp"></span><span class="view-toggle" role="group" aria-label="View">${[['grid', 'grid4', 'Grid view'], ['list', 'list', 'List view']].map(([k, i, t]) => `<button class="${(S.view === 'list' ? 'list' : 'grid') === k ? 'is-active' : ''}" data-pf-view="${k}" aria-label="${t}" title="${t}">${ico(i)}</button>`).join('')}</span><label class="pf-select"><select data-pf-sort aria-label="Sort">${SORTS.map(([k, t]) => `<option value="${k}" ${S.sort === k ? 'selected' : ''}>${t}</option>`).join('')}</select>${ico('chev')}</label></div>`;
     const shown = res.slice(0, S.limit), SS = S.o ? S : null;
     const items = S.view === 'list'
       ? `<div class="row-list">${shown.map(l => { const pt = UPUI.priceText(l, SS); return `<a class="row-item" href="${PATHS.href.listing}?id=${l.id}">${UPUI.photo(l, 0)}<span><b>${esc(l.title)}</b><small>${ico('pin')} ${esc(UPUI.locText(l))}</small><small class="row-spec">${UPUI.specOf(l).map(esc).join(' · ')}</small></span><span class="row-price">${pt.n}<span>${esc(pt.u)}</span></span></a>`; }).join('')}</div>`
       : `<div class="compact-grid">${shown.map(l => card(l, SS)).join('')}</div>`;
-    return meta + (res.length ? `${items}
+    return (res.length ? `${items}
         ${res.length > S.limit ? `<div class="pf-more"><span>Showing ${S.limit} of ${res.length}</span><button class="btn btn-outline" data-pf-more>Show ${Math.min(PAGE, res.length - S.limit)} more</button></div>` : ''}`
       : `<div class="pf-empty">${ico('search')}<b>No listings match these filters</b><button class="btn btn-outline btn-sm" data-pf-reset>Clear filters</button></div>`);
   }
 
-  /* placeholders; mount() fills them after the page is painted */
+  /* placeholders; mount() fills them after the page is painted. listingsTools() goes at the end of the page's tabs row. */
   const listingsPanel = () => `<div id="pfBar"></div><div id="pfRes"></div>`;
+  const listingsTools = () => `<span class="tabs-tools" id="pfTools"></span>`;
+  const paintTools = () => { const el = document.getElementById('pfTools'); if (el) el.innerHTML = toolsHTML(CUR.pool, CUR.S); };
   function render(results = true) {
     if (!CUR) return;
     const bar = document.getElementById('pfBar'), res = document.getElementById('pfRes');
@@ -76,6 +81,7 @@
       shown = open;
     }
     if (results && res) res.innerHTML = resultsHTML(CUR.pool, CUR.S);
+    if (results) paintTools();
   }
   function mount(pool, S) { CUR = { pool, S }; open = null; render(); }
   const changed = () => { CUR.S.limit = PAGE; render(); };
@@ -98,8 +104,30 @@
     const c = e.target.closest('#pfBar [data-ctl]'); if (c && UPF.handleControl(c, CUR.S)) changed();
   });
   // location box filters as you type; only the results re-render so the input keeps focus
-  document.addEventListener('input', e => { const q = e.target.closest('[data-pf-q]'); if (!q || !CUR) return; CUR.S.q = q.value; CUR.S.limit = PAGE; const el = document.getElementById('pfRes'); if (el) el.innerHTML = resultsHTML(CUR.pool, CUR.S); });
+  document.addEventListener('input', e => { const q = e.target.closest('[data-pf-q]'); if (!q || !CUR) return; CUR.S.q = q.value; CUR.S.limit = PAGE; const el = document.getElementById('pfRes'); if (el) el.innerHTML = resultsHTML(CUR.pool, CUR.S); paintTools(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && open) { open = null; render(false); } });
 
-  window.PROFILE = { agencyHref, isAgency, newState, listingsPanel, mount };
+  /* compact About card for the profile sidebar: bio clamped to three lines (Read more) and short label · value facts.
+     facts: [[label, valueHTML]] — values are HTML so a fact can carry a link. */
+  const aboutBox = ({ title, text, facts }) => `<div class="about-box"><h4>${esc(title)}</h4>
+    <p class="about-text is-clamped">${esc(text)}</p><button class="text-link about-more" type="button" data-about-more hidden>Read more</button>
+    ${facts.map(([k, v]) => `<div class="about-fact"><span>${esc(k)}</span><b>${v}</b></div>`).join('')}</div>`;
+  function fitAbout() { document.querySelectorAll('.about-text.is-clamped').forEach(p => { p.nextElementSibling.hidden = p.scrollHeight <= p.clientHeight + 1; }); }
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-about-more]'); if (!b) return;
+    const p = b.previousElementSibling, open = p.classList.toggle('is-clamped');
+    b.textContent = open ? 'Read more' : 'Show less';
+  });
+
+  /* the sidebar sticks below the header; when it is taller than the window it scrolls with the page until its
+     bottom is in view, then sticks there — nothing is ever cut off */
+  function stickySidebar() {
+    const sb = document.querySelector('.provider-sidebar'); if (!sb) return;
+    const set = () => sb.style.setProperty('--sb-h', sb.offsetHeight + 'px');
+    set();
+    if (!sb._ro) { sb._ro = new ResizeObserver(set); sb._ro.observe(sb); }
+  }
+  addEventListener('resize', fitAbout);
+
+  window.PROFILE = { agencyHref, isAgency, newState, listingsPanel, listingsTools, mount, aboutBox, fitAbout, stickySidebar };
 })();

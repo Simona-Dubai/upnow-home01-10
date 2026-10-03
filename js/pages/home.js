@@ -86,10 +86,10 @@ function paint() {
     .join("");
 
   /* Compact browse rail — the search panel above already lists the categories, so this shows the main type
-     facet INSIDE the selected category (e.g. property type for Residential), each with an icon and a live count. */
+     facet INSIDE the selected category (e.g. property type for Residential), each with an icon; types with no listings are left out. */
   const cats = document.getElementById("cats");
-  const tile = (href, icon, label, n) =>
-    `<a href="${href}"><i>${ico(icon)}</i>${esc(label)}<small>${n} listings</small></a>`;
+  const tile = (href, icon, label) =>
+    `<a href="${href}"><i>${ico(icon)}</i>${esc(label)}</a>`;
   const TICO = {
     apartment: "building",
     villa: "villa",
@@ -204,7 +204,6 @@ function paint() {
         PATHS.href.search + "?v=" + v,
         VERTICALS[v].icon,
         VERTICALS[v].label,
-        LISTINGS.filter((l) => l.v === v).length,
       ),
     ).join("");
   } else {
@@ -234,7 +233,6 @@ function paint() {
                   PATHS.href.search + toQuery({ ...base, f }),
                   TICO[o.v] || DICO[d.id] || iconOf(S.v, O),
                   d.id === "beds" && o.v !== "0" ? o.l + " bed" : o.l,
-                  n,
                 )
               : "";
           })

@@ -16,7 +16,8 @@ const {
 const { controlHTML } = UPF;
 const PER = 24;
 let S = parseState();
-let hlId = null;
+let hlId = null,
+  areasOpen = false;
 
 document.getElementById("hdr").innerHTML = UPUI.header(S.v, { nav: false }); // the category tabs under it already do this job
 document.getElementById("ftr").innerHTML = UPUI.footer();
@@ -91,6 +92,41 @@ function seoTitle() {
     where
   );
 }
+
+/* area chips under the title: where the current results are, busiest first (counts ignore the area filter) */
+const AREAS_SHOWN = 8;
+function paintAreas(O) {
+  const el = document.getElementById("areas");
+  if (!O || O.locAll) {
+    el.innerHTML = "";
+    return;
+  }
+  const base = results({ ...S, loc: [] });
+  const areas = AREAS.map((a) => ({
+    a,
+    n: base.filter((l) => l.loc === a.id || (l.coverage || []).includes(a.id)).length,
+  }))
+    .filter((x) => x.n || S.loc.includes(x.a.id))
+    .sort((x, y) => y.n - x.n);
+  const hidden = areas.length - AREAS_SHOWN;
+  const shown = areasOpen ? areas : areas.filter((x, i) => i < AREAS_SHOWN || S.loc.includes(x.a.id));
+  const href = (loc) => PATHS.href.search + toQuery({ ...S, loc, page: 1 });
+  el.innerHTML =
+    `<a href="${href([])}" class="${S.loc.length ? "" : "is-active"}">All Dubai <em>${base.length}</em></a>` +
+    shown
+      .map(({ a, n }) => {
+        const on = S.loc.includes(a.id);
+        return `<a href="${href(on ? S.loc.filter((x) => x !== a.id) : [a.id])}" class="${on ? "is-active" : ""}">${esc(a.n)} <em>${n}</em></a>`;
+      })
+      .join("") +
+    (hidden > 0 ? `<button type="button" class="more" data-areas>${areasOpen ? "View less" : `View more (${hidden})`}</button>` : "");
+}
+document.getElementById("areas").addEventListener("click", (e) => {
+  if (e.target.closest("[data-areas]")) {
+    areasOpen = !areasOpen;
+    paintAreas(offer(S));
+  }
+});
 
 /* save search (alert) button beside the sort */
 const alertKey = () => toQuery({ ...S, page: 1, sort: "rec", view: "grid" });
@@ -293,26 +329,10 @@ function paint() {
     )
     .join("");
 
-  const td = typeDef(O);
-  document.getElementById("qtype").innerHTML = td
-    ? `<a href="${PATHS.href.search}${toQuery({ ...S, f: { ...S.f, [td.id]: undefined }, page: 1 })}" class="${empty(S.f[td.id]) ? "is-active" : ""}">All ${esc(O.label.toLowerCase())}</a>` +
-      td.options
-        .map((op) => {
-          const val = td.type === "multi" ? [op.v] : op.v;
-          const on =
-            [].concat(S.f[td.id] || []).length === 1 &&
-            [].concat(S.f[td.id])[0] === op.v;
-          const n = facetCount(S, td.id, val);
-          return n || on
-            ? `<a href="${PATHS.href.search}${toQuery({ ...S, f: { ...S.f, [td.id]: val }, page: 1 })}" class="${on ? "is-active" : ""}">${esc(op.l)} <em>${n}</em></a>`
-            : "";
-        })
-        .join("")
-    : "";
+  paintAreas(O);
 
   const act = [];
   if (S.q) act.push([`“${S.q}”`, "q"]);
-  S.loc.forEach((id) => act.push([areaName(id), "loc:" + id]));
   if (O)
     O.defs.forEach((d) => {
       if (d.required) return;

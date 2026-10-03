@@ -243,13 +243,6 @@ body.mobile-shell {
   background: var(--color-primary-tint);
 }
 
-.category-rail a small {
-  color: var(--color-text-muted);
-  font-weight: 500;
-  font-size: 11px;
-  margin-top: -3px;
-}
-
 .section {
   margin-top: 40px;
 }

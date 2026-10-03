@@ -10,7 +10,7 @@ const L0 = P.L[0],
   SP = P.v === "spaces",
   LEASE = !!O0.lease;
 document.getElementById("hdr").innerHTML = UPUI.header(P.v);
-document.getElementById("ftr").innerHTML = UPUI.footer();
+document.getElementById("ftr").innerHTML = UPUI.footer({ cta: false }); // no "list your space" band on agent pages
 UPUI.bindHeader();
 document.title = `${P.name} · ${P.org} | UpNow`;
 
@@ -42,6 +42,11 @@ const licence = SP
       "No. " + (100000 + Math.round(r() * 899999)),
     ];
 const superA = P.rating >= 4.5 && P.reply <= 15;
+const topAreas = areas.slice(0, 3).map((a) => areaName(a[0])).join(", ");
+const bio =
+  SP && P.person
+    ? `${P.name} is a ${LEASE ? "RERA-certified leasing consultant" : "licensed operator"} at ${P.org}, specialising in ${cats.map(([c]) => offerOf(P.v, c).label.toLowerCase()).join(" and ")} across ${topAreas}. Known for same-day viewings, clear breakdowns of cheques, deposits and Ejari, and staying in touch after move-in.`
+    : `${P.name} is a ${O0.org[0]} serving ${topAreas}${P.L.some((l) => l.coverage) ? " and " + (P.L[0].coverage || []).length + " more communities" : ""}. Every booking is handled directly — you agree details and pay ${first} with no middleman.`;
 const NAT = {
   Tariq: "Egyptian",
   Aisha: "Pakistani",
@@ -144,36 +149,21 @@ function paint() {
     </div>
     <div class="provider-layout"><div>
       <div class="kpis"><div><b>${P.L.length}</b><span>Active ${SP ? "listings" : "offers"}</span></div>${LEASE ? "" : `<div><b>${deals}</b><span>Bookings (12 mo)</span></div>`}<div><b>${P.reply} min</b><span>Median reply</span></div><div><b>${96 + Math.round(r() * 3)}%</b><span>Response rate</span></div><div><b>${yrs + (P.person ? 3 : 0)} yrs</b><span>Experience</span></div></div>
-      <div class="provider-card"><h2>About ${esc(first)}</h2>
-        <p class="provider-about">${
-          SP && P.person
-            ? `${esc(P.name)} is a ${LEASE ? "RERA-certified leasing consultant" : "licensed operator"} at ${esc(P.org)}, specialising in ${esc(cats.map(([c]) => offerOf(P.v, c).label.toLowerCase()).join(" and "))} across ${esc(
-                areas
-                  .slice(0, 3)
-                  .map((a) => areaName(a[0]))
-                  .join(", "),
-              )}. Known for same-day viewings, clear breakdowns of cheques, deposits and Ejari, and staying in touch after move-in.`
-            : `${esc(P.name)} is a ${esc(O0.org[0])} serving ${esc(
-                areas
-                  .slice(0, 3)
-                  .map((a) => areaName(a[0]))
-                  .join(", "),
-              )}${P.L.some((l) => l.coverage) ? " and " + (P.L[0].coverage || []).length + " more communities" : ""}. Every booking is handled directly — you agree details and pay ${esc(first)} with no middleman.`
-        }</p>
-        <div class="facts">
-          <div><small>Specialises in</small><b>${esc(cats.map(([c]) => offerOf(P.v, c).label).join(", "))}</b></div>
-          <div><small>Price range</small><b>${money(prices[0])} – ${UP.K(prices[prices.length - 1])}</b></div>
-          <div><small>Languages</small><b>${esc(P.langs.join(", "))}</b></div>
-          ${P.person ? `<div><small>Nationality</small><b>${NAT[first] || "—"}</b></div>` : `<div><small>Opening hours</small><b>Sat–Thu 9:00–21:00</b></div>`}
-          <div><small>${esc(licence[0])}</small><b>${esc(licence[1])}</b></div>
-          <div><small>Typical reply</small><b>${P.reply <= 5 ? "Within 5 minutes" : "Within " + P.reply + " min"} · 9 AM–10 PM</b></div>
-        </div></div>
-      <div class="provider-card"><div class="tabs">${T.map(([k, t, n]) => `<button class="${tab === k ? "is-active" : ""}" data-tab="${k}">${t}<em>${n.toLocaleString()}</em></button>`).join("")}</div>
+      <div class="provider-card is-fill"><div class="tabs">${T.map(([k, t, n]) => `<button class="${tab === k ? "is-active" : ""}" data-tab="${k}">${t}<em>${n.toLocaleString()}</em></button>`).join("")}${tab === "listings" ? PROFILE.listingsTools() : ""}</div>
         ${{ listings: listingsHTML, reviews: reviewsHTML, areas: areasHTML }[tab]()}</div>
       ${team ? `<div class="provider-card"><h2>More from ${esc(P.org)} <a class="text-link" href="${DM.agencyHref(P.org)}">View agency</a></h2>${team}</div>` : ""}
     </div>
     <aside class="provider-sidebar">
       ${DM.agentCard(L0, { channels: true })}
+      ${PROFILE.aboutBox({
+        title: "About " + first,
+        text: bio,
+        facts: [
+          ["Specialises in", esc(cats.map(([c]) => offerOf(P.v, c).label).join(", "))],
+          ["Price range", `${money(prices[0])} – ${UP.K(prices[prices.length - 1])}`],
+          P.person ? ["Nationality", NAT[first] || "—"] : ["Opening hours", "Sat–Thu 9:00–21:00"],
+        ],
+      })}
       <div class="verification-box"><h4>${ico("shield")}Verified by UpNow</h4>
         <div class="verification-row">${ico("check")}<span>${esc(licence[0])}</span><b>${esc(licence[1])}</b></div>
         <div class="verification-row">${ico("check")}<span>Emirates ID</span><b>Checked</b></div>
@@ -184,6 +174,8 @@ function paint() {
     </aside></div>
   </div>`;
   if (tab === "listings") PROFILE.mount(P.L, pf);
+  PROFILE.fitAbout();
+  PROFILE.stickySidebar();
 }
 document.addEventListener("click", (e) => {
   const t = e.target.closest("[data-tab]");
