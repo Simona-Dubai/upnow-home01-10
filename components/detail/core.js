@@ -146,9 +146,9 @@
         <div class="agent-actions"><button class="agent-action" data-call="${l.id}">${ico('phone')}<span><b>Call</b><small>Direct call</small></span>${ico('chevR', 'chevron')}</button>
           <button class="agent-action" data-wa="${l.id}">${ico('wa')}<span><b>WhatsApp</b><small>Chat instantly</small></span>${ico('chevR', 'chevron')}</button></div>
         <div class="agent-more">More ways to contact</div>
-        <div class="agent-alt-actions"><button class="agent-alt-action is-sms" data-sms="${l.id}">${ico('msg')}<span><b>SMS</b><small>Send a text</small></span>${ico('chevR', 'chevron')}</button>
-          <button class="agent-alt-action is-email" data-email="${l.id}"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><span><b>Email</b><small>Send an email</small></span>${ico('chevR', 'chevron')}</button>
-          <button class="agent-alt-action is-chat" data-chat="${l.id}"><svg class="icon" viewBox="0 0 24 24"><path d="M12 4c4.97 0 9 3.36 9 7.5S16.97 19 12 19c-1.1 0-2.15-.16-3.12-.46L4 20l1.4-3.6C4.5 15.1 3 13.4 3 11.5 3 7.36 7.03 4 12 4z"/></svg><span><b>Chat</b><small>Start a chat</small></span>${ico('chevR', 'chevron')}</button></div>
+        <div class="agent-alt-actions"><button class="agent-alt-action is-sms" data-sms="${l.id}">${ico('msg')}<span><b>SMS</b></span>${ico('chevR', 'chevron')}</button>
+          <button class="agent-alt-action is-email" data-email="${l.id}"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><span><b>Email</b></span>${ico('chevR', 'chevron')}</button>
+          <button class="agent-alt-action is-chat" data-chat="${l.id}"><svg class="icon" viewBox="0 0 24 24"><path d="M12 4c4.97 0 9 3.36 9 7.5S16.97 19 12 19c-1.1 0-2.15-.16-3.12-.46L4 20l1.4-3.6C4.5 15.1 3 13.4 3 11.5 3 7.36 7.03 4 12 4z"/></svg><span><b>Chat</b></span>${ico('chevR', 'chevron')}</button></div>
       </div>
       ${o.channels ? '' : `<div class="agent-footer"><span class="agent-logo">${ico(P.v === 'spaces' ? 'office' : 'shop')}</span><span class="agent-agency"><b>${esc(P.person ? P.org : P.name)}</b><small>${esc(orgSub(P))}</small></span><a class="agent-view-all" href="${P.person && isAgency(P.org) ? agencyHref(P.org) : provHref(P.name)}">${allLabel(P)}${ico('chevR')}</a></div>`}
     </div>`;

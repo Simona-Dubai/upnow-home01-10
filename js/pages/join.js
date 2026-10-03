@@ -159,8 +159,8 @@
     const action = (c, icon, t, sub) => `<span class="agent-action">${ico(icon)}<span><b>${t}</b><small>${sub}</small></span>${ico('chevR', 'chevron')}</span>`;
     const alt = (cls, icon, t, sub) => `<span class="agent-alt-action ${cls}">${icon}<span><b>${t}</b><small>${sub}</small></span>${ico('chevR', 'chevron')}</span>`;
     const main = [has('call') && action('call', 'phone', 'Call', 'Direct call'), has('wa') && action('wa', 'wa', 'WhatsApp', 'Chat instantly')].filter(Boolean);
-    const alts = [has('sms') && alt('is-sms', ico('msg'), 'SMS', 'Send a text'), has('email') && alt('is-email', '<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>', 'Email', 'Send an email'),
-      alt('is-chat', '<svg class="icon" viewBox="0 0 24 24"><path d="M12 4c4.97 0 9 3.36 9 7.5S16.97 19 12 19c-1.1 0-2.15-.16-3.12-.46L4 20l1.4-3.6C4.5 15.1 3 13.4 3 11.5 3 7.36 7.03 4 12 4z"/></svg>', 'Chat', 'Start a chat')].filter(Boolean);
+    const alts = [has('sms') && alt('is-sms', ico('msg'), 'SMS'), has('email') && alt('is-email', '<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>', 'Email'),
+      alt('is-chat', '<svg class="icon" viewBox="0 0 24 24"><path d="M12 4c4.97 0 9 3.36 9 7.5S16.97 19 12 19c-1.1 0-2.15-.16-3.12-.46L4 20l1.4-3.6C4.5 15.1 3 13.4 3 11.5 3 7.36 7.03 4 12 4z"/></svg>', 'Chat')].filter(Boolean);
     return `<div class="ob-preview"><div class="ob-preview-h">${ico('eye')}How customers will see you</div>
       <div class="agent-card ob-agent-card" aria-hidden="true">
         <div class="agent-cover"><svg viewBox="0 0 400 46" preserveAspectRatio="none"><path d="M0 46 L0 30 C90 2 170 4 250 22 C320 38 370 30 400 16 L400 46Z" fill="#fff"/></svg></div>
