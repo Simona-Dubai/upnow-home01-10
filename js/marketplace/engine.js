@@ -37,11 +37,60 @@
     if (d.type === 'multi') return d.all ? val.every(x => arr.includes(x)) : val.some(x => arr.includes(x));
     return arr.includes(String(val));
   }
+  /* ---------- keyword search ----------
+     a listing's searchable words: title, building, area, provider, its category / section names and the labels of its
+     type-like values (e.g. "Warehouse", "Whitening"). Cached per listing. */
+  const HAY = new Map();
+  function hayOf(l) {
+    let h = HAY.get(l); if (h) return h;
+    const O = offerOf(l.v, l.cat), V = VERTICALS[l.v];
+    const vals = O.defs.filter(d => d.options && d.type !== 'toggle' && !d.isDate).flatMap(d => {
+      const lv = l.a[d.field || d.id]; if (lv == null) return [];
+      return [].concat(lv).map(x => (d.options.find(o => String(o.v) === String(x)) || {}).l).filter(Boolean);
+    });
+    // words padded with spaces, so a typed word is matched at the start of a word ("dent" finds dentist, not resident)
+    h = ' ' + [l.title, l.building, areaName(l.loc), l.provider.name, l.provider.org, O.label, O.h1, O.short, V.label, ...vals].filter(Boolean).join(' ').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ') + ' ';
+    HAY.set(l, h); return h;
+  }
+  // everyday words people type → words listings use
+  const SYN = { teeth: 'dent', tooth: 'dent', dental: 'dent', dentistry: 'dent', doctor: 'clinic', cleaner: 'clean', maid: 'clean', aircon: 'ac', 'a/c': 'ac', barber: 'hair', salon: 'hair', flat: 'apartment', boat: 'yacht', house: 'villa', home: 'residential' };
+  /* each typed word → the forms it may appear as (plural / -ing trimmed, synonyms); a listing matches when every
+     typed word has one of its forms in the listing's text */
+  function qWords(q) {
+    return q.toLowerCase().split(/[\s,]+/).map(w => w.replace(/^[^\p{L}\p{N}/]+|[^\p{L}\p{N}/]+$/gu, '')).filter(Boolean).map(w => {
+      const f = new Set([w]);
+      if (w.length > 3) {
+        if (w.endsWith('ies')) f.add(w.slice(0, -3) + 'y');
+        if (w.endsWith('es')) f.add(w.slice(0, -2));
+        if (w.endsWith('s')) f.add(w.slice(0, -1));
+      }
+      if (SYN[w]) f.add(SYN[w]);
+      [...f].forEach(x => { if (SYN[x]) f.add(SYN[x]); });
+      return [...f];
+    });
+  }
+  /* a query that names a category ("dentists", "AC", "yachts") → { v, o } of that category; within a vertical when v
+     is given. Used by the search bars to open the category instead of keyword-filtering the wrong one. */
+  function offerForQuery(q, v) {
+    const ws = qWords(q); if (!ws.length) return null;
+    // every typed word names the category: same word or its plural ("dentist" ~ "Dentists"), or — 5+ letters — the
+    // start of a longer one ("physio" ~ "Physiotherapy")
+    const named = (txt, ws) => {
+      const words = new Set(qWords(txt.replace(/[/&,·-]+/g, ' ')).flat());
+      return ws.every(fs => fs.some(f => words.has(f.trim()) || (f.length >= 5 && [...words].some(w => w.startsWith(f)))));
+    };
+    // a section name ("services", "insurance") opens that section at its first category
+    const sec = VORDER.find(x => named(VERTICALS[x].label, ws)); if (sec) return { v: sec, o: VERTICALS[sec].offers[0].id };
+    const pool = VORDER.filter(x => !v || v === 'all' || x === v).flatMap(x => VERTICALS[x].offers.map(o => ({ v: x, o })));
+    const hit = pool.find(({ o }) => named([o.label, o.h1, o.short].filter(Boolean).join(' '), ws));
+    return hit ? { v: hit.v, o: hit.o.id } : null;
+  }
+
   function matches(l, S, skip) {
     if (S.v !== 'all') { if (l.v !== S.v) return false; if (S.o && l.cat !== S.o) return false; }
     const O = offerOf(l.v, l.cat);
     if (S.loc.length && !O.locAll && !S.loc.some(id => l.loc === id || (l.coverage || []).includes(id))) return false;
-    if (S.q) { const hay = (l.title + ' ' + (l.building || '') + ' ' + areaName(l.loc) + ' ' + l.provider.name + ' ' + l.provider.org + ' ' + O.label).toLowerCase(); if (!S.q.toLowerCase().split(/\s+/).filter(Boolean).every(w => hay.includes(w))) return false; }
+    if (S.q && !qWords(S.q).every(ws => ws.some(w => hayOf(l).includes(' ' + w + (w.length <= 2 ? ' ' : ''))))) return false;
     if (S.v !== 'all') for (const d of O.defs) { if (d.id === skip) continue; if (!testDef(d, S.f[d.id], l, S)) return false; }
     return true;
   }
@@ -115,5 +164,5 @@
     return Array.isArray(lv) ? lv.map(lab).join(', ') : lab(lv);
   }
 
-  Object.assign(U, { TABS, offer, defsOf, empty, priceOf, matches, results, facetCount, SORTS, blankState, parseState, toQuery, rangeLabel, valueLabel, factValue });
+  Object.assign(U, { TABS, offer, defsOf, empty, priceOf, matches, results, offerForQuery, facetCount, SORTS, blankState, parseState, toQuery, rangeLabel, valueLabel, factValue });
 })();

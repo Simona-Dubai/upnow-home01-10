@@ -115,7 +115,7 @@
     const reply = P.reply <= 5 ? 'within 5 minutes' : P.reply <= 15 ? 'within ' + P.reply + ' minutes' : 'within 30 minutes';
     const title = P.person ? (isAgency(P.org) ? `<a class="agency-link" href="${agencyHref(P.org)}">${esc(P.org)}</a>` : esc(P.org)) + (P.brn ? ' • BRN ' + P.brn : '') : esc(offerOf(l.v, l.cat).org[0] + (l.permit ? ' • ' + l.permit : ''));
     const langs = P.langs.map(x => NATIVE[x] || x);
-    const av = P.person ? `<div class="agent-avatar" style="--hue:${P.hue}">${esc(initials(P.name))}<span class="agent-online"></span></div>` : `<div class="agent-avatar" style="--hue:${P.hue};border-radius:24px">${esc(initials(P.name))}<span class="agent-online"></span></div>`;
+    const av = P.person ? `<div class="agent-avatar" style="--hue:${P.hue}">${esc(initials(P.name))}<span class="agent-online"></span></div>` : `<div class="agent-avatar" style="--hue:${P.hue};">${esc(initials(P.name))}<span class="agent-online"></span></div>`;
     // o.channels: contact channels only (the profile page header already shows who the agent is)
     return `<div class="agent-card ${o.channels ? 'is-channels' : ''}">
       ${o.channels ? '' : `<div class="agent-cover"><svg viewBox="0 0 400 46" preserveAspectRatio="none"><path d="M0 46 L0 30 C90 2 170 4 250 22 C320 38 370 30 400 16 L400 46Z" fill="#fff"/></svg></div>

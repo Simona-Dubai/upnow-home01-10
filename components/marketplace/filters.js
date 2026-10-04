@@ -3,7 +3,7 @@
   const { VERTICALS, VORDER, AREAS, areaName, LISTINGS } = UP;
   const { ico, esc, facetCount, valueLabel, offer, empty, t } = UPUI;
 
-  const OICO = { cleaning: 'spark', ac: 'snow', haircut: 'user', dentist: 'heart', safari: 'sun', workshop: 'tool', tour: 'compass', gym: 'bolt', credits: 'tag', school: 'grad', course: 'doc', camp: 'sun', academy: 'ball', motor: 'car', health: 'heart', property: 'home' };
+  const OICO = { cleaning: 'spark', ac: 'snow', haircut: 'user', nursery: 'smile', higher: 'book', doctor: 'medic', dental: 'tooth', physio: 'wave', diagnostics: 'flask', mental: 'leaf', homecare: 'home', safari: 'sun', workshop: 'tool', tour: 'compass', gym: 'bolt', credits: 'tag', school: 'grad', course: 'doc', camp: 'sun', academy: 'ball', motor: 'car', health: 'heart', property: 'home' };
   function switchVertical(S, v) { const B = UPUI.blankState(v); Object.assign(S, { v: B.v, o: B.o, f: B.f, page: 1, sort: 'rec' }); }
   function switchOffer(S, o) { const B = UPUI.blankState(S.v, o); Object.assign(S, { o: B.o, f: B.f, page: 1, sort: 'rec' }); }
   function setVal(S, d, val) { if (empty(val)) delete S.f[d.id]; else S.f[d.id] = val; if (d.type === 'seg') delete S.f.price; S.page = 1; }
@@ -96,10 +96,18 @@
       inp.addEventListener('focus', () => { if (open !== 'loc') { open = 'loc'; locQuery = S.loc.length ? '' : S.q; render(); const i = root.querySelector('#locInput'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); } });
       inp.addEventListener('input', e => { locQuery = e.target.value; const p = root.querySelector('.search-field.location .popover'); if (p) p.innerHTML = locPanel(); });
       inp.addEventListener('keydown', e => {
-        if (e.key === 'Enter') { e.preventDefault(); const q = locQuery.trim(); const ex = locSuggestions().find(a => a.n.toLowerCase() === q.toLowerCase()); if (ex) addLoc(ex.id); else { S.q = q; locQuery = ''; open = null; S.page = 1; commit(true); render(); } }
+        if (e.key === 'Enter') { e.preventDefault(); const q = locQuery.trim(); const ex = locSuggestions().find(a => a.n.toLowerCase() === q.toLowerCase()); if (ex) addLoc(ex.id); else { setQuery(q); locQuery = ''; open = null; S.page = 1; commit(true); render(); } }
         if (e.key === 'Backspace' && !inp.value && S.loc.length) { S.loc.pop(); commit(); render(); root.querySelector('#locInput').focus(); }
         if (e.key === 'Escape') { open = null; render(); }
       });
+    }
+    // a typed category name ("dentists", "AC", "yachts") opens that category; anything else is a keyword search
+    function setQuery(q) {
+      const hit = q && UPUI.offerForQuery(q, S.v);
+      if (!hit) { S.q = q; return; }
+      if (hit.v !== S.v) switchVertical(S, hit.v);
+      if (hit.o !== S.o) switchOffer(S, hit.o);
+      S.q = '';
     }
     function addLoc(id) { if (!S.loc.includes(id)) S.loc.push(id); locQuery = ''; S.q = ''; S.page = 1; commit(); open = 'loc'; render(); root.querySelector('#locInput').focus(); }
     function commit(submit) { if (onChange) onChange(); if (submit && onSubmit) onSubmit(); }
@@ -121,7 +129,7 @@
       else if (a === 'rmloc') { S.loc = S.loc.filter(x => x !== v); S.page = 1; commit(); render(); }
       else if (a === 'clearloc') { S.loc = []; commit(); render(); }
       else if (a === 'clearf') { delete S.f[v]; commit(); render(); }
-      else if (a === 'submit') { if (locQuery.trim()) { const ex = locSuggestions().find(x => x.n.toLowerCase() === locQuery.trim().toLowerCase()); if (ex) S.loc.push(ex.id); else S.q = locQuery.trim(); locQuery = ''; } open = null; render(); commit(true); }
+      else if (a === 'submit') { if (locQuery.trim()) { const ex = locSuggestions().find(x => x.n.toLowerCase() === locQuery.trim().toLowerCase()); if (ex) S.loc.push(ex.id); else setQuery(locQuery.trim()); locQuery = ''; } open = null; render(); commit(true); }
     });
     root.addEventListener('change', e => { const c = e.target.closest('[data-ctl]'); if (c && handleControl(c, S)) { commit(); render(); } });
     document.addEventListener('mousedown', e => { if (open && !root.contains(e.target)) { open = null; locQuery = ''; render(); } });

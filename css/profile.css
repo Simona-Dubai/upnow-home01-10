@@ -70,9 +70,9 @@ body {
   position: relative;
 }
 
-.provider-avatar.is-business {
+/* .provider-avatar.is-business {
   border-radius: 36px;
-}
+} */
 
 .provider-avatar .online-dot {
   position: absolute;

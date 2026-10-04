@@ -71,14 +71,14 @@ body {
   position: relative;
 }
 
-.provider-avatar.is-business {
+/* .provider-avatar.is-business {
   border-radius: 36px;
-}
+} */
 
 .provider-avatar .online-dot {
   position: absolute;
-  right: 12px;
-  bottom: 12px;
+  right: 6px;
+  bottom: 6px;
   width: 22px;
   height: 22px;
   border-radius: 50%;

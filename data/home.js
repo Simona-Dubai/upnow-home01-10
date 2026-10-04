@@ -6,7 +6,7 @@ CONTENT.home = {
   headlines: {
     all: [
       "Everything Dubai, one search.",
-      "Spaces, services, experiences, memberships, programs and insurance — from verified providers."
+      "Spaces, services, experiences, memberships, programs, health and protection — from verified providers."
     ],
     spaces: [
       "Find a space you can trust.",
@@ -14,7 +14,7 @@ CONTENT.home = {
     ],
     services: [
       "Book a service you can trust.",
-      "From cleaning and AC to salons and dentists. Licensed, reviewed and ready to reply on WhatsApp."
+      "Cleaning, AC maintenance and salons. Licensed, reviewed and ready to reply on WhatsApp."
     ],
     experiences: [
       "Discover experiences worth remembering.",
@@ -26,7 +26,11 @@ CONTENT.home = {
     ],
     programs: [
       "Find the right program to grow.",
-      "Schools, courses, camps and academies with clear admissions and schedules."
+      "Nurseries, schools, universities, courses, camps and academies with clear admissions and schedules."
+    ],
+    health: [
+      "Care you can count on.",
+      "Doctors, dentists, physio, diagnostics, mental health and home care from DHA-licensed providers."
     ],
     insurance: [
       "Protect what matters to you.",
@@ -47,7 +51,14 @@ CONTENT.home = {
     cleaning: PATHS.img("clean1.jpg"),
     ac: PATHS.img("ac1.jpg"),
     haircut: PATHS.img("salon1.jpg"),
-    dentist: PATHS.img("dental1.jpg"),
+    nursery: PATHS.img("nursery1.jpg"),
+    higher: PATHS.img("uni1.jpg"),
+    doctor: PATHS.img("doctor1.jpg"),
+    dental: PATHS.img("dental1.jpg"),
+    physio: PATHS.img("physio1.jpg"),
+    diagnostics: PATHS.img("lab1.jpg"),
+    mental: PATHS.img("therapy1.jpg"),
+    homecare: PATHS.img("homecare1.jpg"),
     safari: PATHS.img("desert2.jpg"),
     workshop: PATHS.img("workshop1.jpg"),
     tour: PATHS.img("desert1.jpg"),

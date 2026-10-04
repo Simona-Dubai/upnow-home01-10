@@ -38,7 +38,7 @@
   const phoneErr = () => `Enter a ${country().name} mobile number${/\d/.test(M().phone.example) ? ', e.g. ' + M().phone.example : ''}`;
 
   /* ---------- documents asked for, by provider type (and vertical for businesses) ---------- */
-  const SECTOR = { services: 'health', experiences: 'tour', programs: 'education', insurance: 'insurance' };
+  const SECTOR = { health: 'health', experiences: 'tour', programs: 'education', insurance: 'insurance' };
   function docsFor(s) {
     const L = M().licences;
     const doc = (id, key) => L[key] ? [id, ...L[key]] : null;
@@ -192,7 +192,7 @@
       <div class="agent-card ob-agent-card" aria-hidden="true">
         <div class="agent-cover"><svg viewBox="0 0 400 46" preserveAspectRatio="none"><path d="M0 46 L0 30 C90 2 170 4 250 22 C320 38 370 30 400 16 L400 46Z" fill="#fff"/></svg></div>
         <div class="agent-top">
-          <div class="agent-avatar" style="--hue:${hue}${biz ? ';border-radius:24px' : ''}">${esc(initials(shown) || '?')}<span class="agent-online"></span></div>
+          <div class="agent-avatar" style="--hue:${hue}${biz ? ';' : ''}">${esc(initials(shown) || '?')}<span class="agent-online"></span></div>
           <div class="agent-info"><div class="agent-name"><span>${esc(shown)}</span>${S.done ? `<span class="agent-verified">${ico('badge')}</span>` : ''}</div>
             <div class="agent-org">${esc(org)}${S.role === 'agent' && d.brn ? ' • BRN ' + esc(d.brn) : ''}</div></div>
         </div>

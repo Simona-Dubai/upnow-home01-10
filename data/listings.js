@@ -61,6 +61,9 @@
   const size = (label, field, presets) => ({ id: 'size', type: 'range', label, unit: 'sqft', field, presets: () => presets });
   const rating = () => sel('rating', 'Guest rating', [['4.5', '4.5★ & up'], ['4', '4★ & up']], { get: l => l.rating, test: (lv, v) => lv >= +v, nogen: 1 });
   const TIME = [['morning', 'Morning'], ['afternoon', 'Afternoon'], ['evening', 'Evening']];
+  const INSURERS = ['Daman', 'AXA', 'Bupa', 'MetLife', 'Cigna', 'Direct billing'];
+  const ins = () => mul('insurance', 'Insurance accepted', INSURERS, { k: 4 });
+  const lang = (id = 'language', label = 'Language') => mul(id, label, SLANGS, { gen: () => ['English', ...pickN(SLANGS.slice(1), between(0, 2))] });
   const lab = (def, v) => ((def.options || []).find(x => x.v === String(v)) || {}).l || v;
   const K = n => n >= 1e6 ? (n / 1e6).toFixed(n % 1e6 ? 1 : 0) + 'M' : n >= 1000 ? Math.round(n / 1000) + 'K' : String(n);
   const sq = n => Math.round(n).toLocaleString() + ' sqft';
@@ -295,8 +298,8 @@
   ];
 
   const V = { spaces: { id: 'spaces', label: 'Spaces', icon: 'building', blurb: 'Homes, offices, warehouses, land, holiday homes, venues, courts and yachts.', offers } };
-  V.services = { id: 'services', label: 'Services', icon: 'wrench', blurb: 'Cleaning, AC, salons and clinics.', offers: [
-    { id: 'cleaning', label: 'Cleaning', h1: 'Cleaning services', basis: 'AED / visit or contract', img: [IMG + 'clean1.jpg', IMG + 'clean2.jpg'], n: 10, coverage: 1, from: 1,
+  V.services = { id: 'services', label: 'Services', icon: 'wrench', blurb: 'Cleaning, AC maintenance and salons.', offers: [
+    { id: 'cleaning', label: 'Cleaning', h1: 'Cleaning services', basis: 'One-time or recurring', img: [IMG + 'clean1.jpg', IMG + 'clean2.jpg'], n: 10, coverage: 1, from: 1,
       action: 'Request a booking', flow: ['Enquiry', 'Slot confirmed', 'Visit', 'Photo evidence', 'Pay the provider'], org: ['DED-licensed company'], names: ['Sparkle Home Cleaning', 'Maids on Call', 'Fresh Nest', 'Shine & Co.', 'Neat Freaks DXB'],
       fields: ['service', 'loc', 'date', 'frequency'], locLabel: 'Location',
       defs: [
@@ -313,7 +316,7 @@
       title: (a, c) => `${a.service[0]} · ${c.name}`,
       meta: (a, l) => [['star', l.rating + ' (' + l.reviews + ')'], ['users', 'Team of ' + a.team], ['clock', a.minHours + ' hrs min']] },
 
-    { id: 'ac', label: 'AC maintenance', h1: 'AC maintenance', basis: 'One-time or AED / year', img: [IMG + 'ac1.jpg', IMG + 'ac2.jpg'], n: 9, coverage: 1, from: 1,
+    { id: 'ac', label: 'AC maintenance', h1: 'AC maintenance', basis: 'One-time or annual contract', img: [IMG + 'ac1.jpg', IMG + 'ac2.jpg'], n: 9, coverage: 1, from: 1,
       action: 'Request a quote', flow: ['Enquiry', 'Assessment', 'Quote', 'Work order', 'Completion'], org: ['DED-licensed company'], names: ['CoolFix Technical', 'Polar AC', 'Breeze HVAC', 'Chill Masters'],
       fields: ['model', 'property', 'units', 'date'],
       defs: [
@@ -346,23 +349,7 @@
       ],
       price: () => between(60, 260, 5), unit: () => '/appointment',
       title: (a, c) => `${a.treatment[0]} · ${c.name}`,
-      meta: (a, l) => [['clock', a.duration + ' min'], ['pin', a.setting.includes('home') ? 'Home visit' : 'In salon'], ['star', l.rating + ' (' + l.reviews + ')']] },
-
-    { id: 'dentist', label: 'Dentist', h1: 'Dentists', basis: 'AED / consultation', img: [IMG + 'dental1.jpg', IMG + 'dental2.jpg'], n: 9, from: 1,
-      action: 'Request an appointment', flow: ['Enquiry', 'Appointment', 'Patient form', 'Consultation', 'Treatment plan'], org: ['DHA-licensed clinic'], names: ['Bright Smile Dental', 'Versailles Dental', 'Dr. Michael\'s', 'Seven Dental', 'Smile Studio'],
-      fields: ['treatment', 'loc', 'date', 'time'], locLabel: 'Area',
-      defs: [
-        sel('treatment', 'Treatment', ['Check-up & cleaning', 'Whitening', 'Aligners & braces', 'Implants', 'Root canal', 'Kids dentistry'], { many: 1, k: 4 }),
-        date('date', 'Date'), sel('time', 'Time', TIME, { many: 1, field: 'slots' }),
-        sel('clinic', 'Clinic', [['specialist', 'Specialist centre'], ['family', 'Family clinic'], ['hospital', 'Hospital department']]),
-        mul('insurance', 'Insurance', ['Daman', 'AXA', 'Bupa', 'MetLife', 'Cigna', 'Direct billing'], { k: 4 }),
-        mul('language', 'Language', SLANGS, { gen: () => ['English', ...pickN(SLANGS.slice(1), between(1, 2))] }),
-        sel('specialist', 'Specialist', ['Orthodontist', 'Endodontist', 'Periodontist', 'Paediatric dentist'], { many: 1 }),
-        rating(), price('Consultation fee', [[null, 200], [200, 350], [350, null]]), tog('verified', 'DHA-licensed only', { p: .95 })
-      ],
-      price: () => between(150, 450, 10), unit: () => '/consultation',
-      title: (a, c) => `${c.name} · ${a.specialist[0]}`,
-      meta: (a, l) => [['shield', a.insurance.length + ' insurers'], ['users', a.language.slice(0, 2).join(', ')], ['star', l.rating + ' (' + l.reviews + ')']] }
+      meta: (a, l) => [['clock', a.duration + ' min'], ['pin', a.setting.includes('home') ? 'Home visit' : 'In salon'], ['star', l.rating + ' (' + l.reviews + ')']] }
   ] };
 
   V.experiences = { id: 'experiences', label: 'Experiences', icon: 'compass', blurb: 'Safaris, workshops and tours.', offers: [
@@ -457,7 +444,23 @@
       meta: a => [['tag', a.maxCredits + ' credits'], ['cal', a.validity + ' mo validity'], ['pin', a.locations + ' partners']] }
   ] };
 
-  V.programs = { id: 'programs', label: 'Programs', icon: 'grad', blurb: 'Schools, courses, camps and academies.', offers: [
+  V.programs = { id: 'programs', label: 'Programs', icon: 'grad', blurb: 'Nurseries, schools, universities, courses, camps and academies.', offers: [
+    { id: 'nursery', label: 'Nursery', h1: 'Nurseries', basis: 'AED / term, month or day', img: [IMG + 'nursery1.jpg', IMG + 'school2.jpg'], n: 9, from: 1,
+      action: 'Request a tour', flow: ['Enquiry', 'Tour', 'Application', 'Consent', 'Enrolment', 'Daily care', 'Authorised pickup'], org: ['KHDA-licensed nursery'], names: ['Little Explorers Nursery', 'Blossom Nursery', 'Kids First Nursery', 'Ladybird Early Learning'],
+      fields: ['age', 'curriculum', 'loc', 'start'],
+      defs: [
+        sel('age', 'Child age', [['0', 'Under 1'], ['1', '1–2 yrs'], ['2', '2–3 yrs'], ['3', '3–4 yrs']], { many: 1, k: 4 }),
+        sel('curriculum', 'Curriculum', ['EYFS (British)', 'Montessori', 'Reggio Emilia', 'IB PYP']),
+        date('start', 'Start date'),
+        sel('fs', 'FS stage', [['pre', 'Pre-FS'], ['fs1', 'FS1'], ['fs2', 'FS2']], { many: 1 }),
+        sel('hours', 'Opening hours', [['half', 'Half day'], ['full', 'Full day'], ['extended', 'Extended (7am–6pm)']], { many: 1 }),
+        tog('meals', 'Meals included'), tog('transport', 'Transport', { p: .4 }),
+        price('Fees per term', [[null, 8000], [8000, 12000], [12000, null]]), tog('verified', 'KHDA-licensed only', { p: .95 })
+      ],
+      price: () => between(6500, 15000, 100), unit: () => '/term',
+      title: (a, c) => `${c.name} · ${a.curriculum}`,
+      meta: a => [['users', a.age.map(x => ['<1', '1–2', '2–3', '3–4'][+x]).join(', ') + ' yrs'], ['clock', { half: 'Half day', full: 'Full day', extended: 'Extended' }[a.hours[0]]], ['check', a.meals ? 'Meals' : 'Bring lunch']] },
+
     { id: 'school', label: 'School', h1: 'Schools', basis: 'AED / term or year', img: [IMG + 'school1.jpg', IMG + 'school2.jpg'], n: 10, from: 1,
       action: 'Enquire about admission', flow: ['Enquiry', 'School tour', 'Assessment', 'Offer', 'Enrolment'], org: ['KHDA-registered school'], names: ['Dubai British School', 'GEMS Wellington', 'Repton', 'American Academy', 'Kings\' School', 'Lycée Français', 'Delhi Private School'],
       fields: ['year', 'curriculum', 'loc', 'intake'],
@@ -476,6 +479,24 @@
       price: a => between(28000, 95000, 500) * (a.khda === 1 ? 1.3 : 1), unit: () => '/year',
       title: (a, c) => `${c.name} · ${a.curriculum} curriculum`,
       meta: a => [['grad', a.year.join(', ')], ['star', ['', 'Outstanding', 'Very good', 'Good', 'Acceptable'][a.khda]], ['users', { coed: 'Co-ed', girls: 'Girls', boys: 'Boys' }[a.gender]]] },
+
+    { id: 'higher', label: 'Higher education', h1: 'Universities & colleges', basis: 'AED / course, term or year', img: [IMG + 'uni1.jpg', IMG + 'office2.jpg'], n: 8, from: 1,
+      action: 'Enquire about admission', flow: ['Application', 'Eligibility', 'Offer', 'Enrolment', 'Timetable', 'Assessment', 'Completion'], org: ['CAA-accredited institution'], names: ['University of Dubai', 'Heriot-Watt Dubai', 'Middlesex Dubai', 'American University in Dubai'],
+      fields: ['qualification', 'institution', 'intake', 'mode'],
+      defs: [
+        sel('qualification', 'Qualification', [['foundation', 'Foundation'], ['bachelor', "Bachelor's"], ['master', "Master's"], ['exec', 'Executive / MBA']], { many: 1 }),
+        sel('institution', 'Institution', [['university', 'University'], ['branch', 'International branch campus'], ['college', 'College']]),
+        sel('intake', 'Intake', ['Sep 2026', 'Jan 2027', 'May 2027'], { many: 1 }),
+        sel('mode', 'Study mode', [['full', 'Full-time'], ['part', 'Part-time'], ['online', 'Online']], { many: 1 }),
+        sel('entry', 'Entry requirements', [['hs', 'High school diploma'], ['degree', "Bachelor's degree"], ['exp', 'Work experience']]),
+        sel('duration', 'Duration', [['1', '1 year'], ['2', '2 years'], ['3', '3 years'], ['4', '4 years']]),
+        sel('accreditation', 'Accreditation', [['caa', 'CAA (UAE MoE)'], ['khda', 'KHDA'], ['intl', 'International']], { many: 1 }),
+        tog('scholarship', 'Scholarships', { p: .6 }),
+        price('Annual fees', [[null, 50000], [50000, 80000], [80000, null]]), tog('verified', 'Accredited only', { p: .95 })
+      ],
+      price: () => between(38000, 110000, 500), unit: () => '/year',
+      title: (a, c) => `${c.name} · ${a.qualification.map(q => ({ foundation: 'Foundation', bachelor: "Bachelor's", master: "Master's", exec: 'MBA' }[q]))[0]}`,
+      meta: a => [['cal', a.intake[0]], ['clock', a.duration + ' yr' + (a.duration > 1 ? 's' : '')], ['check', a.scholarship ? 'Scholarships' : 'Full fee']] },
 
     { id: 'course', label: 'Course', h1: 'Courses', basis: 'AED / course', img: [IMG + 'office2.jpg', IMG + 'school1.jpg', IMG + 'office3.jpg'], n: 9,
       action: 'Enquire to enrol', flow: ['Enquiry', 'Enrolment', 'Pay provider', 'Timetable', 'Certificate'], org: ['KHDA-approved centre'], names: ['Le Wagon', 'Berlitz', 'Eton Institute', 'Coding Minds', 'MSB Academy'],
@@ -531,7 +552,106 @@
       meta: a => [['users', a.age.map(x => x === 'adult' ? 'Adults' : x.replace('-', '–')).join(', ')], ['cal', a.schedule.map(s => s === 'weekend' ? 'Weekends' : 'Weekdays').join(' & ')], ['check', a.assessment ? 'Free assessment' : a.level.join(', ')]] }
   ] };
 
-  V.insurance = { id: 'insurance', label: 'Insurance', icon: 'shield', blurb: 'Motor, health and property cover.', offers: [
+  V.health = { id: 'health', label: 'Health', icon: 'medic', blurb: 'Doctors, dentists, physio, diagnostics and care.', offers: [
+    { id: 'doctor', label: 'Doctor consultation', h1: 'Doctors', basis: 'AED / consultation', img: [IMG + 'doctor2.jpg', IMG + 'doctor1.jpg'], n: 10, from: 1,
+      action: 'Request an appointment', flow: ['Appointment', 'Patient intake & consent', 'Eligibility / payment', 'Consultation', 'Orders', 'Follow-up'], org: ['DHA-licensed clinic'], names: ['Dr. Sara Haddad', 'Dr. Omar Nasser', 'Dr. Priya Mehta', 'Mediclinic City', 'Health Bay Clinic'],
+      fields: ['specialty', 'loc', 'date', 'appt'],
+      defs: [
+        sel('specialty', 'Specialty', ['Family medicine', 'Paediatrics', 'Dermatology', 'Gynaecology', 'Cardiology', 'ENT'], { many: 1, k: 3 }),
+        date('date', 'Date'),
+        sel('appt', 'Appointment', [['first', 'First visit'], ['followup', 'Follow-up'], ['urgent', 'Urgent · same day']], { many: 1 }),
+        sel('practitioner', 'Practitioner', [['gp', 'GP'], ['specialist', 'Specialist'], ['consultant', 'Consultant']]),
+        ins(), lang(),
+        sel('setting', 'Clinic / home / online', [['clinic', 'Clinic'], ['home', 'Home visit'], ['online', 'Online video']], { many: 1 }),
+        price('Consultation fee', [[null, 250], [250, 450], [450, null]]), tog('verified', 'DHA-licensed only', { p: .95 })
+      ],
+      price: a => between(150, 600, 10) * (a.practitioner === 'consultant' ? 1.4 : 1), unit: () => '/consultation',
+      title: (a, c) => `${c.name} · ${a.specialty[0]}`,
+      meta: (a, l) => [['shield', a.insurance.length + ' insurers'], ['pin', a.setting.map(x => ({ clinic: 'Clinic', home: 'Home', online: 'Online' }[x])).join(' / ')], ['star', l.rating + ' (' + l.reviews + ')']] },
+
+    { id: 'dental', label: 'Dental', h1: 'Dentists', basis: 'AED / consultation or treatment', img: [IMG + 'dental1.jpg', IMG + 'dental2.jpg'], n: 9, from: 1,
+      action: 'Request an appointment', flow: ['Enquiry', 'Appointment', 'Patient form', 'Consultation', 'Treatment plan'], org: ['DHA-licensed clinic'], names: ['Bright Smile Dental', 'Versailles Dental', 'Dr. Michael\'s', 'Seven Dental', 'Smile Studio'],
+      fields: ['treatment', 'loc', 'date', 'time'], locLabel: 'Area',
+      defs: [
+        sel('treatment', 'Treatment', ['Check-up & cleaning', 'Whitening', 'Aligners & braces', 'Implants', 'Root canal', 'Kids dentistry'], { many: 1, k: 4 }),
+        date('date', 'Date'), sel('time', 'Time', TIME, { many: 1, field: 'slots' }),
+        sel('clinic', 'Clinic', [['specialist', 'Specialist centre'], ['family', 'Family clinic'], ['hospital', 'Hospital department']]),
+        ins(), lang(),
+        sel('specialist', 'Specialist', ['Orthodontist', 'Endodontist', 'Periodontist', 'Paediatric dentist'], { many: 1 }),
+        rating(), price('Consultation fee', [[null, 200], [200, 350], [350, null]]), tog('verified', 'DHA-licensed only', { p: .95 })
+      ],
+      price: () => between(150, 450, 10), unit: () => '/consultation',
+      title: (a, c) => `${c.name} · ${a.specialist[0]}`,
+      meta: (a, l) => [['shield', a.insurance.length + ' insurers'], ['users', a.language.slice(0, 2).join(', ')], ['star', l.rating + ' (' + l.reviews + ')']] },
+
+    { id: 'physio', label: 'Physiotherapy', h1: 'Physiotherapy', basis: 'AED / session or package', img: [IMG + 'physio1.jpg', IMG + 'fit1.jpg'], n: 8, from: 1,
+      action: 'Request an assessment', flow: ['Assessment', 'Treatment plan', 'Authorisation / payment', 'Sessions', 'Progress', 'Discharge'], org: ['DHA-licensed clinic'], names: ['PhysioWorks', 'Body Motion', 'Back in Motion', 'Sport Rehab DXB'],
+      fields: ['condition', 'loc', 'practitioner', 'start'],
+      defs: [
+        sel('condition', 'Condition', ['Back & neck pain', 'Sports injury', 'Post-surgery rehab', 'Pre/post-natal', 'Posture'], { many: 1, k: 3 }),
+        sel('practitioner', 'Practitioner', [['physio', 'Physiotherapist'], ['senior', 'Senior physiotherapist'], ['chiro', 'Chiropractor']]),
+        date('start', 'Start date'),
+        sel('setting', 'Clinic / home', [['clinic', 'In clinic'], ['home', 'Home visit']], { many: 1 }),
+        ins(),
+        sel('session', 'Session duration', [['30', '30 min'], ['45', '45 min'], ['60', '60 min']], { many: 1 }),
+        sel('specialty', 'Specialty', ['Sports', 'Orthopaedic', 'Neurological', "Women's health"], { many: 1 }),
+        price('Price per session', [[null, 300], [300, 450], [450, null]]), tog('verified', 'DHA-licensed only', { p: .95 })
+      ],
+      price: () => between(220, 550, 10), unit: () => '/session',
+      title: (a, c) => `${a.condition[0]} · ${c.name}`,
+      meta: (a, l) => [['pin', a.setting.includes('home') ? 'Home visits' : 'In clinic'], ['clock', a.session.map(x => x + ' min').join(' / ')], ['star', l.rating + ' (' + l.reviews + ')']] },
+
+    { id: 'diagnostics', label: 'Diagnostics', h1: 'Lab tests & diagnostics', basis: 'AED / test or package', img: [IMG + 'lab1.jpg', IMG + 'doctor2.jpg'], n: 8, from: 1,
+      action: 'Request a test', flow: ['Order', 'Eligibility / payment', 'Collection', 'Result', 'Practitioner review'], org: ['DHA-licensed lab'], names: ['Unilabs', 'Medsol Diagnostics', 'Thumbay Labs', 'Al Borg Diagnostics'],
+      fields: ['test', 'loc', 'date', 'referral'],
+      defs: [
+        sel('test', 'Test', ['Full body check-up', 'Blood panel', 'Vitamin & hormones', 'MRI / CT scan', 'X-ray & ultrasound'], { many: 1, k: 3 }),
+        date('date', 'Date'),
+        sel('referral', 'Referral', [['none', 'No referral needed'], ['have', 'I have a referral']], { many: 1 }),
+        tog('home', 'Home collection', { p: .5 }),
+        ins(),
+        lte('results', 'Result time', [['24', 'Within 24 hrs'], ['48', 'Within 48 hrs'], ['72', 'Within 72 hrs']], () => pick([6, 24, 24, 48, 72]), { fmt: v => v + ' hrs' }),
+        sel('lab', 'Laboratory', [['hospital', 'Hospital lab'], ['independent', 'Independent lab'], ['imaging', 'Imaging centre']]),
+        price('Price', [[null, 300], [300, 900], [900, null]]), tog('verified', 'DHA-licensed only', { p: .95 })
+      ],
+      price: a => a.test.includes('MRI / CT scan') ? between(900, 2200, 50) : between(120, 900, 10), unit: () => '/test',
+      title: (a, c) => `${a.test[0]} · ${c.name}`,
+      meta: a => [['clock', 'Results in ' + a.results + 'h'], ['pin', a.home ? 'Home collection' : 'At lab'], ['shield', a.insurance.length + ' insurers']] },
+
+    { id: 'mental', label: 'Mental health', h1: 'Therapists & counsellors', basis: 'AED / session', img: [IMG + 'therapy1.jpg'], n: 8, from: 1,
+      action: 'Request a session', flow: ['Appointment', 'Consent', 'Assessment', 'Care plan', 'Sessions', 'Follow-up'], org: ['DHA-licensed practice'], names: ['LightHouse Arabia', 'The Hundred Wellness', 'Thrive Wellbeing', 'Mind Space'],
+      fields: ['care', 'loc', 'date', 'language'], locLabel: 'Location / online',
+      defs: [
+        sel('care', 'Care type', ['Anxiety & stress', 'Depression', 'Relationships', 'Child & teen', 'Burnout'], { many: 1, k: 3 }),
+        date('date', 'Date'), lang(),
+        sel('practitioner', 'Practitioner', [['psychologist', 'Psychologist'], ['psychiatrist', 'Psychiatrist'], ['counsellor', 'Counsellor']]),
+        ins(),
+        sel('sessionType', 'Session type', [['individual', 'Individual'], ['couples', 'Couples'], ['family', 'Family'], ['group', 'Group']], { many: 1 }),
+        sel('confidentiality', 'Confidentiality', [['standard', 'Standard'], ['enhanced', 'Enhanced · no insurance record']]),
+        price('Price per session', [[null, 500], [500, 800], [800, null]]), tog('verified', 'DHA-licensed only', { p: .95 })
+      ],
+      price: a => between(400, 900, 10) * (a.practitioner === 'psychiatrist' ? 1.4 : 1), unit: () => '/session',
+      title: (a, c) => `${lab(c.def('practitioner'), a.practitioner)} · ${c.name}`,
+      meta: (a, l) => [['users', a.language.slice(0, 2).join(', ')], ['check', a.sessionType.map(x => x[0].toUpperCase() + x.slice(1)).join(', ')], ['star', l.rating + ' (' + l.reviews + ')']] },
+
+    { id: 'homecare', label: 'Home healthcare', h1: 'Home healthcare', basis: 'AED / visit or care plan', img: [IMG + 'homecare1.jpg'], n: 8, from: 1, coverage: 1,
+      action: 'Request care', flow: ['Request', 'Clinical assessment', 'Authorisation / payment', 'Care visits', 'Evidence', 'Review'], org: ['DHA-licensed provider'], names: ['Manzil Healthcare', 'Emirates Home Nursing', 'Amana Home Care', 'Call a Doctor'],
+      fields: ['care', 'loc', 'start', 'frequency'],
+      defs: [
+        sel('care', 'Care needed', ['Nursing visit', 'Elderly care', 'Post-op care', 'IV & injections', 'Doctor on call'], { many: 1, k: 3 }),
+        date('start', 'Start date'),
+        sel('frequency', 'Frequency', [['once', 'One-time visit'], ['daily', 'Daily'], ['live-in', 'Live-in']], { many: 1 }),
+        sel('carer', 'Nursing / doctor / therapy', [['nursing', 'Nursing'], ['doctor', 'Doctor'], ['therapy', 'Therapy']], { many: 1 }),
+        ins(),
+        sel('duration', 'Duration', [['1', '1 hr'], ['4', '4 hrs'], ['12', '12 hrs'], ['24', '24 hrs']], { many: 1 }),
+        price('Price per visit', [[null, 300], [300, 550], [550, null]]), tog('verified', 'DHA-licensed only', { p: .9 })
+      ],
+      price: () => between(180, 750, 10), unit: () => '/visit',
+      title: (a, c) => `${a.care[0]} · ${c.name}`,
+      meta: a => [['users', a.carer.map(x => x[0].toUpperCase() + x.slice(1)).join(' / ')], ['clock', a.frequency.map(f => ({ once: 'One-time', daily: 'Daily', 'live-in': 'Live-in' }[f])).join(' / ')], ['shield', a.verified ? 'DHA-licensed' : 'Registered']] }
+  ] };
+
+  V.insurance = { id: 'insurance', label: 'Protection', icon: 'shield', blurb: 'Motor, health and property cover.', offers: [
     { id: 'motor', label: 'Motor', h1: 'Motor insurance', basis: 'Quoted annual premium', img: [], tile: 1, n: 8, from: 1, locAll: 1,
       action: 'Get a quote', flow: ['Quote request', 'Eligibility check', 'Comparison', 'Application', 'Policy issued'], org: ['CBUAE-licensed insurer'], names: ['AXA Gulf', 'Oman Insurance', 'Tokio Marine', 'RSA', 'Orient', 'Sukoon'],
       fields: ['vehicle', 'regYear', 'driverAge', 'coverage'],
@@ -580,7 +700,7 @@
       meta: a => [['home', a.ptype.join(', ')], ['check', [a.building && 'Building', a.contents && 'Contents', a.liability && 'Liability'].filter(Boolean).join(' · ') || 'Basic'], ['tag', 'AED ' + a.deductible + ' excess']] }
   ] };
 
-  const VORDER = ['spaces', 'services', 'experiences', 'memberships', 'programs', 'insurance'];
+  const VORDER = ['spaces', 'services', 'experiences', 'memberships', 'programs', 'health', 'insurance'];
 
   /* ---------- generate listings ---------- */
   const LISTINGS = [];
