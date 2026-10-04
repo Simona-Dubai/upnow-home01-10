@@ -67,7 +67,7 @@
     };
   });
 
-  reg('dentist', c => {
+  reg('dental', c => {
     const A = c.A, st = c.st, ph = c.l.price;
     const docs = [['Dr. Sara Malik', 'Orthodontist', 12], ['Dr. James Cole', 'General dentist', 9], ['Dr. Rania Aziz', A.specialist[0] || 'Endodontist', 15]];
     Object.assign(st, { dr: st.dr ?? 0, d: st.d ?? 1, t: st.t ?? '16:00', ins: st.ins ?? A.insurance[0], ty: st.ty ?? 'new' });

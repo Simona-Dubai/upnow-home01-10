@@ -18,7 +18,7 @@ const OICO = UPF.OICO || {
   cleaning: "spark",
   ac: "snow",
   haircut: "user",
-  dentist: "heart",
+  dental: "tooth",
   safari: "sun",
   workshop: "tool",
   tour: "compass",

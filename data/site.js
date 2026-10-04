@@ -27,7 +27,7 @@
 
     header: {
       // first `visible` items show in the bar, the rest go under "More" (with icon + one-line description)
-      nav: [['spaces', 'Find a Space'], ['services', 'Book a Service'], ['experiences', 'Experiences'], ['memberships', 'Memberships'], ['programs', 'Programs'], ['insurance', 'Insurance']]
+      nav: [['spaces', 'Find a Space'], ['services', 'Book a Service'], ['experiences', 'Experiences'], ['memberships', 'Memberships'], ['programs', 'Programs'], ['health', 'Health'], ['insurance', 'Protection']]
         .map(([id, label]) => ({ id, label, href: search('?v=' + id), icon: VERTICALS[id].icon, blurb: VERTICALS[id].blurb })),
       visible: 3,
       currency: true, language: true,   // currency + language selects
