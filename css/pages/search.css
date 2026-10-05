@@ -149,6 +149,59 @@
   justify-content: center;
 }
 
+/* "Can't find it?" — slim strip inside the results (spans the whole grid row) */
+.concierge {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 14px;
+  border: 1px solid var(--color-primary-tint);
+  border-radius: 12px;
+  background: var(--color-primary-tint-light);
+}
+
+.concierge > .icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: var(--color-whatsapp);
+}
+
+.concierge p {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.concierge p b {
+  color: var(--color-text);
+}
+
+.concierge .btn {
+  flex: none;
+}
+
+.concierge .btn .icon {
+  width: 13px;
+  height: 13px;
+}
+
+.concierge.is-wide {
+  margin-top: 12px;
+}
+
+@media (max-width: 640px) {
+  .concierge p {
+    white-space: normal;
+  }
+}
+
 /* map */
 .map-panel {
   position: sticky;

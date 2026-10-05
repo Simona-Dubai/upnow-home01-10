@@ -84,14 +84,7 @@
     openSide(`<div class="side-drawer-header"><div><h3>Saved</h3><small>${L.length} ${L.length === 1 ? 'listing' : 'listings'} on your shortlist</small></div><button class="close-btn" aria-label="Close" data-close>${ico('x')}</button></div>
       <div class="side-drawer-body">${L.length ? `<div class="side-drawer-grid">${L.map(l => card(l)).join('')}</div>` : `<div class="side-drawer-empty">${ico('heart')}<b>Nothing saved yet</b><span>Tap the heart on any listing to keep it here.</span></div>`}</div>`);
   }
-  function signin() {
-    openModal(`<div class="modal-header"><h3>Sign in to ${SITE.name}</h3><button class="close-btn" aria-label="Close" data-close>${ico('x')}</button></div>
-      <div class="modal-body"><p style="margin:0 0 14px;color:var(--color-text-secondary)">Keep your saved spaces and enquiries on every device.</p>
-      <div class="field"><label>Mobile number</label><input value="+971 " inputmode="tel"></div>
-      <button class="btn btn-primary" style="width:100%;height:46px" onclick="UPUI.closeModal();UPUI.toast('We sent a code by WhatsApp')">${ico('wa')}Continue with WhatsApp code</button>
-      <div class="or-divider"><span>or</span></div><button class="btn btn-outline" style="width:100%" onclick="UPUI.closeModal();UPUI.toast('Signed in')">Continue with UAE PASS</button>
-      <p class="fine-print">Listing a space? <a class="text-link" href="${HREF.join}">Become a provider</a></p></div>`);
-  }
+  const signin = () => U.auth.open(); // components/marketplace/auth.js
 
   document.addEventListener('click', e => {
     const f = e.target.closest('[data-fav]'); if (f) { e.preventDefault(); e.stopPropagation(); toggleFav(f.dataset.fav); return; }

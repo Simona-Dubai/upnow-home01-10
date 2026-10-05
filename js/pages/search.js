@@ -128,6 +128,21 @@ document.getElementById("areas").addEventListener("click", (e) => {
   }
 });
 
+/* "Can't find it?" — the UpNow team shortlists options on WhatsApp (SITE.concierge); the message carries the search */
+function conciergeHTML(cls = "") {
+  const C = SITE.concierge;
+  if (!C) return "";
+  return `<div class="concierge ${cls}">${ico("wa")}<p><b>${esc(C.title)}</b> ${esc(C.text)}</p>
+    <button type="button" class="btn btn-whatsapp btn-sm" data-concierge>${esc(C.label)}${ico("chevR")}</button></div>`;
+}
+function openConcierge() {
+  const C = SITE.concierge;
+  const what = seoTitle().replace(/^“[^”]*” — /, "");
+  const msg = `Hi ${SITE.name}, I'm looking for ${what.charAt(0).toLowerCase() + what.slice(1)}${S.q ? ` (“${S.q}”)` : ""}. Can you shortlist some options for me?\n${location.href}`;
+  if (C.whatsapp) window.open(`https://wa.me/${C.whatsapp}?text=${encodeURIComponent(msg)}`, "_blank", "noopener");
+  else UPUI.toast("Thanks — our team will WhatsApp you a shortlist");
+}
+
 /* save search (alert) button beside the sort */
 const alertKey = () => toQuery({ ...S, page: 1, sort: "rec", view: "grid" });
 const alerts = () => JSON.parse(localStorage.getItem("upnow.alerts") || "[]");
@@ -281,6 +296,12 @@ function mapHTML(list) {
     <div class="map-note">${list.length} results · ${UPUI.prefs.cur} · illustrative map</div></div>`;
 }
 
+// one concierge banner per page: after the first two grid rows (12 results), or after the last result on short pages
+const withConcierge = (items) => {
+  const at = Math.min(12, items.length);
+  return [...items.slice(0, at), conciergeHTML(), ...items.slice(at)].join("");
+};
+
 function paint() {
   const O = offer(S);
   const all = results(S);
@@ -383,11 +404,11 @@ function paint() {
         )
         .join("") ||
       '<button class="chip" data-rm="*">Clear all filters</button>'
-    }</div></div>`;
+    }</div></div>${conciergeHTML("is-wide")}`;
   } else if (view === "list") {
-    body = `<div class="row-list">${list.map(row).join("")}</div>`;
+    body = `<div class="row-list">${withConcierge(list.map(row))}</div>`;
   } else {
-    body = `<div class="compact-grid">${list.map((l) => UPUI.card(l, S)).join("")}</div>`;
+    body = `<div class="compact-grid">${withConcierge(list.map((l) => UPUI.card(l, S)))}</div>`;
   }
   const pager =
     pages > 1
@@ -466,6 +487,10 @@ document.querySelector("main").addEventListener("click", (e) => {
     S.page = 1;
     bar.render();
     update();
+    return;
+  }
+  if (tt.closest("[data-concierge]")) {
+    openConcierge();
     return;
   }
   const pg = tt.closest("[data-pg]");

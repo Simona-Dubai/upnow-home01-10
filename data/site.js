@@ -36,6 +36,15 @@
       cta: { label: 'Become a provider', icon: 'brief', href: HREF.join }
     },
 
+    /* "Can't find it?" card on the search results: the team shortlists options on WhatsApp.
+       whatsapp: the team's number in international format without + (e.g. '9715XXXXXXXX'); empty = the button only confirms. */
+    concierge: {
+      whatsapp: '',
+      title: "Can't find it?",
+      text: "Our team will shortlist options for you on WhatsApp.",
+      label: 'Chat with UpNow'
+    },
+
     footer: {
       cta: {
         id: 'provider-cta', kicker: 'FOR OWNERS, AGENTS & OPERATORS', title: 'List your space.<br>Get leads in 42 minutes.',
