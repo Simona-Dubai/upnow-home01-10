@@ -21,7 +21,7 @@
         ${H.language ? `<label class="header-select is-subtle"><select id="hLang">${SITE.languages.map(([k, l]) => `<option value="${k}" ${prefs.lang === k ? 'selected' : ''}>${l}</option>`).join('')}</select>${ico('chev')}</label>` : ''}
         ${H.saved ? `<button class="icon-btn" data-open="saved" title="${t('Saved')}">${ico('heart')}<em id="hdrFav">0</em></button>` : ''}
         ${H.enquiries ? `<button class="icon-btn" data-open="enq" title="${t('Enquiries')}">${ico('msg')}<em id="hdrLead">0</em></button>` : ''}
-        ${H.signIn ? `<button class="btn btn-outline btn-sm" data-open="signin">${ico('user')}${t('Sign in')}</button>` : ''}
+        ${H.signIn ? (U.accountButton ? U.accountButton() : `<button class="btn btn-outline btn-sm" data-open="signin">${ico('user')}${t('Sign in')}</button>`) : ''}
         ${H.cta ? `<a class="btn btn-primary btn-sm" href="${H.cta.href}">${H.cta.icon ? ico(H.cta.icon) : ''}${t(H.cta.label)}</a>` : ''}
       </div></div></header>`;
   }

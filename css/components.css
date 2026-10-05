@@ -3561,6 +3561,11 @@ h1,
   white-space: nowrap;
 }
 
+/* "No ratings yet" — a placeholder, kept small */
+.agent-stats .stat-sub.is-empty {
+  font-size: 10.5px;
+}
+
 .agent-stats .stat-sub b {
   color: var(--color-text);
   font-size: 13px;
@@ -4020,6 +4025,556 @@ h1,
   height: 15px;
 }
 
+/* ---------- sign in / sign up modal (components/marketplace/auth.js) ---------- */
+.modal.auth-modal {
+  width: min(460px, 100%);
+}
+
+.auth-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px 0;
+}
+
+.auth-head h3 {
+  margin: 0;
+  text-align: center;
+  font-size: 15.5px;
+}
+
+.auth-back {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+.auth-back:hover {
+  background: var(--color-bg);
+}
+
+.auth-body {
+  padding: 6px 24px 22px;
+}
+
+.auth-body .form-grid {
+  gap: 10px;
+}
+
+.auth-body .field {
+  margin-bottom: 12px;
+}
+
+.auth-body .field label small {
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.auth-tel {
+  display: flex;
+  align-items: stretch;
+  height: 48px;
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: 12px;
+  background: #fff;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.auth-tel:focus-within {
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 0 4px rgba(37, 148, 106, .12);
+}
+
+.has-error .auth-tel {
+  border-color: var(--color-danger);
+}
+
+.auth-tel-cc {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 10px 0 12px;
+  border-right: 1.5px solid var(--color-border);
+  font-weight: 700;
+  font-size: 14.5px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.auth-tel-cc .icon {
+  width: 13px;
+  height: 13px;
+  color: var(--color-text-muted);
+}
+
+.auth-tel-cc select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.auth-tel input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 15px;
+  background: none;
+  box-shadow: none;
+  height: auto;
+}
+
+.auth-hello h4 {
+  font-size: 20px;
+}
+
+.auth-small {
+  display: block;
+  margin: -6px 0 12px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.auth-code-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.auth-code-foot .text-link {
+  font-size: 13px;
+}
+
+.auth-body.is-form > * {
+  animation: auth-in .35s cubic-bezier(.2, .8, .2, 1) both;
+}
+
+.auth-welcome {
+  margin: 0 0 14px;
+  font-size: 20px;
+}
+
+.auth-intro {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--color-primary-tint-light);
+}
+
+.auth-intro b {
+  display: block;
+  color: var(--color-primary-dark);
+}
+
+.auth-intro span {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+/* country + number as one stacked control (Airbnb style) */
+.auth-phone {
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.auth-phone > label {
+  display: block;
+  padding: 8px 12px;
+}
+
+.auth-phone > label + label {
+  border-top: 1px solid var(--color-border-strong);
+}
+
+.auth-phone label > span {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.auth-phone select,
+.auth-phone input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: none;
+  font: inherit;
+  font-size: 15px;
+  padding: 2px 0;
+  color: var(--color-text);
+}
+
+.auth-phone select {
+  appearance: none;
+  cursor: pointer;
+}
+
+.auth-num div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.auth-num b {
+  font-size: 15px;
+}
+
+.auth-phone:focus-within {
+  border-color: var(--color-primary-light);
+}
+
+.auth-phone.has-error,
+.auth-otp.has-error input {
+  border-color: var(--color-danger);
+}
+
+.auth-err {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  color: var(--color-danger);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.auth-err .icon {
+  width: 13px;
+  height: 13px;
+}
+
+.auth-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 14px;
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+.auth-hint .icon {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  color: var(--color-whatsapp);
+}
+
+.auth-cta {
+  width: 100%;
+  height: 48px;
+  font-size: 15px;
+}
+
+.auth-alts {
+  display: grid;
+  gap: 8px;
+}
+
+.auth-alt {
+  position: relative;
+  height: 46px;
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: 12px;
+  background: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.auth-alt > svg,
+.auth-alt > b {
+  position: absolute;
+  left: 16px;
+}
+
+.auth-alt:hover {
+  border-color: var(--color-text-secondary);
+}
+
+.auth-alt.is-pass b {
+  background: #111;
+  color: #fff;
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 11px;
+  letter-spacing: .04em;
+}
+
+.auth-alt {
+  transition: border-color .2s, background .2s, transform .2s;
+}
+
+.auth-alt:active {
+  transform: scale(.97);
+}
+
+.auth-cta .icon {
+  transition: transform .25s;
+}
+
+.auth-cta:hover .icon {
+  transform: translateX(3px);
+}
+
+/* illustrations at the top of each pane */
+.auth-art {
+  width: 210px;
+  margin: -4px auto 6px;
+  animation: auth-in .5s cubic-bezier(.34, 1.56, .64, 1) both;
+}
+
+.auth-art.is-sm {
+  width: 170px;
+  margin-bottom: 10px;
+}
+
+.auth-art svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.auth-art-bubble {
+  transform-box: fill-box;
+  transform-origin: left bottom;
+  animation: auth-pop .55s .25s cubic-bezier(.34, 1.56, .64, 1) both;
+}
+
+.auth-art-blink {
+  animation: auth-blink 1.1s steps(2, start) infinite;
+}
+
+.auth-art-lock {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: auth-bob 3s ease-in-out infinite;
+}
+
+.auth-art-spark {
+  animation: auth-twinkle 2.2s ease-in-out infinite;
+}
+
+.auth-hello {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.auth-hello h4 {
+  font-family: var(--font-serif);
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--color-primary-darkest);
+  margin: 0;
+}
+
+.auth-hello p {
+  margin: 4px 0 0;
+  font-size: 13.5px;
+  color: var(--color-text-secondary);
+}
+
+@keyframes auth-in { from { opacity: 0; transform: translateY(8px) scale(.94); } }
+@keyframes auth-pop { from { opacity: 0; transform: scale(.4); } }
+@keyframes auth-blink { to { opacity: .25; } }
+@keyframes auth-bob { 50% { transform: translateY(-4px); } }
+@keyframes auth-twinkle { 50% { opacity: .3; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-art,
+  .auth-art * {
+    animation: none !important;
+  }
+}
+
+.auth-fine {
+  margin: 14px 0 0;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.auth-lead {
+  margin: 0 0 16px;
+  color: var(--color-text-secondary);
+}
+
+.auth-otp {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.auth-otp input {
+  width: 100%;
+  min-width: 0;
+  height: 54px;
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: 12px;
+  text-align: center;
+  font: inherit;
+  font-size: 22px;
+  font-weight: 700;
+  outline: 0;
+}
+
+.auth-otp input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-tint-light);
+}
+
+.auth-resend {
+  margin: 14px 0 4px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.auth-alt-link {
+  font-size: 13px;
+}
+
+.auth-known {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--color-bg);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.auth-known .icon {
+  width: 15px;
+  height: 15px;
+  color: var(--color-primary);
+}
+
+/* ---------- header account menu ---------- */
+.account-menu {
+  position: relative;
+}
+
+.account-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 10px 0 4px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 99px;
+  background: #fff;
+  font-weight: 700;
+  font-size: 13.5px;
+}
+
+.account-btn > .icon {
+  width: 14px;
+  height: 14px;
+  color: var(--color-text-muted);
+  transition: transform .2s;
+}
+
+.account-menu.is-open .account-btn > .icon {
+  transform: rotate(180deg);
+}
+
+.account-av {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.account-drop {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 260px;
+  padding: 6px;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  z-index: 90;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px) scale(.98);
+  transform-origin: top right;
+  transition: opacity .18s, transform .18s, visibility 0s linear .18s;
+}
+
+.account-menu.is-open .account-drop {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition-delay: 0s;
+}
+
+.account-who {
+  padding: 10px 12px 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.account-who b {
+  display: block;
+}
+
+.account-who small {
+  color: var(--color-text-muted);
+}
+
+.account-drop a,
+.account-drop button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 9px;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.account-drop a:hover,
+.account-drop button:hover {
+  background: var(--color-primary-tint-light);
+}
+
+.account-drop .icon {
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 640px) {
+  .account-name {
+    display: none;
+  }
+}
+
 /* themed menu that replaces the native <select> list (components/overlays.js) */
 .select-menu {
   position: fixed;
@@ -4270,4 +4825,196 @@ select.is-menu-open {
   .offer:hover {
     transform: none;
   }
+}
+
+/* sign-up on phones: names stay side by side, the small illustration steps aside */
+@media (max-width: 640px) {
+  .auth-body .form-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .auth-body .form-grid input {
+    width: 100%;
+    min-width: 0;
+  }
+
+
+  .auth-body {
+    padding: 0 18px 18px;
+  }
+}
+
+/* Log in ⇄ Create account */
+.auth-switch {
+  margin: 14px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border);
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.auth-switch .text-link {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+
+.auth-art.is-xs {
+  width: 120px;
+  margin-bottom: 4px;
+}
+
+/* every screen of the modal has the same height: no jumping between Log in, Create account and the code */
+.modal.auth-modal {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 32px);
+  overflow: hidden;
+}
+
+.auth-modal .auth-head {
+  flex: none;
+}
+
+.auth-modal .auth-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.auth-modal .auth-body > * {
+  flex: none;
+}
+
+/* spare height is shared above the illustration and above the bottom link */
+.auth-modal .auth-body > .auth-art:first-child {
+  margin-top: -10px;
+  margin-bottom: 12px;
+}
+
+.auth-modal .auth-body > :last-child:not(.auth-switch) {
+  margin-bottom: auto;
+}
+
+.auth-modal .auth-switch {
+  margin-top: 20px;
+}
+
+/* Google · Apple in one row */
+.auth-alts.is-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* log in: switch between phone and email */
+.auth-use {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  margin: -2px 0 14px;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.auth-use svg {
+  width: 15px;
+  height: 15px;
+}
+
+.auth-alts.is-row .auth-alt {
+  height: 44px;
+  gap: 7px;
+  padding: 0 6px;
+  font-size: 13.5px;
+}
+
+.auth-alts.is-row .auth-alt > svg {
+  position: static;
+  flex: none;
+}
+
+.auth-alt:hover {
+  border-color: var(--color-text-secondary);
+  background: var(--color-bg);
+}
+
+
+
+@media (max-width: 640px) {
+  .modal.auth-modal {
+    max-height: calc(100dvh - 24px);
+  }
+
+  .auth-alts.is-row .auth-alt span {
+    font-size: 12.5px;
+  }
+}
+
+@media (max-width: 640px) {
+  .auth-modal .auth-body > .auth-art.is-xs {
+    display: none;
+  }
+
+  .auth-alts.is-row {
+    gap: 6px;
+  }
+
+  .auth-alts.is-row .auth-alt {
+    gap: 5px;
+    padding: 0 4px;
+  }
+
+  .auth-alts.is-row .auth-alt span {
+    font-size: 12px;
+  }
+}
+
+/* Log in and the code screen share one compact height (no jump between them); Create account sizes to its form */
+.modal.auth-modal.is-login,
+.modal.auth-modal.is-code {
+  min-height: min(510px, calc(100dvh - 32px)); /* a floor, not a cap: errors or larger text grow it instead of scrolling */
+}
+
+.auth-modal.is-login .auth-art,
+.auth-modal.is-code .auth-art {
+  width: 132px;
+  margin-bottom: 0;
+}
+
+.auth-modal.is-login .auth-use {
+  margin-bottom: 12px;
+}
+
+.auth-modal.is-login .auth-hello,
+.auth-modal.is-code .auth-hello {
+  margin-bottom: 12px;
+}
+
+.auth-modal.is-login .auth-hello h4,
+.auth-modal.is-code .auth-hello h4 {
+  font-size: 19px;
+}
+
+.auth-modal.is-login .or-divider {
+  margin: 12px 0;
+}
+
+.auth-modal.is-login .auth-switch {
+  margin-top: 22px;
+  padding-top: 12px;
+}
+
+.auth-modal.is-code .auth-code-foot {
+  margin-bottom: 16px;
+}
+
+.auth-cta:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+  box-shadow: none;
 }

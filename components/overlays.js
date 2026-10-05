@@ -13,7 +13,7 @@
     side.addEventListener('click', e => { if (e.target === side) closeSide(); }); document.body.appendChild(side);
     const tt = document.createElement('div'); tt.className = 'toast'; tt.setAttribute('role', 'status'); tt.setAttribute('aria-live', 'polite'); tt.id = 'toast'; document.body.appendChild(tt);
   }
-  const closeModal = () => { ensure(); const was = scrim.classList.contains('is-active'); scrim.classList.remove('is-active'); if (was) document.dispatchEvent(new Event('upnow:leads')); };
+  const closeModal = () => { ensure(); const was = scrim.classList.contains('is-active'); scrim.classList.remove('is-active'); if (was) { document.dispatchEvent(new Event('upnow:leads')); document.dispatchEvent(new Event('upnow:modal-closed')); } };
   function openModal(html, cls = '') { ensure(); const m = scrim.firstChild; m.className = 'modal ' + cls; m.innerHTML = html; scrim.classList.add('is-active'); m.scrollTop = 0; m.querySelectorAll('[data-close]').forEach(b => b.onclick = closeModal); }
   const closeSide = () => { ensure(); side.classList.remove('is-active'); };
   function openSide(html) { ensure(); side.firstChild.innerHTML = html; side.classList.add('is-active'); side.querySelectorAll('[data-close]').forEach(b => b.onclick = closeSide); }
