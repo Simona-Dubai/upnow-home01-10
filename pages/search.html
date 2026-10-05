@@ -11,16 +11,19 @@
   </head>
   <body class="search-page">
     <div id="hdr"></div>
-    <div class="sticky-search">
+    <div class="sticky-search" id="ssearch">
       <div class="wrap">
+        <div class="m-sheet-head" id="msheet"></div>
         <div id="sb"></div>
       </div>
     </div>
+    <div class="m-search" id="msearch"></div>
     <main class="wrap">
       <nav class="breadcrumbs" id="crumbs" aria-label="Breadcrumb"></nav>
       <div class="results-header">
         <h1 id="h1"></h1>
         <div class="results-controls">
+          <b class="m-count" id="mcount"></b>
           <button class="save-search" id="saveS" type="button"></button>
           <select class="sort-select" id="sort" aria-label="Sort"></select>
           <div class="view-toggle" id="viewsw" role="group" aria-label="View"></div>
@@ -34,6 +37,7 @@
       </div>
       <div class="seo-links" id="seo"></div>
     </main>
+    <button class="m-map-pill" id="mmap" type="button"></button>
     <div id="ftr"></div>
     <div class="filter-drawer-scrim" id="dscrim"></div>
     <aside class="filter-drawer" id="drawer" aria-label="All filters"></aside>

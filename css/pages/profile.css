@@ -1000,3 +1000,619 @@ body {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ==========================================================================
+   Phone (≤700px) and tablet (701–1100px). Desktop only sees the display: none / contents lines below.
+   ========================================================================== */
+/* phone / tablet-only pieces rendered by provider.js / agency.js / profile-listings.js */
+.m-facts,
+.m-stats,
+.m-contact,
+.pf-card-acts {
+  display: none;
+}
+
+.pf-card {
+  display: contents;
+}
+
+/* ---------- tablet ---------- */
+@media (max-width: 1100px) {
+  .provider-cover {
+    height: 140px;
+  }
+
+  .provider-header {
+    gap: 20px;
+  }
+
+  .provider-avatar {
+    width: 128px;
+    height: 128px;
+    font-size: 42px;
+  }
+
+  .provider-name {
+    font-size: 32px;
+  }
+
+  .provider-actions {
+    flex-wrap: wrap;
+  }
+
+  .kpis b {
+    font-size: 21px;
+  }
+
+  .kpis div {
+    padding: 14px 16px;
+  }
+
+  /* listings: 3 columns with room, 2 below 900px */
+  .provider-layout .compact-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  /* tabs and tools: tools drop to their own row when the tabs need the width */
+  .provider-card .tabs {
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+
+  /* sidebar below the content: contact box full width, About and Verified side by side */
+  .provider-sidebar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    align-items: start;
+  }
+
+  .provider-sidebar > .agent-card {
+    grid-column: 1 / -1;
+  }
+
+  .provider-layout {
+    gap: 16px;
+  }
+
+  /* sticky contact bar once the header buttons scroll away (the sidebar contact box is far down) */
+  .m-contact {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: var(--m-tabs-h, 0px);
+    z-index: 120;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 28px calc(12px + env(safe-area-inset-bottom, 0px));
+    background: rgba(255, 255, 255, 0.97);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid var(--color-border);
+    box-shadow: 0 -6px 20px rgba(15, 40, 28, 0.06);
+    transform: translateY(110%);
+    visibility: hidden;
+    transition: transform 0.25s, visibility 0.25s;
+  }
+
+  .m-contact.is-shown {
+    transform: none;
+    visibility: visible;
+  }
+
+  .m-contact .btn {
+    height: 46px;
+  }
+
+  .m-contact .btn-outline {
+    flex: none;
+    width: 46px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .m-contact .btn-whatsapp {
+    flex: 0 1 420px;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  .m-contact .btn-whatsapp span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  body:has(.m-contact) .site-footer {
+    padding-bottom: 72px;
+  }
+}
+
+@media (max-width: 900px) {
+  .provider-layout .compact-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .provider-layout .compact-grid .card .spec {
+    display: flex;
+    font-size: 12px;
+  }
+}
+
+/* ---------- phone (C10 agent profile) ---------- */
+@media (max-width: 700px) {
+  .provider-cover {
+    height: 96px;
+  }
+
+  .provider-cover svg {
+    height: 36px;
+  }
+
+  /* header becomes a white profile card, avatar overlapping its top edge */
+  .provider-header {
+    display: block;
+    margin-top: -40px;
+    padding: 0 16px 16px;
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    margin-bottom: 14px;
+  }
+
+  .provider-header > :nth-child(2) {
+    margin-top: 10px;
+  }
+
+  .provider-avatar {
+    width: 76px;
+    height: 76px;
+    margin-top: -38px;
+    font-size: 26px;
+    border-width: 3px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
+  }
+
+  .provider-avatar .online-dot {
+    right: 2px;
+    bottom: 2px;
+    width: 15px;
+    height: 15px;
+    border-width: 3px;
+  }
+
+  .provider-name {
+    font-size: 26px;
+    gap: 8px;
+    overflow-wrap: anywhere;
+  }
+
+  .provider-name .icon {
+    flex: none;
+    width: 22px;
+    height: 22px;
+  }
+
+  .provider-meta {
+    font-size: 13px;
+    gap: 4px 12px;
+    margin-top: 6px;
+  }
+
+  .provider-meta .m-hide {
+    display: none;
+  }
+
+  .provider-meta span {
+    min-width: 0;
+  }
+
+  .provider-badges {
+    gap: 5px;
+    margin-top: 10px;
+  }
+
+  .provider-badges span {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+
+  /* languages · areas · years */
+  .m-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin-top: 8px;
+    font-size: 12.5px;
+    color: var(--color-text-secondary);
+  }
+
+  .m-facts span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .m-facts .icon {
+    width: 14px;
+    height: 14px;
+    flex: none;
+    color: var(--color-text-muted);
+  }
+
+  /* 4-up stats strip */
+  .m-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-top: 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    background: var(--color-bg);
+  }
+
+  .m-stats div {
+    padding: 10px 4px;
+    text-align: center;
+    min-width: 0;
+  }
+
+  .m-stats div + div {
+    border-left: 1px solid var(--color-border);
+  }
+
+  .m-stats b {
+    display: block;
+    font-size: 16px;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+
+  .m-stats b i {
+    font-style: normal;
+    color: var(--color-rating-star-strong);
+    font-size: 13px;
+    margin-left: 1px;
+  }
+
+  .m-stats span {
+    display: block;
+    font-size: 10.5px;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .kpis {
+    display: none;
+  }
+
+  /* Share · Follow; Call / WhatsApp move to the sticky bar */
+  .provider-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 0;
+  }
+
+  .provider-actions .btn {
+    height: 42px;
+  }
+
+  .provider-actions .is-contact {
+    display: none;
+  }
+
+  /* one column: credentials · about · tabs (listings / reviews) · team · contact box */
+  .provider-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding-bottom: 24px;
+  }
+
+  .provider-layout > div:first-child,
+  .provider-sidebar {
+    display: contents;
+  }
+
+  .provider-layout .provider-card,
+  .provider-sidebar > * {
+    min-width: 0;
+  }
+
+  .provider-sidebar .verification-box {
+    order: 1;
+  }
+
+  .provider-sidebar .about-box {
+    order: 2;
+  }
+
+  .provider-layout .provider-card {
+    order: 3;
+    margin: 0;
+    padding: 14px 14px 16px;
+  }
+
+  .provider-layout .provider-card ~ .provider-card {
+    order: 4;
+  }
+
+  .provider-sidebar > .agent-card {
+    order: 5;
+  }
+
+  .about-box,
+  .verification-box {
+    padding: 16px;
+  }
+
+  .verification-box .verification-row b {
+    text-align: right;
+  }
+
+  /* tabs fill the row; tools (count · view · sort) sit on their own row below */
+  .provider-card .tabs {
+    margin: -4px -14px 14px;
+    padding: 0 14px;
+    border-bottom: 0;
+    flex-wrap: wrap;
+    overflow: visible;
+    gap: 0;
+  }
+
+  .provider-card .tabs > button {
+    flex: 1 1 auto;
+    height: 46px;
+    padding: 0 3px;
+    font-size: 12.5px;
+    margin: 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .provider-card .tabs > button.is-active {
+    border-bottom: 2.5px solid var(--color-primary);
+  }
+
+  .provider-card .tabs > button em {
+    font-size: 10.5px;
+    padding: 1px 5px;
+    margin-left: 3px;
+  }
+
+  .tabs-tools {
+    flex: 1 1 100%;
+    margin: 12px 0 0;
+    padding: 0;
+    justify-content: flex-end;
+  }
+
+  .tabs-tools .pf-count {
+    margin-right: auto;
+  }
+
+  .pf-select select {
+    height: 40px;
+  }
+
+  /* filters: one row that scrolls sideways; dropdowns open as a sheet above the tab bar */
+  .pf-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 0 -14px 14px;
+    padding: 0 14px;
+  }
+
+  .pf-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pf-loc {
+    flex: 0 0 200px;
+    order: 0;
+    min-width: 0;
+    height: 42px;
+    border-radius: 99px;
+  }
+
+  .pf-box,
+  .pf-box.is-cat {
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  .pf-field {
+    height: 42px;
+    border-radius: 99px;
+    max-width: 200px;
+  }
+
+  .provider-layout .filter-pill .popover.pf-pop {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    top: auto;
+    bottom: calc(var(--m-tabs-h, 0px) + 8px);
+    width: auto;
+    min-width: 0;
+    max-height: 70vh;
+    z-index: 160;
+    transform: none;
+  }
+
+  /* listings: one full-width card per row with Call · WhatsApp */
+  .provider-layout .compact-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .provider-layout .pf-card {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .provider-layout .pf-card .card {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .provider-layout .pf-card .card .photo {
+    aspect-ratio: auto;
+    height: 220px;
+  }
+
+  .provider-layout .pf-card .card .content {
+    padding: 12px 14px 10px;
+    gap: 3px;
+  }
+
+  .provider-layout .pf-card .card .title {
+    font-size: 14px;
+  }
+
+  .provider-layout .pf-card .card .location {
+    font-size: 12px;
+  }
+
+  .provider-layout .pf-card .card .spec {
+    display: flex;
+    font-size: 12.5px;
+  }
+
+  .provider-layout .pf-card .card .price {
+    font-size: 19px;
+  }
+
+  .provider-layout .pf-card .card .price span {
+    font-size: 12.5px;
+  }
+
+  .provider-layout .pf-card .card .badge {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+
+  .provider-layout .pf-card .card .fav-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .pf-card-acts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 0 14px 14px;
+  }
+
+  .pf-card-acts .btn {
+    height: 42px;
+    justify-content: center;
+  }
+
+  .pf-more .btn {
+    width: 100%;
+    height: 44px;
+    justify-content: center;
+  }
+
+  /* reviews */
+  .reviews-summary {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .reviews-summary > div:first-child {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 10px;
+  }
+
+  .reviews-summary .rating-value {
+    font-size: 40px;
+  }
+
+  .rating-breakdown span {
+    width: 96px;
+    flex: none;
+  }
+
+  .review-list .review-header {
+    align-items: flex-start;
+  }
+
+  .review-list .review-header > span:nth-child(2) {
+    min-width: 0;
+  }
+
+  .review-list .avatar {
+    flex: none;
+  }
+
+  .review-list .owner-reply {
+    margin-left: 0;
+  }
+
+  /* areas + agents tabs */
+  .area-map {
+    height: 180px;
+  }
+
+  .ag-toolbar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 0 -14px 14px;
+    padding: 0 14px;
+  }
+
+  .ag-toolbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ag-search {
+    flex: 0 0 210px;
+    height: 40px;
+  }
+
+  .ag-toolbar .is-sort {
+    margin-left: 0;
+  }
+
+  .agent-tile-actions .btn {
+    height: 40px;
+  }
+
+  .team {
+    gap: 8px;
+  }
+
+  /* sticky contact bar: always on, above the tab bar */
+  .m-contact {
+    padding: 10px 16px;
+    gap: 8px;
+    transform: none;
+    visibility: visible;
+    transition: none;
+  }
+
+  .m-contact .btn-whatsapp {
+    flex: 1 1 auto;
+  }
+
+  body:has(.m-contact) .site-footer {
+    padding-bottom: 68px;
+  }
+}

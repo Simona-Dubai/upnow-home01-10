@@ -59,7 +59,7 @@
       <div class="m-section"><div class="m-section-header"><div><h2>${Oo ? 'Top ' + esc(Oo.label.toLowerCase()) : 'Top rated'}</h2><p>Verified providers · ${feat.length}+ results</p></div><button data-go="results">See all</button></div><div class="h-scroll">${feat.map(hcard).join('')}</div></div>
       ${fresh.length ? `<div class="m-section"><div class="m-section-header"><div><h2>New this week</h2><p>Listed in the last 7 days</p></div><button data-go="results" data-sort="new">See all</button></div><div class="h-scroll">${fresh.map(hcard).join('')}</div></div>` : ''}
       ${ar.length && !(Oo && Oo.locAll) ? `<div class="m-section"><div class="m-section-header"><h2>Popular areas</h2></div><div class="area-tiles">${ar.map((a, i) => `<button data-area="${a.id}"><img src="${areaImg[i % areaImg.length]}" alt=""><span><b>${esc(a.n)}</b><small>${a.c} listings</small></span></button>`).join('')}</div></div>` : ''}
-      <div class="promo"><div style="flex:1"><b>List on UpNow</b><small>Get leads by call & WhatsApp — free.</small></div><a class="btn" href="${PATHS.href.join}">Learn more</a></div>
+      <div class="promo"><div style="flex:1"><b>List on UpNow</b><small>Get leads by call & WhatsApp.</small></div><a class="btn" href="${PATHS.href.join}">Learn more</a></div>
       </div>${tbar()}`;
   }
 

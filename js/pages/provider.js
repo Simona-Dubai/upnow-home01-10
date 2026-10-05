@@ -137,14 +137,23 @@ function paint() {
     ["areas", "Areas served", areas.length],
   ].filter(Boolean);
   const team = P.person && !/^Private/.test(P.org) ? teamHTML() : "";
+  // phone: 4-up stats strip in the header card (the wide stats row is hidden there)
+  const mStats = PROFILE.statsStrip([
+    [`${P.rating.toFixed(1)}<i>★</i>`, `${P.reviews.toLocaleString()} reviews`],
+    [`${P.reply} min`, "Reply time"],
+    [P.L.length, SP ? "Listings" : "Offers"],
+    [deals, SP ? "Deals" : "Bookings"],
+  ]);
   document.getElementById("pv").innerHTML = `
   <div class="provider-cover"><svg viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0 70 L0 46 C260 4 520 0 820 30 C1080 56 1280 44 1440 20 L1440 70Z" fill="var(--color-bg)"/></svg></div>
   <div class="wrap">
     <div class="provider-header">
       <div class="provider-avatar ${P.person ? "" : "is-business"}" style="--hue:${P.hue}">${initials(P.name)}<span class="online-dot"></span></div>
       <div><div class="provider-name">${esc(P.name)}<svg class="icon" viewBox="0 0 24 24">${UPUI.ICONS.badge}</svg></div>
-        <div class="provider-meta"><span>${ico(SP ? "office" : "shop")}${P.person && DM.isAgency(P.org) ? `<a class="agency-link" href="${DM.agencyHref(P.org)}">${esc(P.org)}</a>` : esc(P.person ? P.org : O0.org[0])}</span>${P.brn ? `<span>${ico("badge")}BRN ${P.brn}</span>` : ""}<span class="rating">${ico("star")}<b>${P.rating.toFixed(1)}</b>&nbsp;(${P.reviews.toLocaleString()})</span><span>${ico("clock")}Replies within ${P.reply} min</span><span>${ico("globe")}${esc(P.langs.join(", "))}</span></div>
-        <div class="provider-badges">${superA ? `<span class="is-gold">${ico("star")}${SP ? "SuperAgent" : "Top provider"} 2026</span>` : ""}<span>${ico("shield")}${esc(licence[0])} verified</span><span>${ico("user")}ID verified</span><span>${ico("phone")}Phone verified</span><span>${ico("cal")}On UpNow since ${P.since}</span></div></div>
+        <div class="provider-meta"><span>${ico(SP ? "office" : "shop")}${P.person && DM.isAgency(P.org) ? `<a class="agency-link" href="${DM.agencyHref(P.org)}">${esc(P.org)}</a>` : esc(P.person ? P.org : O0.org[0])}</span>${P.brn ? `<span>${ico("badge")}BRN ${P.brn}</span>` : ""}<span class="rating m-hide">${ico("star")}<b>${P.rating.toFixed(1)}</b>&nbsp;(${P.reviews.toLocaleString()})</span><span class="m-hide">${ico("clock")}Replies within ${P.reply} min</span><span class="m-hide">${ico("globe")}${esc(P.langs.join(", "))}</span></div>
+        <div class="m-facts"><span>${ico("globe")}${esc(P.langs.join(", "))}</span><span>${ico("pin")}${areas.length} ${areas.length === 1 ? "area" : "areas"}</span><span>${ico("cal")}${yrs + (P.person ? 3 : 0)} yrs</span></div>
+        <div class="provider-badges">${superA ? `<span class="is-gold">${ico("star")}${SP ? "SuperAgent" : "Top provider"} 2026</span>` : ""}<span>${ico("shield")}${esc(licence[0])} verified</span><span>${ico("user")}ID verified</span><span>${ico("phone")}Phone verified</span><span>${ico("cal")}On UpNow since ${P.since}</span></div>
+        ${mStats}</div>
       <div class="provider-actions"><button class="btn btn-outline" onclick="navigator.clipboard&&navigator.clipboard.writeText(location.href);UPUI.toast('Profile link copied')">${ico("share")}Share</button><button class="btn btn-outline" onclick="UPUI.toast('Following ${esc(first)} — you’ll get new listings')">${ico("bell")}Follow</button><button class="btn btn-whatsapp is-contact" data-wa="${L0.id}">${ico("wa")}WhatsApp</button><button class="btn btn-primary is-contact" data-call="${L0.id}">${ico("phone")}Call</button></div>
     </div>
     <div class="provider-layout"><div>
@@ -172,10 +181,12 @@ function paint() {
         ${SP && LEASE ? `<div class="verification-row">${ico("check")}<span>Listings with DLD permit</span><b>${P.L.filter((l) => l.a.verified).length}/${P.L.length}</b></div>` : ""}
         <p style="font-size:12px;color:var(--color-text-muted);margin:10px 0 0">${SP && LEASE ? "Validate the broker card on the Dubai REST app. " : ""}UpNow never takes payments. <a class="text-link" href="#" onclick="UPUI.toast('Thanks — our trust team will review');return false">Report profile</a></p></div>
     </aside></div>
-  </div>`;
+  </div>
+  ${PROFILE.contactBar(L0.id, P.person ? first : P.name)}`;
   if (tab === "listings") PROFILE.mount(P.L, pf);
   PROFILE.fitAbout();
   PROFILE.stickySidebar();
+  PROFILE.watchContactBar();
 }
 document.addEventListener("click", (e) => {
   const t = e.target.closest("[data-tab]");

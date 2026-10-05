@@ -8,7 +8,7 @@ const seg = O.defs.find((d) => d.type === "seg");
 let per = seg ? seg.options[0].v : null;
 UPUI.pushRecent(l.id);
 const DMB = DM.build(l);
-document.getElementById("hdr").innerHTML = UPUI.header(l.v);
+document.getElementById("hdr").innerHTML = UPUI.header(l.v, { tabs: false }); // phone: the sticky action bar replaces the tab bar
 document.getElementById("ftr").innerHTML = UPUI.footer({ cta: false }); // no "list your space" band on listing detail pages
 UPUI.bindHeader();
 const where = UPUI.locText(l);
@@ -376,7 +376,56 @@ function paint() {
       !(String(v).length >= (/\d/.test(v) ? 3 : 6) && shown(v)) &&
       !fts.some((f) => String(v).includes(f)),
   );
+  // phone / tablet only (hidden on desktop by css/pages/listing.css)
+  const act = LEASE ? "Request viewing" : O.action.replace(/ (a|an) /, " ");
+  // phone bar has room for ~15 characters
+  const actShort = LEASE
+    ? act
+    : /quote/i.test(act)
+      ? "Get a quote"
+      : /enquire|enrol|admission/i.test(act)
+        ? "Enquire now"
+        : act.length > 15
+          ? "Book now"
+          : act;
+  const perToggle = seg
+    ? `<div class="price-toggle">${seg.options.map((o) => `<button class="${per === o.v ? "is-active" : ""}" data-per="${esc(o.v)}">${esc(o.l)}</button>`).join("")}</div>`
+    : "";
+  const keyCell = (i, tx) => {
+    const m = String(tx).match(/^([\d,.+]+)\s+(.+)$/);
+    return `<div class="${m ? "" : "is-text"}">${ico(i)}<b>${esc(m ? m[1] : tx)}</b>${m ? `<small>${esc(m[2])}</small>` : ""}</div>`;
+  };
+  const mHero = `
+    <div class="m-hero">
+      <div class="m-hero-track">
+        ${(imgs.length ? imgs : [0]).map((_, i) => `<div data-lb="${i}">${UPUI.photo(l, i)}</div>`).join("")}
+      </div>
+      <div class="m-hero-top">
+        <button class="m-round" data-mback aria-label="Back">${ico("chevL")}</button>
+        <span></span>
+        <button class="m-round" aria-label="Share" onclick="navigator.clipboard&&navigator.clipboard.writeText(location.href);UPUI.toast('Link copied')">${ico("share")}</button>
+        <button class="m-round ${UPUI.favs.has(l.id) ? "is-active" : ""}" data-fav="${l.id}" aria-label="Save">${ico("heart")}</button>
+      </div>
+      ${A.tour ? `<button class="m-hero-tour" data-lb="0">${ico("video")}Video tour</button>` : ""}
+      ${imgs.length ? `<button class="m-hero-count" data-lb="0"><span id="mHeroI">1</span> / ${imgs.length}</button>` : ""}
+    </div>
+    <div class="m-summary">
+      <div class="m-badges">
+        ${A.verified ? `<span class="is-verified">${ico("shield")}Verified</span>` : ""}
+        ${l.featured ? `<span class="is-featured">${ico("star")}Featured</span>` : ""}
+        <span>${esc(O.label)}</span>
+      </div>
+      <div class="m-price"><b>${esc(pt.n)}</b><span>${esc(pt.u)}</span>${perToggle}</div>
+      <div class="m-title" role="heading" aria-level="1">${esc(l.title)}</div>
+      <div class="m-loc">
+        <span>${ico("pin")}${esc(where)}${O.locAll ? "" : ", Dubai"}</span>
+        <span class="m-rating">${ico("star")}<b>${l.rating}</b> (${l.reviews})</span>
+      </div>
+      ${keyFacts.length ? `<div class="m-keys">${keyFacts.slice(0, 3).map(([i, tx]) => keyCell(i, tx)).join("")}</div>` : ""}
+      ${A.verified ? `<div class="m-verified">${ico("shield")}<span><b>Verified by UpNow</b>${l.permit ? esc(O.permit) + " " + esc(l.permit) + " checked · " : ""}provider ID and ${imgs.length ? "photos" : "licence"} checked</span></div>` : ""}
+    </div>`;
   document.getElementById("main").innerHTML = `
+    ${mHero}
     <nav class="breadcrumbs">
       ${crumbs
         .map(
@@ -544,6 +593,17 @@ function paint() {
           </div>
         </section>
 
+        <section class="section m-contact">
+          <h2>${LEASE ? "Listed by" : "Your provider"}</h2>
+          ${DM.agentCard(l)}
+          <div class="safety-note">
+            <b>${ico("shield")}Deal safely</b>
+            ${LEASE ? "Never transfer a deposit or cheques before viewing and checking the permit on Dubai REST." : "Confirm details with the provider before paying any deposit."}
+            UpNow never takes payments.<br />
+            <a href="#" onclick="UPUI.toast('Thanks — our team will review this listing');return false">${ico("flag")}Report this listing</a>
+          </div>
+        </section>
+
         <section class="section">
           <h2>Reviews</h2>
           <div class="reviews-summary">
@@ -633,8 +693,15 @@ function paint() {
         </div>
       </aside>
     </div>`;
+  // sticky action bar (≤1100px): price (tablet) · call · WhatsApp · request
   document.getElementById("mbar").innerHTML =
-    `<button class="btn btn-primary" data-call="${l.id}">${ico("phone")}${t("Call")}</button><button class="btn btn-whatsapp" data-wa="${l.id}">${ico("wa")}${t("WhatsApp")}</button><button class="btn btn-outline" data-email="${l.id}">${ico("msg")}Email</button>`;
+    `<div class="mbar-price"><b>${esc(pt.n)}</b><small>${esc(pt.u)}</small>${perToggle}</div><button class="btn btn-outline mbar-call" data-call="${l.id}" aria-label="${t("Call")}">${ico("phone")}<span>${t("Call")}</span></button><button class="btn btn-whatsapp" data-wa="${l.id}">${ico("wa")}${t("WhatsApp")}</button><button class="btn btn-primary mbar-req" data-email="${l.id}">${ico("cal")}<span class="is-long">${esc(act)}</span><span class="is-short">${esc(actShort)}</span></button>`;
+  const tr = document.querySelector(".m-hero-track"),
+    hi = document.getElementById("mHeroI");
+  if (tr && hi)
+    tr.addEventListener("scroll", () => {
+      hi.textContent = Math.round(tr.scrollLeft / tr.clientWidth) + 1;
+    }, { passive: true });
   UPUI.updateHdrCounts();
   DM.rerender();
 }
@@ -645,18 +712,55 @@ document.addEventListener("click", (e) => {
     paint();
     return;
   }
+  if (e.target.closest("[data-mback]")) {
+    // back to where the visitor came from, else to search
+    if (history.length > 1 && document.referrer.startsWith(location.origin)) history.back();
+    else location.href = PATHS.href.search + "?v=" + l.v;
+    return;
+  }
   const g = e.target.closest("[data-lb]");
-  if (g) openLb(+g.dataset.lb);
+  if (g) PHONE.matches ? openTour(+g.dataset.lb) : openLb(+g.dataset.lb);
 });
+const PHONE = matchMedia("(max-width: 700px)");
+// phone photo tour (reference C09): all photos stacked, then a 2-col grid; sticky WhatsApp + request bar
+function openTour(i) {
+  if (!l.img.length) return;
+  const act = LEASE ? "Request viewing" : O.action.replace(/ (a|an) /, " ");
+  const big = l.img.length > 3 ? 2 : l.img.length;
+  const im = (x, k) => `<img id="tour${k}" src="${x}" alt="${esc(l.title)} — photo ${k + 1} of ${l.img.length}">`;
+  lb.innerHTML = `<div class="tour">
+    <div class="tour-head">
+      <button class="m-round" data-lbc aria-label="Close photo tour">${ico("x")}</button>
+      <b>Photo tour</b>
+      <button class="m-round" aria-label="Share" onclick="navigator.clipboard&&navigator.clipboard.writeText(location.href);UPUI.toast('Link copied')">${ico("share")}</button>
+      <button class="m-round ${UPUI.favs.has(l.id) ? "is-active" : ""}" data-fav="${l.id}" aria-label="Save">${ico("heart")}</button>
+    </div>
+    <p class="tour-sub">${esc(l.title)} · ${l.img.length} photo${l.img.length > 1 ? "s" : ""}${A.tour ? " · video tour on request" : ""}</p>
+    <div class="tour-photos">${l.img.slice(0, big).map(im).join("")}</div>
+    ${l.img.length > big ? `<div class="tour-grid">${l.img.slice(big).map((x, k) => im(x, k + big)).join("")}</div>` : ""}
+    <div class="tour-bar"><button class="btn btn-whatsapp" data-wa="${l.id}">${ico("wa")}${t("WhatsApp")}</button><button class="btn btn-primary" data-email="${l.id}">${ico("cal")}<span>${esc(act)}</span></button></div>
+  </div>`;
+  lb.classList.add("is-active", "is-tour");
+  lb.scrollTop = 0;
+  const t0 = document.getElementById("tour" + (i % l.img.length));
+  if (i && t0) t0.scrollIntoView();
+}
 let lbI = 0;
 const lb = document.getElementById("lb");
 function openLb(i) {
   if (!l.img.length) return;
+  lb.classList.remove("is-tour");
   lbI = i % l.img.length;
   lb.innerHTML = `<img src="${l.img[lbI]}" alt="${esc(l.title)} — photo ${lbI + 1} of ${l.img.length}"><button class="lightbox-prev" aria-label="Previous photo" data-lbm="-1">${ico("chevL")}</button><button class="lightbox-next" aria-label="Next photo" data-lbm="1">${ico("chevR")}</button><button class="lightbox-close" aria-label="Close photos" data-lbc>${ico("x")}</button><div class="lightbox-counter">${lbI + 1} / ${l.img.length}</div>`;
   lb.classList.add("is-active");
 }
 lb.addEventListener("click", (e) => {
+  // tour: contact / save buttons go to the shared handlers (contact actions close the tour first)
+  if (e.target.closest("[data-fav]")) return;
+  if (e.target.closest("[data-wa],[data-email],[data-call]")) {
+    lb.classList.remove("is-active", "is-tour");
+    return;
+  }
   e.stopPropagation();
   const m = e.target.closest("[data-lbm]");
   if (m) {
@@ -664,13 +768,17 @@ lb.addEventListener("click", (e) => {
     return;
   }
   if (e.target.closest("[data-lbc]") || e.target === lb)
-    lb.classList.remove("is-active");
+    lb.classList.remove("is-active", "is-tour");
 });
 document.addEventListener("keydown", (e) => {
   if (!lb.classList.contains("is-active")) return;
+  if (lb.classList.contains("is-tour")) {
+    if (e.key === "Escape") lb.classList.remove("is-active", "is-tour");
+    return;
+  }
   if (e.key === "ArrowRight") openLb(lbI + 1);
   if (e.key === "ArrowLeft") openLb(lbI - 1 + l.img.length);
-  if (e.key === "Escape") lb.classList.remove("is-active");
+  if (e.key === "Escape") lb.classList.remove("is-active", "is-tour");
 });
 paint();
 document.addEventListener("upnow:leads", () => {

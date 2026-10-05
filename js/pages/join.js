@@ -1,79 +1,210 @@
-/* Provider onboarding (pages/join.html). Sign-in comes first (components/marketplace/auth.js) — name, verified mobile and
-   email come from the account (signed out, the sign-in modal opens over an empty step 1). Then three steps:
-     1 Your business — what you offer, individual or company, where you work (each part appears once the one above is answered)
-     2 Your profile  — photo / logo, public name, about, languages, how customers reach you (as on the agency page)
-     3 Verify        — licence details next to their documents, then submit
-   Country rules — ID document, licences, issuers, cities — come from data/markets.js. */
+/* Provider onboarding (pages/join.html) — provider VERIFICATION only. It answers "who are you?", never "what are you offering?".
+   Sign-in comes first (components/marketplace/auth.js): name, verified mobile and email come from the account.
+     1 Business    — what kind of business (vertical + what it offers), individual or company, country. No location:
+                     a space's location belongs to each LISTING, not to the provider
+     2 Verify      — upload the ID / trade licence (+ the licence the vertical needs); we read the details off the document,
+                     the provider checks and corrects them (reading a document is not verification)
+     3 Profile     — only what the documents can't tell us: public name, photo / logo, about, languages, contact
+   Submit opens a short confirmation (one line per part + consent) — no full review page: every detail was already
+   confirmed on its step. Then admin verification → approved or rejected (handled by the team, outside this page).
+   Country rules — ID document, licence names, issuing authorities — come from data/markets.js. */
 (function () {
   const { VERTICALS } = UP;
   const { ico, esc, toast, initials, auth } = UPUI;
   const KEY = 'upnow.join';
   const calm = matchMedia('(prefers-reduced-motion: reduce)');
 
-  /* ---------- provider types per vertical ---------- */
-  // two account types everywhere (as in the provider OS); Spaces adds one question for companies — own vs owners' properties
-  const ROLES = {
-    spaces: [
-      ['individual', 'Individual', 'I own the property and list it in my name', 'user'],
-      ['company', 'Company', 'Landlord company, brokerage, holiday-home or venue operator', 'building']
-    ],
-    // company only — no individual providers
-    memberships: [['business', 'Company', 'Licensed gym, club or membership operator', 'building']],
-    health: [['business', 'Company', 'Licensed clinic, hospital, lab or healthcare provider', 'building']],
-    insurance: [['business', 'Insurer or broker', 'Licensed insurance company or broker', 'shield']],
-    default: [
-      ['freelancer', 'Individual', 'Self-employed, working under my own name', 'user'],
-      ['business', 'Company', 'Licensed business — clinic, salon, school, operator…', 'building']
-    ]
-  };
-  const rolesOf = v => ROLES[v] || ROLES.default;
-  // categories on this page: Memberships sits after Programs
+  /* ---------- provider types (vertical-agnostic) ---------- */
+  const ROLES = [
+    ['individual', 'Individual', 'You work or own in your own name', 'user'],
+    ['company', 'Company', 'A registered business with a trade licence', 'building']
+  ];
+  const roleOf = s => ROLES.find(r => r[0] === s.role);
+  const isBiz = s => s.role === 'company';
+  // verticals only licensed companies can offer
+  const COMPANY_ONLY = ['memberships', 'health', 'insurance'];
+  // sub-categories that need a licensed company even inside an open vertical
+  const COMPANY_CATS = ['venue', 'court', 'yacht', 'nursery', 'school', 'higher', 'camp'];
+  // property an individual lists must be theirs (title deed) or they must hold the owner's power of attorney
+  const PROPERTY_CATS = ['residential', 'commercial', 'industrial', 'land', 'mixed', 'holiday'];
+  const companyOnly = s => COMPANY_ONLY.includes(s.v) || (s.cats || []).some(c => COMPANY_CATS.includes(c));
+  const listsProperty = s => s.v === 'spaces' && (s.cats || []).some(c => PROPERTY_CATS.includes(c));
+  const offerLabel = id => (VERTICALS[S.v].offers.find(o => o.id === id) || {}).label;
   const JOIN_ORDER = ['spaces', 'services', 'experiences', 'programs', 'memberships', 'health', 'insurance'];
   const verticalsInOrder = () => [...JOIN_ORDER.filter(v => UP.VORDER.includes(v)), ...UP.VORDER.filter(v => !JOIN_ORDER.includes(v))];
-  const roleOf = s => rolesOf(s.v).find(r => r[0] === s.role);
-  // categories an individual can list in Spaces (companies can list everything)
-  const ROLE_CATS = { individual: ['residential', 'commercial', 'industrial', 'land', 'holiday'] };
-  const PROPERTY_CATS = ['residential', 'commercial', 'industrial', 'land', 'mixed'];
-  const listsProperty = s => s.v === 'spaces' && s.role === 'company' && s.cats.some(c => PROPERTY_CATS.includes(c));
-  // a company that adds an office registration (ORN) is shown as a brokerage
-  const isBrokerage = s => listsProperty(s) && !!(s.docs.orn || String(s.d.orn || '').trim());
-  const isBiz = s => s.role === 'company' || s.role === 'business';
-  const blockedIndividual = () => S.v === 'spaces' && S.role === 'individual' && S.cats.length && !S.cats.some(c => ROLE_CATS.individual.includes(c));
 
   /* ---------- market (country) rules: data/markets.js ---------- */
   const M = () => MARKETS.market(S.country);
   const country = () => MARKETS.byIso(S.country) || MARKETS.byIso(MARKETS.DEFAULT);
   const digits = p => String(p).replace(/\D/g, '');
   const fmtPhone = p => { p = digits(p); const out = []; let i = 0; for (const g of M().phone.groups) { if (i >= p.length) break; out.push(p.slice(i, i + g)); i += g; } if (i < p.length) out.push(p.slice(i)); return out.join(' '); };
-  // "Real estate agent licence" → "real estate agent licence"; acronyms (RERA, REGA…) stay as they are
-  const lc = t => /^[A-Z][a-z]/.test(t) ? t[0].toLowerCase() + t.slice(1) : t;
 
-  /* ---------- documents asked for, by provider type (and vertical for businesses) ---------- */
-  const SECTOR = { health: 'health', experiences: 'tour', programs: 'education', insurance: 'insurance' };
-  function docsFor(s) {
+  /* ---------- business types: who exactly you are, what we verify, how big you are ----------
+     Researched for Dubai (DLD/RERA, DET, KHDA, MoHRE, MoHESR, DHA, Dubai Sports Council, DMA, CBUAE, Dubai Municipality), 2025–26.
+     docs: [document id, 'req' | 'opt' | 'later'] — the first one is the main document we read and pre-fill.
+     'later' = may follow after approval (listings in that category stay in draft). size: one or two sizing questions. */
+  const ID_SET = [['eid', 'req'], ['passport', 'opt'], ['visa', 'opt']];
+  const SIG_SET = [['sig', 'req'], ['sigPass', 'opt']];
+  const TYPES = {
+    spaces: {
+      individual: [
+        { id: 'owner', t: 'Owner / landlord', sub: 'You rent out or sell property you own', icon: 'key', docs: ID_SET, size: [['units', 'How many properties do you own?', ['1', '2–3', '4–10', '11–25', '25+']]] },
+        { id: 'broker', t: 'Property manager / broker', sub: 'You list owners’ properties with a RERA broker card', icon: 'brief', docs: [['brn', 'req'], ...ID_SET], size: [['units', 'How many units do you handle?', ['1–5', '6–20', '21–50', '50+']]] }
+      ],
+      company: [
+        { id: 'landlord', t: 'Landlord company', sub: 'The company leases or sells its own portfolio', icon: 'building', docs: [['tl', 'req'], ...SIG_SET, ['vat', 'opt']], size: [['units', 'How many units does the company own?', ['1–5', '6–20', '21–100', '101–500', '500+']]] },
+        { id: 'manager', t: 'Property management / brokerage', sub: 'You manage or broker properties for owners', icon: 'users', docs: [['tl', 'req'], ['orn', 'req'], ...SIG_SET, ['vat', 'opt']], size: [['units', 'How many units do you manage?', ['1–20', '21–100', '101–500', '500+']], ['team', 'How many agents / property managers?', ['1', '2–5', '6–20', '21–50', '50+']]] }
+      ]
+    },
+    services: {
+      individual: [{ id: 'freelancer', t: 'Freelancer', sub: 'You provide the service yourself under a freelance permit', icon: 'user', docs: [['fp', 'req'], ...ID_SET], size: [['team', 'Do you work alone?', ['Just me', '2–3 people', '4–10 people']]] }],
+      company: [{ id: 'svcco', t: 'Service company', sub: 'Cleaning, maintenance, beauty or other service business', icon: 'building', docs: [['tl', 'req'], ...SIG_SET, ['vat', 'opt']], size: [['team', 'How many staff deliver services?', ['1–5', '6–20', '21–50', '51–200', '200+']]] }]
+    },
+    experiences: {
+      individual: [
+        { id: 'guide', t: 'Licensed tour guide', sub: 'You guide tours with a DET tour guide licence', icon: 'compass', docs: [['guide', 'req'], ...ID_SET], size: [['volume', 'How many tours a week?', ['1–3', '4–10', '10+']]] },
+        { id: 'host', t: 'Workshop host / instructor', sub: 'You run classes or workshops under a freelance permit', icon: 'palette', docs: [['fp', 'req'], ...ID_SET], size: [['volume', 'How many sessions a month?', ['1–4', '5–15', '15+']]] }
+      ],
+      company: [
+        { id: 'operator', t: 'Tour operator / desert safari', sub: 'Licensed tourism company running tours or safaris', icon: 'compass', docs: [['tl', 'req'], ['tourOp', 'req'], ...SIG_SET, ['vat', 'opt']], size: [['team', 'How many guides and drivers?', ['1–5', '6–20', '21–50', '50+']]] },
+        { id: 'activity', t: 'Activity / workshop company', sub: 'Attractions, classes and experiences', icon: 'palette', docs: [['tl', 'req'], ...SIG_SET, ['vat', 'opt']], size: [['team', 'How many employees?', ['1–10', '11–50', '51–200', '200+']]] }
+      ]
+    },
+    programs: {
+      individual: [
+        { id: 'tutor', t: 'Private tutor', sub: 'You teach with a MoHRE private teacher work permit', icon: 'book', docs: [['tutor', 'req'], ...ID_SET], size: [['volume', 'How many students a week?', ['1–5', '6–15', '16–30', '30+']]] },
+        { id: 'coach', t: 'Coach / instructor', sub: 'Sport, music or skills coaching under a freelance permit', icon: 'ball', docs: [['fp', 'req'], ...ID_SET], size: [['volume', 'How many students a week?', ['1–5', '6–15', '16–30', '30+']]] }
+      ],
+      company: [
+        { id: 'training', t: 'Training centre / course provider', sub: 'Courses and training licensed by KHDA', icon: 'grad', docs: [['tl', 'req'], ['khdaTrain', 'req'], ...SIG_SET], size: [['team', 'How many instructors?', ['1–5', '6–20', '21–50', '50+']]] },
+        { id: 'nursery', t: 'Nursery', sub: 'Early childhood centre licensed by KHDA', icon: 'smile', docs: [['tl', 'req'], ['khdaEcc', 'req'], ...SIG_SET], size: [['volume', 'How many children can you take?', ['Under 50', '50–150', '150–300', '300+']]] },
+        { id: 'school', t: 'School', sub: 'K-12 school with a KHDA permit', icon: 'grad', docs: [['tl', 'req'], ['khdaSchool', 'req'], ...SIG_SET], size: [['volume', 'How many students are enrolled?', ['Under 500', '500–1,500', '1,500–3,000', '3,000+']]] },
+        { id: 'higher', t: 'University / higher education', sub: 'Licensed by MoHESR or KHDA', icon: 'grad', docs: [['tl', 'req'], ['hedu', 'req'], ...SIG_SET], size: [['volume', 'How many students are enrolled?', ['Under 1,000', '1,000–5,000', '5,000+']]] },
+        { id: 'academy', t: 'Camp / sports academy', sub: 'Holiday camps and sports academies', icon: 'ball', docs: [['tl', 'req'], ['camp', 'req'], ...SIG_SET], size: [['team', 'How many coaches and staff?', ['1–5', '6–20', '20+']]] }
+      ]
+    },
+    memberships: {
+      company: [
+        { id: 'gym', t: 'Gym / studio / club', sub: 'Fitness business approved by Dubai Sports Council', icon: 'ball', docs: [['tl', 'req'], ['dsc', 'req'], ...SIG_SET, ['reps', 'later']], size: [['locations', 'How many locations?', ['1', '2–5', '6+']], ['team', 'How many trainers?', ['1–5', '6–20', '20+']]] },
+        { id: 'aggregator', t: 'Credit / package provider', sub: 'Memberships that work across partner venues', icon: 'tag', docs: [['tl', 'req'], ...SIG_SET], size: [['locations', 'How many partner venues?', ['1–10', '11–50', '50+']]] }
+      ]
+    },
+    health: {
+      company: [
+        { id: 'facility', t: 'Clinic / medical centre', sub: 'Clinic, dental, physio, lab or mental health centre', icon: 'medic', docs: [['tl', 'req'], ['dha', 'req'], ...SIG_SET], size: [['team', 'How many licensed clinicians?', ['1–5', '6–20', '21–50', '50+']]] },
+        { id: 'homecare', t: 'Home healthcare provider', sub: 'Licensed home-care centre', icon: 'home', docs: [['tl', 'req'], ['dha', 'req'], ...SIG_SET], size: [['team', 'How many licensed clinicians?', ['1–5', '6–20', '21–50', '50+']]] }
+      ]
+    },
+    insurance: {
+      company: [
+        { id: 'insurer', t: 'Insurance company', sub: 'Insurer licensed by the Central Bank', icon: 'shield', docs: [['tl', 'req'], ['cbIns', 'req'], ...SIG_SET], size: [['lines', 'How many product lines?', ['1', '2–3', '4+']]] },
+        { id: 'insbroker', t: 'Insurance broker', sub: 'Broker registered with the Central Bank', icon: 'users', docs: [['tl', 'req'], ['cbBroker', 'req'], ...SIG_SET], size: [['team', 'How many licensed advisers?', ['1–5', '6–20', '20+']]] },
+        { id: 'agency', t: 'Insurance agency', sub: 'Agent of an insurance company', icon: 'brief', docs: [['tl', 'req'], ['cbAgent', 'req'], ['agencyAgr', 'req'], ...SIG_SET], size: [['team', 'How many licensed advisers?', ['1–5', '6–20', '20+']]] }
+      ]
+    }
+  };
+  const typesOf = s => (TYPES[s.v] || {})[s.role] || [];
+  const typeOf = s => typesOf(s).find(t => t.id === s.sub);
+
+  /* ---------- documents: names and the details we read from each ---------- */
+  const UAE = () => S.country === 'AE';
+  const u = (uae, other) => UAE() ? uae : other;
+  const f3 = (id, a = 'Licence no.') => [[id + 'No', a], [id + 'Auth', 'Issued by'], [id + 'Exp', 'Expiry date', 'date']];
+  function catalog(id) {
     const L = M().licences;
-    const doc = (id, key, req) => L[key] ? [id, L[key][0], L[key][1], req == null ? L[key][2] : req] : null;
-    const idDoc = who => ['eid', M().idDoc, who, true];
-    const passport = ['passport', 'Passport', 'Bio-data page of a valid passport', false];
-    const holiday = s.cats.includes('holiday') && doc('dtcmh', 'shortStay');
-    if (s.v === 'spaces' && s.role === 'individual')
-      return [idDoc('Front and back'), holiday, L.ownership && ['deed', L.ownership[0], 'You can also add it to each listing later', false], passport].filter(Boolean);
-    if (s.v === 'spaces' && s.role === 'company')
-      return [doc('tl', 'company'), idDoc('Authorised signatory · front and back'), listsProperty(s) && L.office && ['orn', L.office[0], 'Only for brokerages — managing other owners’ properties', false], holiday,
-        ['vat', 'Tax / VAT certificate', 'If the company is tax-registered', false], passport].filter(Boolean);
-    return (({
-      business: [doc('tl', 'company'), SECTOR[s.v] ? doc('sector', SECTOR[s.v]) : null, idDoc('Owner or authorised signatory'), passport],
-      freelancer: [idDoc('Front and back'), doc('fp', 'freelance'), passport]
-    })[s.role] || [idDoc('Front and back')]).filter(Boolean);
+    return ({
+      tl: { t: L.company[0], hint: L.company[1], fields: [['legal', 'Legal name'], ['trade', 'Trade name'], ['licence', L.companyNo], ['activity', 'Business activity'], ['authority', 'Issuing authority'], ['issued', 'Issue date', 'issued'], ['expiry', 'Expiry date', 'date'], ['address', 'Registered address', 'wide']] },
+      eid: { t: `Your ${M().idDoc}`, hint: 'Front and back', fields: [['fullName', 'Full name'], ['eidNo', 'ID number'], ['nationality', 'Nationality'], ['eidExp', 'Expiry date', 'date']] },
+      passport: { t: 'Your passport', hint: 'Photo page', fields: [['passNo', 'Passport no.'], ['passCountry', 'Issuing country'], ['passExp', 'Expiry date', 'date']] },
+      visa: { t: u('UAE residence visa', 'Residence permit'), hint: 'If you are a resident — helps us match your ID', fields: [['visaNo', 'Visa / file no.'], ['visaSponsor', 'Sponsor'], ['visaExp', 'Expiry date', 'date']] },
+      sig: { t: `${M().idDoc} · authorised signatory`, hint: 'The person who signs for the company', fields: [['sigName', 'Full name'], ['eidNo', 'ID number'], ['eidExp', 'Expiry date', 'date']] },
+      sigPass: { t: 'Passport · authorised signatory', hint: 'Photo page', fields: [['sigPassNo', 'Passport no.'], ['sigPassCountry', 'Issuing country'], ['sigPassExp', 'Expiry date', 'date']] },
+      vat: { t: 'Tax / VAT certificate', hint: 'If the company is tax-registered', fields: [['trn', 'Tax registration no. (TRN)']] },
+      orn: { t: u('RERA office registration (ORN)', L.office ? L.office[0] : 'Brokerage registration'), hint: u('From Dubai Land Department — required to manage or broker owners’ properties', 'Required to manage or broker property'), fields: [['ornNo', L.officeNo || 'Registration no.'], ['ornExp', 'Expiry date', 'date']] },
+      brn: { t: u('RERA broker card (BRN)', L.agentCard ? L.agentCard[0] : 'Real estate agent licence'), hint: u('Dubai brokers work under a RERA-registered office', 'Your professional licence'), fields: [['brnNo', L.agentNo || 'Licence no.'], ['brnOffice', 'Brokerage office (ORN)'], ['brnExp', 'Expiry date', 'date']] },
+      hhIndiv: { t: u('DET holiday home licence', (L.shortStay || ['Short-stay licence'])[0]), hint: 'Lets you rent your own home short-term', fields: f3('hh', 'Licence no.') },
+      hhCo: { t: u('DET holiday homes operator licence', 'Short-stay operator licence'), hint: '“Vacation homes rental” activity', fields: f3('hh') },
+      yacht: { t: u('DMA commercial marine craft licence', 'Charter licence'), hint: 'Dubai Maritime Authority licence for charters', fields: f3('ya') },
+      venue: { t: u('Venue / event activity on your licence', 'Venue licence'), hint: 'DET event permits are added per event', fields: f3('ve', 'Permit no.') },
+      dsc: { t: u('Dubai Sports Council approval', 'Sports facility registration'), hint: 'For gyms, courts and sports businesses', fields: f3('ds', 'Approval no.') },
+      reps: { t: u('REPs UAE registration of trainers', 'Trainer registrations'), hint: 'For the trainers you list', fields: f3('re', 'Registration no.') },
+      fp: { t: u('Freelance permit', (L.freelance || ['Self-employment registration'])[0]), hint: u('From DET or a free zone — activity must match what you offer', 'Your self-employment registration'), fields: f3('fp', 'Permit no.') },
+      beauty: { t: u('DET home-service permit + DM health card', 'Health & safety certificate'), hint: 'Required for hair and beauty at customers’ homes', fields: f3('be', 'Permit no.') },
+      guide: { t: u('DET tour guide licence', 'Tour guide licence'), hint: 'Department of Economy & Tourism', fields: f3('tg') },
+      tourOp: { t: u('DET tourism licence (tour operator)', (L.tour || ['Tour operator licence'])[0]), hint: 'Required for tours and safaris', fields: f3('to') },
+      safari: { t: u('Desert safari permit + RTA vehicle permits', 'Safari / vehicle permits'), hint: 'Only if you run desert safaris', fields: f3('sa', 'Permit no.') },
+      tutor: { t: u('Private teacher work permit (MoHRE)', 'Teacher registration'), hint: 'Free, valid for two years', fields: f3('tu', 'Permit no.') },
+      khdaTrain: { t: u('KHDA training institute permit', (L.education || ['Education licence'])[0]), hint: 'Knowledge & Human Development Authority', fields: f3('kh', 'Permit no.') },
+      khdaEcc: { t: u('KHDA early childhood centre permit', 'Nursery licence'), hint: 'Knowledge & Human Development Authority', fields: f3('kh', 'Permit no.') },
+      khdaSchool: { t: u('KHDA school permit', 'School licence'), hint: 'Knowledge & Human Development Authority', fields: f3('kh', 'Permit no.') },
+      hedu: { t: u('MoHESR licence / CAA accreditation', 'Higher-education accreditation'), hint: u('Or KHDA licence for free-zone institutions', ''), fields: f3('he', 'Licence no.') },
+      camp: { t: u('KHDA permit or Dubai Sports Council registration', 'Activity licence'), hint: 'KHDA for educational camps, DSC for sports academies', fields: f3('ca', 'Permit no.') },
+      dha: { t: u('DHA health facility licence', (L.health || ['Healthcare licence'])[0]), hint: u('Or DHCR if you are in Dubai Healthcare City', 'Health regulator licence'), fields: f3('dh') },
+      cbIns: { t: u('CBUAE insurance company licence', (L.insurance || ['Insurance licence'])[0]), hint: 'Central Bank of the UAE', fields: f3('cb') },
+      cbBroker: { t: u('CBUAE insurance broker registration', 'Broker registration'), hint: 'Central Bank of the UAE', fields: f3('cb', 'Registration no.') },
+      cbAgent: { t: u('CBUAE insurance agent registration', 'Agent registration'), hint: 'Central Bank of the UAE', fields: f3('cb', 'Registration no.') },
+      agencyAgr: { t: 'Agency agreement with the insurer', hint: 'Names the insurer you sell for', fields: [['agInsurer', 'Insurer'], ['agExp', 'Valid until', 'date']] }
+    })[id];
   }
-  // the numbers that belong to a document are asked right next to it
-  function docFields(id) {
-    const L = M().licences, authorities = L.authorities;
-    if (id === 'tl') return [['company', 'Company name', 'As on the ' + lc(L.company[0])], ['licence', L.companyNo, 'e.g. 1234567'], ['auth', 'Issued by', authorities || 'Registry or authority']];
-    if (id === 'orn') return [['orn', L.officeNo, 'e.g. 12345']];
-    if (id === 'fp') return [['permit', L.freelance ? L.freelance[0] + ' no.' : 'Registration no.', 'Permit number']];
-    return [];
+  // the business type's documents + licences that come with what you offer
+  function needs(s) {
+    const t = typeOf(s); if (!t) return [];
+    const out = t.docs.map(([id, st]) => [id, st !== 'opt', st === 'later']);
+    const add = (id, req, later) => { if (!out.some(x => x[0] === id)) out.push([id, req, later]); };
+    const cats = s.cats || [], has = (...c) => c.some(x => cats.includes(x)), biz = isBiz(s);
+    if (s.v === 'spaces') {
+      if (has('holiday')) add(biz ? 'hhCo' : 'hhIndiv', true, true);
+      if (has('yacht')) add('yacht', true, true);
+      if (has('venue')) add('venue', true, true);
+      if (has('court')) add('dsc', false, true);
+    }
+    if (s.v === 'services' && has('haircut')) add('beauty', true, false);
+    if (s.v === 'experiences' && has('safari') && biz) add('safari', true, true);
+    return out;
   }
+  function docsFor(s) {
+    return needs(s).map(([id, req, later]) => ({ id, req, later, ...catalog(id) }));
+  }
+  // a document is settled when it is checked, or when it may follow later and hasn't been added
+  const settled = doc => { const f = S.docs[doc.id]; return (f && f.state === 'read' && f.ok) || (doc.later && !f); };
+  // checked when each listing is created, not here
+  function perListing(s) {
+    const cats = s.cats || [], has = (...c) => c.some(x => cats.includes(x)), out = [];
+    if (s.v === 'spaces' && has('residential', 'commercial', 'industrial', 'land', 'mixed')) {
+      if (s.sub === 'owner' || s.sub === 'landlord') out.push(u('Title deed (or Oqood for off-plan) for every property', 'Proof of ownership for every property'));
+      if (s.sub === 'broker' || s.sub === 'manager') out.push(u('Form A / owner agreement and a Trakheesi advertising permit for every property', 'Owner’s authority for every property'));
+    }
+    if (s.v === 'spaces' && has('holiday')) out.push(u('DET holiday home permit for every unit', 'Short-stay registration for every unit'));
+    if (s.v === 'spaces' && has('yacht')) out.push(u('DMA vessel licence and insurance for every yacht', 'Vessel registration for every yacht'));
+    if (s.v === 'spaces' && has('venue')) out.push(u('DET event permit for public or ticketed events', 'Event permits where required'));
+    if (s.v === 'experiences' && s.sub === 'host') out.push(u('DET event permit for public or ticketed sessions', 'Event permits where required'));
+    if (s.v === 'health') out.push(u('DHA professional licence for every practitioner you list', 'Practitioner licence for every professional you list'));
+    return out;
+  }
+  // demo document reader: what a scan of each document returns. '' = not found on the document; '?' prefix = unsure, please check
+  function readDoc(id) {
+    const idName = S.name || 'Aisha Al Mansoori', parts = idName.split(' '), last = parts[parts.length - 1] || 'Palm', auth1 = (M().licences.authorities || ['Department of Economy'])[0];
+    const fixed = {
+      tl: { legal: `${last} Group L.L.C`, trade: `?${last} Group`, licence: '1048273', activity: 'Leasing & management of real estate', authority: auth1, issued: '12 Mar 2025', expiry: '11 Mar 2027', address: '' },
+      sig: { sigName: idName, eidNo: '784-1990-4417291-3', eidExp: '04 Feb 2029' },
+      eid: { fullName: idName, eidNo: '784-1990-4417291-3', nationality: '?United Arab Emirates', eidExp: '04 Feb 2029' },
+      vat: { trn: '100234567800003' },
+      passport: { passNo: 'N4417291', passCountry: '?United Kingdom', passExp: '18 Aug 2031' },
+      visa: { visaNo: '201/2023/7712093', visaSponsor: 'Self', visaExp: '03 Feb 2027' },
+      sigPass: { sigPassNo: 'P0912284', sigPassCountry: '?India', sigPassExp: '22 Nov 2030' },
+      orn: { ornNo: '21947', ornExp: '30 Jun 2027' },
+      brn: { brnNo: '48213', brnOffice: '?Al Noor Real Estate · ORN 21947', brnExp: '31 Mar 2027' },
+      agencyAgr: { agInsurer: 'Oman Insurance Company', agExp: '31 Dec 2027' },
+    };
+    if (fixed[id]) return fixed[id];
+    // licences and permits: number · issuer · expiry
+    const doc = catalog(id); if (!doc) return {};
+    const [n, a, e] = doc.fields.map(f => f[0]);
+    return { [n]: (id.slice(0, 2).toUpperCase()) + '-' + (20000 + idName.length * 517), [a]: '?' + doc.t.split(' ')[0], [e]: '15 Jan 2027' };
+  }
+  const isoDate = v => { if (!v) return ''; if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v; const t = Date.parse(v); if (isNaN(t)) return ''; const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+  const niceDate = v => { const i = isoDate(v); if (!i) return v || ''; const [y, m, d] = i.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); };
+  const expired = v => { const t = Date.parse(v); return !isNaN(t) && t < Date.now(); };
 
   /* ---------- reference data ---------- */
   // most-spoken first: the first ones not yet picked are offered as one-tap suggestions
@@ -82,25 +213,39 @@
   const MAX_LANGS = 6;
   const HOURS = [['9-18', '9 AM – 6 PM'], ['9-22', '9 AM – 10 PM'], ['24', '24/7']];
   const CHANNELS = [['wa', 'WhatsApp', 'wa'], ['call', 'Calls', 'phone'], ['email', 'Email', 'mail'], ['sms', 'SMS', 'msg']];
-  const STEPS = [['Your business', 'What you offer, how and where'], ['Your profile', 'What customers see'], ['Verify', 'Licence and documents']];
+  const STEPS = [['Business', 'What you do'], ['Verify', 'Who you are'], ['Profile', 'What customers see']];
   const LAST = STEPS.length;
-  const MINUTES = [5, 3, 1];
+  const MINUTES = [4, 3, 1];
 
-  /* ---------- state (draft kept in this browser) ---------- */
-  const fresh = () => ({ flow: 3, step: 1, country: MARKETS.DEFAULT, name: '', phone: '', email: '', v: 'spaces', role: '', cats: [], d: { langs: ['English'], city: '', areas: [] }, docs: {}, channels: ['wa', 'call'], hours: '9-22', agree: false, done: false });
+  /* ---------- state (draft kept in this browser) ----------
+     status: draft → submitted (approval happens outside this page). docs[id]: { name, size, state: 'scan' | 'read', ok: confirmed by the provider }
+     d: every value (from documents and from the profile); src[k]: 'doc' read from a document · 'check' unsure · 'missing' not found */
+  const fresh = () => ({ flow: 5, step: 1, status: 'draft', country: MARKETS.DEFAULT, name: '', phone: '', email: '', v: 'spaces', cats: [], role: '', docs: {}, later: {}, src: {}, d: { langs: ['English'] }, channels: ['wa', 'call'], hours: '9-22', agree: false });
   let S = fresh();
-  // a submitted application reopens on its "under review" screen
   try { const saved = JSON.parse(localStorage.getItem(KEY) || 'null'); if (saved) S = Object.assign(fresh(), saved); } catch (e) {}
-  // drafts from before markets: area ids → names, Dubai as the city
-  if ((S.d.areas || []).some(a => UP.areaById[a])) { S.d.areas = S.d.areas.map(a => UP.areaById[a] ? UP.areaById[a].n : a); S.d.city = S.d.city || 'Dubai'; }
-  // drafts from the earlier 4- and 5-step flows: keep the answers, restart at step 1
-  if (S.flow !== 3) { S.flow = 3; S.step = 1; }
-  // drafts from the old five Spaces types → Individual / Company
-  if (S.v === 'spaces' && ['agent', 'agency', 'owner', 'holiday', 'operator'].includes(S.role)) {
-    S.role = { owner: 'individual', agent: '' }[S.role] ?? 'company';
+  // drafts from the earlier flows (vertical, categories, areas in onboarding): keep the profile answers, start verification again
+  // the verification-only draft (no business step): keep everything, the business step comes first now
+  if (S.flow === 4) { S.flow = 5; if (S.status === 'draft') S.step = 1; }
+  // drafts from the earlier flows (areas and documents typed in by hand): keep the business and profile answers, verify again
+  if (S.flow !== 5) {
+    const old = S, keep = ['display', 'bio', 'photo', 'langs'];
+    S = fresh();
+    Object.assign(S, { owner: old.owner, country: old.country || S.country, v: old.v && VERTICALS[old.v] ? old.v : 'spaces', cats: old.cats || [], channels: old.channels || S.channels, hours: old.hours || S.hours, role: { company: 'company', business: 'company', individual: 'individual', freelancer: 'individual' }[old.role] || '' });
+    keep.forEach(k => { if (old.d && old.d[k]) S.d[k] = old.d[k]; });
+    if (old.done) S.status = 'submitted';
   }
-  if (rolesOf(S.v).length === 1) S.role = rolesOf(S.v)[0][0];
-  if (S.d.wholeCity) { S.d.areas = []; delete S.d.wholeCity; }
+  if (!VERTICALS[S.v]) S.v = 'spaces';
+  if (S.status === 'approved') S.status = 'submitted';
+  if (S.step > 3) S.step = 3;
+  if (companyOnly(S)) S.role = 'company';
+  S.later = S.later || {};
+  // drafts from before business types: choose the type again (documents depend on it)
+  if (S.status === 'draft' && !typeOf(S)) { S.step = 1; S.docs = {}; S.src = {}; }
+  // drafts with the old separate ownership documents: the main document replaces them
+  if (S.docs.deed || S.docs.poa || S.docs.ownerDeed || S.docs.fp) { ['deed', 'poa', 'ownerDeed', 'fp'].forEach(k => delete S.docs[k]); }
+  delete S.d.ownership;
+  // documents renamed when the requirements became per category: start those uploads again
+  if (S.docs.sector || (S.role === 'company' && S.docs.eid)) { S.docs = {}; S.src = {}; }
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
   let errors = {};
   // the account (sign-in) supplies name, verified mobile and email
@@ -117,21 +262,20 @@
   /* ---------- motion bookkeeping (view only, never saved) ----------
      dir: the step slides in from this side on the next render · pop: selector of the control just picked (it springs)
      seen: sections already on screen (a new one fades up and scrolls into view) · fill: progress-bar widths last drawn */
-  const A = { otherCity: false, areasOpen: false, dir: '', pop: '', seen: new Set(), entering: true, revealed: '', fill: [0, 0, 0], preview: '', saved: false, uploading: {}, optOpen: false };
+  const A = { dir: '', pop: '', seen: new Set(), entering: true, revealed: '', fill: [0, 0, 0], preview: '', saved: false, optOpen: false, open: {}, otherCity: false };
   let previewOpen = false;
 
   /* ---------- small builders ---------- */
   const err = k => errors[k] ? `<span class="ob-err">${ico('x')}${esc(errors[k])}</span>` : '';
   const field = (k, label, input, hint = '') => `<div class="field ob-field ${errors[k] ? 'has-error' : ''}" data-f="${k}"><label for="ob-${k}">${esc(label)}</label>${input}${hint && !errors[k] ? `<small class="ob-hint">${esc(hint)}</small>` : ''}${err(k)}</div>`;
   const text = (k, label, ph = '', hint = '') => field(k, label, `<input id="ob-${k}" data-k="${k}" value="${esc(S.d[k] || '')}" placeholder="${esc(ph)}">`, hint);
-  const select = (k, label, opts, ph = 'Select…') => field(k, label, `<span class="ob-select"><select id="ob-${k}" data-k="${k}"><option value="">${esc(ph)}</option>${opts.map(o => `<option value="${esc(o)}" ${S.d[k] === o ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>${ico('chev')}</span>`);
   const firstName = () => (S.name || '').split(' ')[0];
   // a part of a step; parts that appear later fade up the first time they're shown
   function sec(id, title, body, aside = '') {
     const key = S.step + ':' + id, isNew = !A.seen.has(key);
     A.seen.add(key);
     if (isNew && !A.entering) A.revealed = id;
-    return `<section class="ob-sec ${isNew && !A.entering ? 'is-enter' : ''}" data-sec="${id}"><div class="ob-sec-h"><h2>${title}</h2>${aside}</div>${body}</section>`;
+    return `<section class="ob-sec ${isNew && !A.entering ? 'is-enter' : ''}" data-sec="${id}">${title || aside ? `<div class="ob-sec-h"><h2>${title}</h2>${aside}</div>` : ''}${body}</section>`;
   }
 
   /* ---------- step illustrations (brand greens, drawn inline) ---------- */
@@ -157,61 +301,103 @@
   };
   const hero = (title, sub, art) => `<div class="ob-hero"><div><h1 class="ob-h1">${title}</h1><p class="ob-sub">${sub}</p></div><div class="ob-art">${ART[art]}</div></div>`;
 
-  /* ---------- step 1: your business ---------- */
+  /* ---------- step 1: your business — what it does (location belongs to each listing) ---------- */
   function stepBusiness() {
-    const sp = S.v === 'spaces', cats = VERTICALS[S.v].offers, role = roleOf(S);
-    const roleDone = S.role && !blockedIndividual();
-    let html = hero('Tell us about your business', `${firstName() ? `Hi ${esc(firstName())} — a` : 'A'} few taps. Everything else follows from your answers.`, 'business');
-    html += sec('what', 'What do you offer?', `<div class="ob-verticals">${verticalsInOrder().map(v => `<button type="button" class="ob-tile ${S.v === v ? 'is-active' : ''}" data-vert="${v}"><i>${ico(VERTICALS[v].icon)}</i><span>${esc(VERTICALS[v].label)}</span></button>`).join('')}</div>`);
-    html += sec('list', `What will you list?`, `<div class="ob-cats ${errors.cats ? 'has-error' : ''}">${cats.map(o => { const on = S.cats.includes(o.id); return `<button type="button" class="ob-chip ${on ? 'is-active' : ''}" data-cat="${o.id}">${ico(o.icon || UPF.OICO[o.id] || VERTICALS[S.v].icon)}<span>${esc(o.label)}</span><span class="ob-tick">${ico('check')}</span></button>`; }).join('')}</div>${err('cats')}`, '<small>Pick all that apply</small>');
+    const cats = VERTICALS[S.v].offers, only = companyOnly(S);
+    const why = esc(COMPANY_ONLY.includes(S.v) ? VERTICALS[S.v].label : S.cats.filter(c => COMPANY_CATS.includes(c)).map(offerLabel).join(' and '));
+    const countryPick = `<label class="ob-country" title="Country of registration">${country().flag}<select data-country aria-label="Country">${MARKETS.COUNTRIES.map(x => `<option value="${x.iso}" ${x.iso === S.country ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>${ico('chev')}</label>`;
+    // city of the business, next to the country (known cities as a list, any other city typed in)
+    const cities = Object.keys(M().cities || {});
+    const cityPick = cities.length
+      ? `<label class="ob-country ob-city ${errors.city ? 'has-error' : ''}" title="City">${ico('pin')}<select data-city aria-label="City"><option value="">City</option>${cities.map(c => `<option ${S.d.city === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}<option value="__other" ${S.d.city && !cities.includes(S.d.city) ? 'selected' : ''}>Other…</option></select>${ico('chev')}</label>${S.d.city && !cities.includes(S.d.city) || A.otherCity ? `<input class="ob-city-in" data-cityin placeholder="Type your city" value="${esc(cities.includes(S.d.city) ? '' : S.d.city || '')}">` : ''}`
+      : `<input class="ob-city-in ${errors.city ? 'has-error' : ''}" data-cityin placeholder="City" value="${esc(S.d.city || '')}">`;
+    const pick = `<span class="ob-where">${countryPick}${cityPick}</span>`;
+    let html = hero('Tell us about your business', `${firstName() ? `Hi ${esc(firstName())}! ` : ''}A few quick taps so we know which documents to ask for.`, 'business');
+    html += sec('what', 'What kind of business is it?', `<div class="ob-verticals">${verticalsInOrder().map(v => `<button type="button" class="ob-tile ${S.v === v ? 'is-active' : ''}" data-vert="${v}"><i>${ico(VERTICALS[v].icon)}</i><span>${esc(VERTICALS[v].label)}</span></button>`).join('')}</div>`);
+    html += sec('list', 'What do you offer?', `<div class="ob-cats ${errors.cats ? 'has-error' : ''}">${cats.map(o => { const on = S.cats.includes(o.id); return `<button type="button" class="ob-chip ${on ? 'is-active' : ''}" data-cat="${o.id}">${ico(o.icon || UPF.OICO[o.id] || VERTICALS[S.v].icon)}<span>${esc(o.label)}</span><span class="ob-tick">${ico('check')}</span></button>`; }).join('')}</div>${err('cats')}`, '<small>Choose all that apply</small>');
     if (S.cats.length) {
-      const only = rolesOf(S.v).length === 1 && rolesOf(S.v)[0];
-      if (only) html += `<p class="ob-only">${ico(only[3])}<span>You'll list as a <b>${esc(only[1] === 'Company' ? 'company' : only[1].toLowerCase())}</b> — ${esc(VERTICALS[S.v].label)} is for licensed businesses only.</span></p>`;
-      else html += sec('as', 'You’re listing as', `<div class="ob-roles ${errors.role ? 'has-error' : ''}">${rolesOf(S.v).map(([id, t, sub, icon]) => `<button type="button" class="ob-role ${S.role === id ? 'is-active' : ''}" data-role="${id}"><i>${ico(icon)}</i><span><b>${esc(t)}</b><small>${esc(sub)}</small></span><span class="ob-radio"></span></button>`).join('')}</div>${err('role')}
-        ${blockedIndividual() ? `<p class="ob-note is-warn">${ico('x')}<span>Individuals can list homes, offices, warehouses, land and holiday homes. For venues, courts or yachts choose <b>Company</b>.</span></p>` : ''}`);
+      html += only ? `<p class="ob-only">${ico('building')}<span>${why} can only be listed by a licensed business, so you'll join as a <b>company</b> with a valid trade licence.</span></p>`
+        : sec('as', 'Are you an individual or a company?', `<div class="ob-roles ${errors.role ? 'has-error' : ''}">${ROLES.map(([id, t, sub, icon]) => `<button type="button" class="ob-role ${S.role === id ? 'is-active' : ''}" data-role="${id}"><i>${ico(icon)}</i><span><b>${esc(t)}</b><small>${esc(sub)}</small></span><span class="ob-radio"></span></button>`).join('')}</div>${err('role')}`);
     }
-    if (S.cats.length && roleDone) {
-      const pick = `<label class="ob-country" title="Country">${country().flag}<select data-country aria-label="Country">${MARKETS.COUNTRIES.map(x => `<option value="${x.iso}" ${x.iso === S.country ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>${ico('chev')}</label>`;
-      html += sec('where', 'Where do you work?', locationBlock(), pick);
+    // one question at a time: the business type only once what you offer and individual / company are answered
+    if (S.cats.length && S.role && typesOf(S).length) {
+      const types = typesOf(S);
+      html += sec('kind', 'Which best describes you?', `<div class="ob-roles ${types.length > 2 ? 'is-grid' : ''} ${errors.sub ? 'has-error' : ''}">${types.map(t => `<button type="button" class="ob-role ${S.sub === t.id ? 'is-active' : ''}" data-sub="${t.id}"><i>${ico(t.icon)}</i><span><b>${esc(t.t)}</b><small>${esc(t.sub)}</small></span><span class="ob-radio"></span></button>`).join('')}</div>${err('sub')}`);
+      const t = typeOf(S);
+      // one block: sizing question(s) + where you're based, all as "question · answer" rows
+      if (t) html += sec('size', 'A few details', '<div class="ob-details">' + t.size.map(([k, q, opts]) => `<div class="ob-size ${errors['size_' + k] ? 'has-error' : ''}"><span>${esc(q)}</span><div class="ob-seg-ctl">${opts.map(o => `<button type="button" class="${S.d['size_' + k] === o ? 'is-active' : ''}" data-size="${k}" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>${err('size_' + k)}</div>`).join('')
+        + `<div class="ob-size ob-based ${errors.city ? 'has-error' : ''}"><span>Where are you based?</span>${pick}${err('city')}</div></div>`);
     }
-    if (sp && !role) html += `<p class="ob-foot-note">${ico('user')}Real estate agent? Your agency adds you from its ${esc(SITE.name)} workspace.</p>`;
+
     return html;
   }
 
-  // city: one tap on a known city (or type another) · areas are optional — none means the whole city
-  function locationBlock() {
-    const m = M(), d = S.d, cities = Object.keys(m.cities), known = m.cities[d.city] || [];
-    const other = A.otherCity || !cities.length || (d.city && !cities.includes(d.city));
-    const areas = d.areas || [], sugg = known.filter(a => !areas.includes(a));
-    const cityRow = `<div class="ob-cities ${errors.city ? 'has-error' : ''}">${cities.map(x => `<button type="button" class="ob-chip is-sm ${d.city === x && !other ? 'is-active' : ''}" data-city="${esc(x)}">${esc(x)}</button>`).join('')}
-      ${cities.length ? `<button type="button" class="ob-chip is-sm ${other ? 'is-active' : ''}" data-act="othercity">${ico('pin')}Other</button>` : ''}</div>
-      ${other ? `<input id="ob-city" class="ob-city-in" value="${esc(cities.includes(d.city) ? '' : d.city || '')}" placeholder="Type your city" autocomplete="address-level2">` : ''}${err('city')}`;
-    const areaRow = !d.city ? '' : (areas.length || A.areasOpen)
-      ? `<div class="ob-areas"><div class="ob-tags">${areas.map(a => `<span class="loc-token">${esc(a)}<button type="button" data-rmarea="${esc(a)}" aria-label="Remove ${esc(a)}">${ico('x')}</button></span>`).join('')}<input id="ob-area" data-areainput placeholder="${areas.length ? 'Add another area' : `Area in ${esc(d.city)}, then Enter`}" autocomplete="off"></div>
-        ${sugg.length ? `<div class="ob-suggest">${sugg.slice(0, 8).map(a => `<button type="button" class="chip" data-addarea="${esc(a)}">${ico('plus')}${esc(a)}</button>`).join('')}</div>` : ''}
-        <small class="ob-hint">Optional · up to 8 — customers searching these areas see you first${areas.length ? '' : '. Leave empty to cover all of ' + esc(d.city)}</small></div>`
-      : `<p class="ob-area-line">${ico('check')}<span>Covering <b>all of ${esc(d.city)}</b></span><button type="button" class="text-link" data-act="areas">${ico('plus')}Pick specific areas</button></p>`;
-    return cityRow + areaRow;
+  /* ---------- step 2: verify — documents first, the details come from them ---------- */
+  // a detail read from a document: editable, with where it came from
+  function xField([k, label, kind]) {
+    const v = S.d[k] || '', src = S.src[k], edited = src && S.orig && S.orig[k] !== undefined && S.orig[k] !== v;
+    const tag = !src ? '' : edited ? `<em class="ob-tag is-edit">${ico('pen')}Edited by you</em>`
+      : src === 'missing' && !v ? `<em class="ob-tag is-miss">Not on the document — please add</em>`
+      : src === 'check' ? `<em class="ob-tag is-check">Double-check this</em>`
+      : src === 'missing' ? `<em class="ob-tag is-edit">${ico('pen')}Added by you</em>` : `<em class="ob-tag is-doc">${ico('doc')}From your document</em>`;
+    const bad = kind === 'date' && expired(v);
+    return `<div class="field ob-field ob-xf ${kind === 'wide' ? 'is-wide' : ''} ${errors[k] || bad ? 'has-error' : ''} ${src === 'missing' && !v ? 'is-missing' : ''} ${src === 'check' && !edited ? 'is-check' : ''}" data-f="${k}">
+      <label for="ob-${k}">${esc(label)}${tag}</label>${kind === 'date' || kind === 'issued' ? `<input type="date" class="ob-date" id="ob-${k}" data-k="${k}" value="${esc(isoDate(v))}">` : `<input id="ob-${k}" data-k="${k}" value="${esc(v)}">`}${bad ? `<span class="ob-err">${ico('x')}This document has expired — upload a current one</span>` : err(k)}</div>`;
+  }
+  // a document: reading → details to check → once checked, one quiet summary line (Edit opens it again)
+  function docCard(doc) {
+    const f = S.docs[doc.id], st = f && f.state;
+    const replace = `<label class="ob-doc-re">Replace<input type="file" accept="image/*,.pdf" data-doc="${doc.id}" hidden></label>`;
+    if (st === 'read' && f.ok && !A.open[doc.id]) {
+      const vals = doc.fields.map(([k, , kind]) => kind === 'date' ? S.d[k] && 'valid to ' + niceDate(S.d[k]) : S.d[k]).filter(Boolean).slice(0, 3).join(' · ');
+      return `<div class="ob-doc is-done is-compact" data-docid="${doc.id}"><div class="ob-doc-h"><i>${ico('check')}</i><span><b>${esc(doc.t)}</b><small>${esc(vals)}</small></span>
+        <button type="button" class="text-link" data-docedit="${doc.id}">Edit</button></div></div>`;
+    }
+    const head = `<div class="ob-doc-h"><i>${ico('doc')}</i><span><b>${esc(doc.t)}</b><small>${st ? esc(f.name) : esc(doc.hint)}</small></span>
+      ${st === 'scan' ? '<em class="is-scan">Reading…</em>' : st === 'read' ? replace : `<em class="${doc.req ? 'is-req' : ''}">${doc.req ? 'Required' : 'Optional'}</em>`}</div>`;
+    let body = '';
+    if (st === 'scan') body = `<div class="ob-scan" aria-live="polite"><div class="ob-scan-doc"><i></i><i></i><i></i><i></i><span class="ob-scan-beam"></span></div>
+        <div><b>Reading your document…</b><small>A few seconds</small></div></div>`;
+    if (st === 'read') {
+      const found = doc.fields.filter(([k]) => S.src[k] && S.src[k] !== 'missing').length;
+      body = `<div class="ob-x"><p class="ob-x-h">${ico('spark')}<span>We filled in ${found} of ${doc.fields.length} details — check them against your document.</span></p>
+        <div class="ob-xgrid">${doc.fields.map(xField).join('')}</div>
+        <label class="ob-x-ok ${errors['ok_' + doc.id] ? 'has-error' : ''}"><input type="checkbox" data-docok="${doc.id}" ${f.ok ? 'checked' : ''}><span>Everything matches my document</span></label>${err('ok_' + doc.id)}</div>`;
+    }
+    const drop = !f ? `<label class="ob-drop"><input type="file" accept="image/*,.pdf" data-doc="${doc.id}" hidden><span class="ob-drop-empty">${ico('upload')}<span><b>Drag your file here or <u>browse</u></b><small>PDF, JPG or PNG</small></span></span></label>` : '';
+    return `<div class="ob-doc ${errors['doc_' + doc.id] ? 'has-error' : ''}" data-docid="${doc.id}">${head}${drop}${body}${err('doc_' + doc.id)}</div>`;
+  }
+  // "Also needed": a compact row until the document is uploaded (then it opens into the read-and-check card)
+  function needRow(doc) {
+    if (S.docs[doc.id]) return docCard(doc);
+    // licences that may follow later don't ask for a decision: upload now, or simply continue
+    return `<div class="ob-need ${errors['doc_' + doc.id] ? 'has-error' : ''}" data-docid="${doc.id}"><i>${ico(['eid', 'sig', 'passport', 'sigPass', 'visa'].includes(doc.id) ? 'user' : 'shield')}</i>
+      <span><b>${esc(doc.t)}</b><small>${esc(doc.hint)}</small>${err('doc_' + doc.id)}</span>
+      ${doc.later ? '<em class="ob-need-tag">Now or later</em>' : !doc.req ? '<em class="ob-need-tag">Optional</em>' : ''}
+      <label class="btn ${doc.later || !doc.req ? 'btn-outline' : 'btn-primary'} btn-sm ob-need-up">${ico('upload')}Upload<input type="file" accept="image/*,.pdf" data-doc="${doc.id}" hidden></label></div>`;
+  }
+  function stepVerify() {
+    const docs = docsFor(S); if (!docs.length) return `<p class="ob-sub">Choose your business type first.</p><button type="button" class="btn btn-outline" data-goto="1">Back to step 1</button>`;
+    const main = docs[0], rest = docs.slice(1), f = S.docs[main.id];
+    const mainCard = f ? docCard(main) : `<label class="ob-main-up ${errors['doc_' + main.id] ? 'has-error' : ''}" data-docid="${main.id}"><input type="file" accept="image/*,.pdf" data-doc="${main.id}" hidden>
+        <i>${ico('doc')}</i><span><b>Upload ${esc(/^your /i.test(main.t) ? 'your ' + main.t.slice(5) : 'your ' + (/^[A-Z][a-z]/.test(main.t) ? main.t[0].toLowerCase() + main.t.slice(1) : main.t))}</b><small>PDF or photo · we fill in the details for you</small>${err('doc_' + main.id)}</span><span class="btn btn-primary">Choose file</span></label>`;
+    return `${hero('Verify your business', `Upload your ${isBiz(S) ? 'licence' : 'document'} and we'll read the details. Checks usually take under 24 hours.`, 'verify')}
+      <div class="ob-known">${ico(VERTICALS[S.v].icon)}<span><b>${esc(roleOf(S) ? roleOf(S)[1] : '')}</b> · ${esc(VERTICALS[S.v].label)} · ${esc([S.d.city, country().name].filter(Boolean).join(', '))}</span><button type="button" class="text-link" data-goto="1">Change</button></div>
+      <div class="ob-mainwrap">${mainCard}</div>
+      ${rest.length ? sec('need', 'Also needed', `<p class="ob-need-sub">Anything marked “Now or later” can follow — listings in that category stay in draft until it's approved.</p><div class="ob-needs">${rest.map(needRow).join('')}</div>`) : ''}
+      ${perListing(S).length ? `<div class="ob-later"><b>${ico('clock')}Checked with each listing</b><ul>${perListing(S).map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}
+      <p class="ob-private">${ico('lock')}<span>Your documents stay private — customers only see the “Verified by ${esc(SITE.name)}” badge. Reading them just saves you typing; a person on our team still reviews every application.</span></p>`;
   }
 
-  /* ---------- step 2: your profile — the same pieces as the agent / agency page ---------- */
-  function kindOf() {
-    const r = roleOf(S), d = S.d, sp = S.v === 'spaces';
-    const onlyCats = list => S.cats.length && S.cats.every(c => list.includes(c));
-    return !sp ? (r ? r[1] : '') : S.role === 'individual' ? 'Private owner'
-      : isBrokerage(S) ? 'Real estate brokerage' : onlyCats(['holiday']) ? 'Holiday home operator' : onlyCats(['venue', 'court', 'yacht']) ? 'Licensed operator' : S.role === 'company' ? 'Property company' : '';
-  }
-  // a first draft of the About text from the answers so far — the provider edits it
+  /* ---------- step 3: profile — only what the documents can't tell us ---------- */
+  const legalName = () => isBiz(S) ? S.d.legal : (S.d.fullName || S.name);
+  function kindOf() { const what = S.cats.length ? S.cats.map(offerLabel).filter(Boolean).slice(0, 2).join(' · ') : VERTICALS[S.v].label; const t = typeOf(S); return t ? `${t.t} · ${what}` : isBiz(S) ? `Licensed company · ${what}` : what; }
+  // a first draft of the About text from the verified details — the provider edits it
   function aboutStarter() {
-    const d = S.d, biz = isBiz(S), sp = S.v === 'spaces';
-    const cats = S.cats.map(id => (VERTICALS[S.v].offers.find(o => o.id === id) || {}).label).filter(Boolean).map(x => x.toLowerCase());
-    const list = cats.length > 1 ? cats.slice(0, -1).join(', ') + ' and ' + cats[cats.length - 1] : cats[0] || VERTICALS[S.v].label.toLowerCase();
-    const where = !(d.areas || []).length ? (d.city ? `across ${d.city}` : '') : (d.areas || []).length ? `in ${(d.areas || []).slice(0, 3).join(', ')}${d.city ? ', ' + d.city : ''}` : d.city ? `in ${d.city}` : '';
-    const what = sp ? `${list} properties` : list;
-    const langs = d.langs || ['English'];
-    const kind = (kindOf() || 'provider').toLowerCase();
-    if (biz) return `${d.display || d.company || 'We'} is a ${kind} offering ${what} ${where}. We reply quickly on WhatsApp and calls, in ${langs.join(', ')}, and every listing is checked before it goes live.`.replace(/\s+/g, ' ');
-    return `I'm ${firstName() || 'a'}${S.name ? ', a' : ''} ${kind} offering ${what} ${where}. I reply quickly on WhatsApp and calls, and speak ${langs.join(', ')}.`.replace(/\s+/g, ' ');
+    const d = S.d, langs = (d.langs || ['English']).join(', '), city = (d.address || '').split(',').map(x => x.trim()).filter(Boolean).pop() || country().name;
+    const offers = S.cats.map(offerLabel).filter(Boolean).map(x => x.toLowerCase()), list = offers.length > 1 ? offers.slice(0, -1).join(', ') + ' and ' + offers[offers.length - 1] : offers[0] || VERTICALS[S.v].label.toLowerCase();
+    if (isBiz(S)) return `${d.display || d.trade || 'We'} is a licensed business in ${city} offering ${list}. We reply quickly on WhatsApp and calls, in ${langs}, and every listing is checked by ${SITE.name} before it goes live.`.replace(/\s+/g, ' ');
+    return `I'm ${firstName() || 'a verified provider'}, offering ${list} in ${country().name}. I reply quickly on WhatsApp and calls, and speak ${langs}.`.replace(/\s+/g, ' ');
   }
   // languages: tags + type to add (themed suggestions) + a few one-tap picks
   function langPicker() {
@@ -228,77 +414,77 @@
     S.d.langs = [...cur, l]; delete errors.langs; commit();
     const i = document.getElementById('ob-lang'); if (i) { i.value = ''; i.focus({ preventScroll: true }); }
   }
+  // compact: photo + name on one row, about, then languages / contact / hours as tight rows (no extra banners)
   function stepProfile() {
     const d = S.d, biz = isBiz(S), bio = d.bio || '';
-    if (!d.display) d.display = (biz ? d.company : S.name) || ''; // start from what we already know
+    if (!d.display) d.display = (biz ? d.trade || d.legal : d.fullName || S.name) || ''; // start from the document
     const shown = d.display || S.name || '?';
-    const where = d.city ? [(d.areas || [])[0], d.city].filter(Boolean).join(', ') : '';
-    return `${hero('Make your profile stand out', `This is what customers see on your ${biz ? 'company ' : ''}page and next to every listing.`, 'profile')}
-      ${sec('who', biz ? 'Logo and name' : 'Photo and name', `<div class="ob-idcard">
+    return `<div class="ob-prof">${hero('Set up your public profile', 'What customers see when they find you.', 'profile')}
+      ${sec('who', '', `<div class="ob-idcard">
         <label class="ob-avatar-up ${biz ? 'is-logo' : ''} ${d.photo ? 'has-photo' : ''}" title="${d.photo ? 'Change' : 'Add'} ${biz ? 'logo' : 'photo'}">
           <input type="file" accept="image/*" data-photo hidden>${d.photo ? `<img src="${d.photo}" alt="">` : `<span class="ob-avatar-ini">${esc(initials(shown) || '?')}</span>`}<span class="ob-cam">${ico('camera')}</span></label>
-        <div class="ob-idcard-txt">${text('display', 'Name customers see', biz ? 'Your brand or trading name' : 'Your full name')}
-          <small class="ob-idcard-sub">${esc([kindOf(), where].filter(Boolean).join(' · '))}</small>
-          <small class="ob-idcard-tip">${d.photo ? `<button type="button" class="text-link" data-act="rmphoto">Remove ${biz ? 'logo' : 'photo'}</button>` : `${ico('spark')}Profiles with a ${biz ? 'logo' : 'photo'} get 2× more enquiries`}</small></div>
+        <div class="ob-idcard-txt">${text('display', 'Display name', biz ? 'Your brand or trading name' : 'Your full name')}
+          <small class="ob-idcard-tip">${d.photo ? `<button type="button" class="text-link" data-act="rmphoto">Remove ${biz ? 'logo' : 'photo'}</button>` : `${ico('camera')}Add a ${biz ? 'logo' : 'photo'} — profiles with one get up to 2× more enquiries`}</small></div>
       </div>`)}
       ${sec('about', 'About', `<div class="ob-field ob-about ${errors.bio ? 'has-error' : ''}" data-f="bio">
-          <textarea id="ob-bio" data-k="bio" maxlength="600" placeholder="What you offer, where, and why customers choose you…">${esc(bio)}</textarea>
-          <div class="ob-about-foot"><button type="button" class="ob-magic" data-act="starter">${ico('spark')}${bio ? 'Rewrite it for me' : 'Write it for me'}</button><span class="ob-count ${bio.trim().length >= 60 ? 'is-ok' : ''}" data-bio-count>${bio.length < 60 ? `${bio.length}/60 min` : `${bio.length}/600`}</span></div>${err('bio')}</div>
-        ${biz ? text('office', 'Office address', 'Building, street, area') : ''}`)}
-      ${sec('langs', 'Languages you speak', langPicker(), `<small>${(d.langs || []).length}/${MAX_LANGS}</small>`)}
-      ${sec('reach', 'How customers reach you', `<div class="ob-channels ${errors.channels ? 'has-error' : ''}">${CHANNELS.map(([id, t, i]) => `<button type="button" class="ob-chtile ${S.channels.includes(id) ? 'is-active' : ''}" data-ch="${id}"><i>${ico(i)}</i><span>${t}</span><span class="ob-tick">${ico('check')}</span></button>`).join('')}</div>${err('channels')}
-        <div class="ob-hours"><span>${ico('clock')}Replies</span><div class="ob-seg-ctl">${HOURS.map(([id, t]) => `<button type="button" class="${S.hours === id ? 'is-active' : ''}" data-hours="${id}">${t}</button>`).join('')}</div></div>`)}`;
+          <textarea id="ob-bio" data-k="bio" maxlength="600" placeholder="Tell customers what you do and why they should choose you…">${esc(bio)}</textarea>
+          <div class="ob-about-foot"><button type="button" class="ob-magic" data-act="starter">${ico('spark')}${bio ? 'Rewrite it for me' : 'Write it for me'}</button><span class="ob-count ${bio.trim().length >= 60 ? 'is-ok' : ''}" data-bio-count>${bio.length < 60 ? `${bio.length}/60 min` : `${bio.length}/600`}</span></div>${err('bio')}</div>`)}
+      ${sec('langs', 'Languages', langPicker())}
+      ${sec('reach', 'Contact', `<div class="ob-channels ${errors.channels ? 'has-error' : ''}">${CHANNELS.map(([id, t, i]) => `<button type="button" class="ob-chtile ${S.channels.includes(id) ? 'is-active' : ''}" data-ch="${id}"><i>${ico(i)}</i><span>${t}</span><span class="ob-tick">${ico('check')}</span></button>`).join('')}</div>${err('channels')}`,
+        `<div class="ob-hours"><span>${ico('clock')}Available</span><div class="ob-seg-ctl">${HOURS.map(([id, t]) => `<button type="button" class="${S.hours === id ? 'is-active' : ''}" data-hours="${id}">${t}</button>`).join('')}</div></div>`)}</div>`;
   }
 
-  /* ---------- step 3: verify ---------- */
-  function docCard([id, t, hint, req]) {
-    const f = S.docs[id], up = A.uploading[id], fields = docFields(id);
-    const input = ([k, label, ph]) => Array.isArray(ph) ? select(k, label, ph) : text(k, label, ph);
-    return `<div class="ob-doc ${f && !up ? 'is-done' : ''} ${errors['doc_' + id] ? 'has-error' : ''}" data-docid="${id}">
-      <div class="ob-doc-h"><i>${ico(f && !up ? 'check' : 'doc')}</i><span><b>${esc(t)}</b><small>${esc(hint)}</small></span><em class="${f && !up ? 'is-up' : req ? 'is-req' : ''}">${f && !up ? 'Added' : req ? 'Required' : 'Optional'}</em></div>
-      ${fields.length ? `<div class="ob-doc-fields ${fields.length === 3 ? 'is-3' : ''}">${fields.map(input).join('')}</div>` : ''}
-      <label class="ob-drop ${up ? 'is-uploading' : ''}"><input type="file" accept="image/*,.pdf" data-doc="${id}" hidden>
-        ${up ? `<span class="ob-file">${ico('doc')}<span><b>${esc(f.name)}</b><span class="ob-bar"><span></span></span></span></span>`
-        : f ? `<span class="ob-file">${ico('doc')}<span><b>${esc(f.name)}</b><small>${f.size}</small></span><span class="ob-file-act">Replace</span></span>`
-        : `<span class="ob-drop-empty">${ico('upload')}<span><b>Drop file or <u>browse</u></b><small>PDF, JPG or PNG · up to 10 MB</small></span></span>`}
-      </label>${err('doc_' + id)}</div>`;
-  }
-  function stepVerify() {
-    const docs = docsFor(S), req = docs.filter(x => x[3]), opt = docs.filter(x => !x[3]);
-    if (isBiz(S) && !S.d.company && S.d.display) S.d.company = S.d.display; // legal name usually starts as the brand name
-    return `${hero('Verify and go live', 'Last step. Our team checks these within 1–2 business days.', 'verify')}
-      <p class="ob-private">${ico('lock')}<span>Private — documents are never shown on your profile. Customers only see the “Verified by ${esc(SITE.name)}” badge.</span></p>
-      <div class="ob-docs">${req.map(docCard).join('')}</div>
-      ${opt.length ? `<details class="ob-more" ${A.optOpen ? 'open' : ''}><summary>${ico('plus')}Optional documents <small>${opt.map(x => x[1]).join(' · ')}</small></summary><div class="ob-docs">${opt.map(docCard).join('')}</div></details>` : ''}
-      <label class="ob-check ${errors.agree ? 'has-error' : ''}"><input type="checkbox" data-agree ${S.agree ? 'checked' : ''}><span>I confirm the details are correct and agree to the <a class="text-link" href="#" onclick="return false">Provider terms</a>. I will only list ${S.v === 'spaces' ? 'properties I am permitted to advertise' : 'services I am licensed to provide'}.</span></label>${err('agree')}`;
-  }
 
-  /* ---------- submitted ---------- */
-  function stepDone() {
+  /* ---------- submit: a short confirmation, not a review page ---------- */
+  function confirmSubmit() {
+    const d = S.d, biz = isBiz(S);
+    const line = (icon, t, sub, step) => `<div class="ob-cf-row"><i>${ico(icon)}</i><span><b>${esc(t)}</b><small>${esc(sub)}</small></span><button type="button" class="text-link" data-cfgoto="${step}">Edit</button></div>`;
+    UPUI.openModal(`<div class="ob-cf"><div class="ob-cf-h"><h3>Ready to submit?</h3><button class="close-btn" data-close aria-label="Close">${ico('x')}</button></div>
+      <p class="ob-cf-sub">We'll check these against your documents — usually in under 24 hours.</p>
+      ${line(VERTICALS[S.v].icon, VERTICALS[S.v].label, [typeOf(S) ? typeOf(S).t : roleOf(S) && roleOf(S)[1], S.cats.map(offerLabel).filter(Boolean).join(', ')].filter(Boolean).join(' · '), 1)}
+      ${line('shield', legalName() || '—', biz ? [d.licence && 'Licence ' + d.licence, d.expiry && 'valid to ' + niceDate(d.expiry)].filter(Boolean).join(' · ') : [d.eidNo, d.eidExp && 'valid to ' + niceDate(d.eidExp)].filter(Boolean).join(' · '), 2)}
+      ${line('user', d.display || S.name, [d.photo ? 'Photo added' : 'No photo', (d.langs || []).join(', ')].filter(Boolean).join(' · '), 3)}
+      ${docsFor(S).some(x => x.later && x.req && !S.docs[x.id]) ? `<p class="ob-cf-later">${ico('clock')}<span>Added later: ${esc(docsFor(S).filter(x => x.later && x.req && !S.docs[x.id]).map(x => x.t).join(', '))} — those listings stay in draft until approved.</span></p>` : ''}
+      <label class="ob-check ob-cf-check"><input type="checkbox" data-cfagree ${S.agree ? 'checked' : ''}><span>I confirm these details are accurate, that I'm authorised to act for ${biz ? esc(d.legal || 'this business') : 'myself'}, and I agree to the <a class="text-link" href="#" onclick="return false">Provider terms</a>.</span></label>
+      <button type="button" class="btn btn-primary ob-cf-go" data-cfsubmit ${S.agree ? '' : 'disabled'}>Submit for verification${ico('check')}</button></div>`, 'ob-cf-modal');
+  }
+  document.addEventListener('change', e => {
+    if (!e.target.matches('[data-cfagree]')) return;
+    S.agree = e.target.checked; save();
+    const b = document.querySelector('[data-cfsubmit]'); if (b) b.disabled = !S.agree;
+  });
+  document.addEventListener('click', e => {
+    const g = e.target.closest('[data-cfgoto]');
+    if (g) { UPUI.closeModal(); go(+g.dataset.cfgoto); return; }
+    if (e.target.closest('[data-cfsubmit]') && S.agree) { UPUI.closeModal(); S.status = 'submitted'; save(); A.dir = 'fwd'; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  });
+
+  /* ---------- after submitting: under review ---------- */
+  function stepSubmitted() {
     const bits = Array.from({ length: 18 }, (_, k) => { const a = k / 18 * Math.PI * 2, r = 70 + (k % 3) * 22; return `<span style="--x:${Math.round(Math.cos(a) * r)}px;--y:${Math.round(Math.sin(a) * r)}px;--r:${k * 47}deg;--d:${(k % 4) * 40}ms" class="c${k % 4}"></span>`; }).join('');
     return `<div class="ob-done"><div class="ob-done-mark"><span class="ob-confetti" aria-hidden="true">${bits}</span><span class="ob-done-ic"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span></div>
-      <h1 class="ob-h1">You're all set, ${esc(firstName() || 'there')}!</h1>
-      <p class="ob-sub">Your profile is <b>under review</b>. We'll WhatsApp you on ${S.dial || country().dial} ${esc(fmtPhone(S.phone))} as soon as it's approved — usually within 1–2 business days.</p>
-      <ol class="ob-timeline"><li class="is-done" style="--i:0"><i>${ico('check')}</i><span><b>Application submitted</b><small>Details and documents received</small></span></li>
-        <li class="is-now" style="--i:1"><i>2</i><span><b>Compliance review</b><small>We verify your identity${isBiz(S) ? ' and licences' : ''}</small></span></li>
-        <li style="--i:2"><i>3</i><span><b>Profile live</b><small>Add ${S.v === 'spaces' ? 'listings' : 'services'} and receive leads by ${esc(S.channels.map(c => CHANNELS.find(x => x[0] === c)[1]).join(', '))}</small></span></li></ol>
-      <div class="ob-done-cta"><button class="btn btn-primary" data-act="first">${ico('plus')}Prepare your first ${S.v === 'spaces' ? 'listing' : 'service'}</button><a class="btn btn-outline" href="${PATHS.href.home}">Back to ${esc(SITE.name)}</a></div>
-      ${S.email ? `<p class="ob-done-note">A copy is on its way to <b>${esc(S.email)}</b> · <button class="text-link" data-act="restart">Start a new application</button></p>` : `<button class="text-link" data-act="restart">Start a new application</button>`}</div>`;
+      <h1 class="ob-h1">Application sent — we're on it</h1>
+      <p class="ob-sub">Thanks${firstName() ? ', ' + esc(firstName()) : ''}. There's nothing else to do for now — we'll WhatsApp you on ${S.dial || country().dial} ${esc(fmtPhone(S.phone))} as soon as there's a decision, usually in under 24 hours.</p>
+      <ol class="ob-timeline"><li class="is-done" style="--i:0"><i>${ico('check')}</i><span><b>Details checked</b><small>You confirmed what we read from your documents</small></span></li>
+        <li class="is-done" style="--i:1"><i>${ico('check')}</i><span><b>Application sent</b><small>We have everything we need</small></span></li>
+        <li class="is-now" style="--i:2"><i>3</i><span><b>Team review</b><small>We're checking your ${isBiz(S) ? 'licence and signatory ID' : 'ID'}</small></span></li>
+        <li style="--i:3"><i>4</i><span><b>You're approved</b><small>Then you can create your first ${esc(VERTICALS[S.v].label)} listing</small></span></li></ol>
+      <div class="ob-done-cta"><a class="btn btn-outline" href="${PATHS.href.home}">Back to ${esc(SITE.name)}</a></div>
+      ${S.email ? `<p class="ob-done-note">We've emailed a copy to <b>${esc(S.email)}</b></p>` : ''}</div>`;
   }
 
   /* ---------- progress: one line + three segments that fill as you answer ---------- */
   function partsDone(n) {
     const d = S.d;
-    if (n === 1) return [S.cats.length, S.role && !blockedIndividual(), d.city];
-    if (n === 2) return [d.photo, String(d.display || '').trim(), String(d.bio || '').trim().length >= 60, (d.langs || []).length, S.channels.length];
-    const docs = docsFor(S).filter(x => x[3]);
-    return [...docs.map(x => S.docs[x[0]]), ...docs.flatMap(x => docFields(x[0]).map(f => String(d[f[0]] || '').trim())), S.agree];
+    if (n === 1) return [S.cats.length, S.role, typeOf(S), ...(typeOf(S) ? typeOf(S).size.map(([k]) => S.d['size_' + k]) : [0])];
+    if (n === 2) return docsFor(S).filter(x => x.req).map(settled);
+    return [d.photo, String(d.display || '').trim(), String(d.bio || '').trim().length >= 60, (d.langs || []).length, S.channels.length];
   }
   const fillOf = n => n < S.step ? 1 : n > S.step ? 0 : (p => p.filter(Boolean).length / p.length)(partsDone(n));
   function stepSummary(n) {
-    const d = S.d, r = roleOf(S);
-    if (n === 1) return [r && r[1], VERTICALS[S.v].label, d.city].filter(Boolean).join(' · ');
-    if (n === 2) return [d.display, d.photo && 'photo'].filter(Boolean).join(' · ');
+    if (n === 1) return [VERTICALS[S.v].label, typeOf(S) ? typeOf(S).t : roleOf(S) && roleOf(S)[1]].filter(Boolean).join(' · ');
+    if (n === 2) return legalName() || '';
+    if (n === 3) return [S.d.display, S.d.photo && 'photo'].filter(Boolean).join(' · ');
     return '';
   }
   const progress = () => `<div class="ob-head"><div class="ob-progress"><span><b>Step ${S.step} of ${LAST}</b> · ${STEPS[S.step - 1][0]}</span><span>About ${MINUTES[S.step - 1]} min left</span></div>
@@ -306,19 +492,18 @@
       return `<li class="${st}"><${tag} ${n < S.step ? `type="button" data-goto="${n}" title="Edit ${t}"` : ''}><i><b style="width:${Math.round(A.fill[k] * 100)}%" data-w="${Math.round(fillOf(n) * 100)}%"></b></i><small>${n < S.step ? ico('check') : ''}${t}</small>${n < S.step && stepSummary(n) ? `<em>${esc(stepSummary(n))}</em>` : ''}</${tag}></li>`; }).join('')}</ol></div>`;
 
   /* ---------- live profile preview (right column) ---------- */
-  // same markup + styles as the agent card on the listing page (DM.agentCard), filled from the form
   function card() {
-    const d = S.d, biz = isBiz(S), sp = S.v === 'spaces';
-    const shown = d.display || (biz && d.company) || S.name || 'Your name';
+    const d = S.d, biz = isBiz(S);
+    const shown = d.display || (biz ? d.trade || d.legal : d.fullName) || S.name || 'Your name';
     const kind = kindOf();
     const hue = [...shown].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 140);
     const NATIVE = (window.DM && DM.NATIVE) || {};
     const langs = (d.langs || []).map(x => NATIVE[x] || x);
     const hours = (HOURS.find(h => h[0] === S.hours) || HOURS[1])[1];
     const has = c => S.channels.includes(c);
-    const footName = biz ? (d.display || d.company || 'Your company') : shown;
-    const footSub = sp ? ({ 'Real estate brokerage': 'Real estate broker L.L.C', 'Holiday home operator': 'Holiday home operator · DTCM', 'Private owner': 'Private owner' })[kind] || (biz ? 'Licensed company' : 'Private owner') : S.role === 'freelancer' ? 'Freelance permit' : kind;
-    const allLabel = S.v === 'spaces' ? (S.cats.length && S.cats.every(c => ['venue', 'court', 'yacht'].includes(c)) ? 'View all listings' : 'View all properties') : 'View all services';
+    const footName = biz ? (d.legal || d.display || 'Your company') : shown;
+    const footSub = biz ? [d.licence && 'Licence ' + d.licence, d.authority].filter(Boolean).join(' · ') || 'Licensed company' : 'Individual provider';
+    const allLabel = 'View all listings';
     const action = (icon, t, sub) => `<span class="agent-action">${ico(icon)}<span><b>${t}</b><small>${sub}</small></span>${ico('chevR', 'chevron')}</span>`;
     const alt = (cls, icon, t) => `<span class="agent-alt-action ${cls}">${icon}<span><b>${t}</b></span>${ico('chevR', 'chevron')}</span>`;
     const main = [has('call') && action('phone', 'Call', 'Direct call'), has('wa') && action('wa', 'WhatsApp', 'Chat instantly')].filter(Boolean);
@@ -328,7 +513,7 @@
         <div class="agent-cover"><svg viewBox="0 0 400 46" preserveAspectRatio="none"><path d="M0 46 L0 30 C90 2 170 4 250 22 C320 38 370 30 400 16 L400 46Z" fill="#fff"/></svg></div>
         <div class="agent-top">
           <div class="agent-avatar ${d.photo ? 'has-photo' : ''}" style="--hue:${hue}">${d.photo ? `<img src="${d.photo}" alt="">` : esc(initials(shown) || '?')}<span class="agent-online"></span></div>
-          <div class="agent-info"><div class="agent-name"><span>${esc(shown)}</span>${S.done ? `<span class="agent-verified">${ico('badge')}</span>` : ''}</div>
+          <div class="agent-info"><div class="agent-name"><span>${esc(shown)}</span>${S.status === 'verified' ? `<span class="agent-verified">${ico('badge')}</span>` : ''}</div>
             <div class="agent-org">${esc(kind || 'Individual or company?')}</div></div>
         </div>
         <div class="agent-stats">
@@ -340,40 +525,45 @@
           ${main.length ? `<div class="agent-actions">${main.join('')}</div>` : ''}
           ${alts.length ? `<div class="agent-more">${main.length ? 'More ways to contact' : 'Contact'}</div><div class="agent-alt-actions">${alts.join('')}</div>` : ''}
         </div>
-        <div class="agent-footer"><span class="agent-logo">${ico(S.v === 'spaces' ? 'office' : 'shop')}</span><span class="agent-agency"><b>${esc(footName)}</b><small>${esc(footSub)}</small></span><span class="agent-view-all">${allLabel}${ico('chevR')}</span></div>
+        <div class="agent-footer"><span class="agent-logo">${ico(biz ? 'office' : 'user')}</span><span class="agent-agency"><b>${esc(footName)}</b><small>${esc(footSub)}</small></span><span class="agent-view-all">${allLabel}${ico('chevR')}</span></div>
       </div>`;
   }
   function preview() {
-    const docs = docsFor(S), up = docs.filter(x => x[3] && S.docs[x[0]]).length, need = docs.filter(x => x[3]).length;
+    const docs = docsFor(S).filter(x => x.req), ok = docs.filter(settled).length;
+    const status = S.status === 'submitted' ? `${ico('shield')}In review — your “Verified” badge appears once you're approved`
+      : `${ico('shield')}Documents checked · ${ok}/${docs.length || '—'}<span class="ob-mini"><span style="width:${docs.length ? Math.round(ok / docs.length * 100) : 0}%"></span></span>`;
     return `<div class="ob-preview"><div class="ob-preview-h">${ico('eye')}Live preview<span>Updates as you type</span></div>
       ${card()}
-      <div class="ob-card-status ${S.done ? 'is-review' : ''}">${ico('shield')}${S.done ? 'Under review — your “Verified by ' + esc(SITE.name) + '” badge appears once approved' : `Verification · ${up}/${need} required documents`}<span class="ob-mini"><span style="width:${need ? Math.round(up / need * 100) : 0}%"></span></span></div>
-      <ul class="ob-why"><li>${ico('bolt')}<span><b>Leads in minutes</b>Customers call or WhatsApp you directly.</span></li>
-        <li>${ico('tag')}<span><b>No commission</b>Free to list. You agree prices with the customer.</span></li>
-        <li>${ico('shield')}<span><b>Verified badge</b>Verified profiles get up to 3× more enquiries.</span></li></ul></div>`;
+      <div class="ob-card-status ${S.status === 'submitted' ? 'is-review' : ''}">${status}</div>
+      <ul class="ob-why"><li>${ico('shield')}<span><b>Verified once</b>One verification covers every category you list in.</span></li>
+        <li>${ico('bolt')}<span><b>Leads in minutes</b>Customers call or WhatsApp you directly.</span></li>
+        <li>${ico('tag')}<span><b>Deal directly</b>You agree prices and payments with the customer.</span></li></ul></div>`;
   }
 
   /* ---------- validation ---------- */
   function validate(step) {
     const e = {}, d = S.d;
     if (step === 1) {
-      if (!S.cats.length) e.cats = 'Pick at least one thing you will list';
-      else if (!S.role) e.role = 'Choose individual or company';
-      else if (blockedIndividual()) e.role = 'Individuals can’t list only venues, courts or yachts — choose Company';
-      else if (!String(d.city || '').trim()) e.city = 'Enter the city you work in';
+      if (!S.cats.length) e.cats = 'Choose at least one thing you offer';
+      else if (!S.role) e.role = 'Choose individual or company to continue';
+      else if (!typeOf(S)) e.sub = 'Choose what best describes you';
+      else {
+        typeOf(S).size.forEach(([k]) => { if (!S.d['size_' + k]) e['size_' + k] = 'Pick one'; });
+        if (!String(S.d.city || '').trim()) e.city = 'Choose the city your business is based in';
+      }
     }
-    if (step === 2) {
-      if (!String(d.display || '').trim()) e.display = 'Add the name customers will see';
-      if (String(d.bio || '').trim().length < 60) e.bio = 'Write at least 60 characters — or tap “Write it for me”';
-      if (!(d.langs || []).length) e.langs = 'Pick at least one language';
-      if (!S.channels.length) e.channels = 'Choose at least one way to be contacted';
-    }
+    if (step === 2) docsFor(S).forEach(doc => {
+      const f = S.docs[doc.id];
+      if (!f) { if (doc.req && !doc.later) e['doc_' + doc.id] = 'Upload this document to continue'; return; }
+      if (f.state !== 'read') return;
+      doc.fields.forEach(([k, , kind]) => { if (!String(d[k] || '').trim()) e[k] = 'Add this detail'; else if (kind === 'date' && expired(d[k])) e[k] = 'This date has passed — upload a current document'; });
+      if (!f.ok) e['ok_' + doc.id] = 'Tick the box once you’ve checked these details';
+    });
     if (step === 3) {
-      docsFor(S).forEach(([id, , , req]) => {
-        if (req && !S.docs[id]) e['doc_' + id] = 'Upload this document';
-        if (req || S.docs[id]) docFields(id).forEach(([k]) => { if (!String(d[k] || '').trim()) e[k] = 'Required'; });
-      });
-      if (!S.agree) e.agree = 'Please confirm to submit';
+      if (!String(d.display || '').trim()) e.display = 'Add the name customers will see';
+      if (String(d.bio || '').trim().length < 60) e.bio = 'Add a little more — at least 60 characters, or tap “Write it for me”';
+      if (!(d.langs || []).length) e.langs = 'Add at least one language';
+      if (!S.channels.length) e.channels = 'Choose at least one way customers can reach you';
     }
     return e;
   }
@@ -381,7 +571,7 @@
   /* ---------- in-place update ----------
      A click inside a step changes a few classes and texts, so the new markup is merged into the page instead of
      replacing it: nothing re-animates or reloads (images, entrance fades), CSS transitions run, focus and scroll stay. */
-  const keyOf = n => n.nodeType === 1 && (n.id || n.dataset.sec || n.dataset.docid) || '';
+  const keyOf = n => n.nodeType === 1 && (n.id || n.dataset.sec || n.dataset.docid) ? n.tagName + ':' + (n.id || n.dataset.sec || n.dataset.docid) + ':' + (n.className.split(' ')[0] || '') : '';
   const sameKind = (a, b) => a.nodeType === b.nodeType && (a.nodeType !== 1 || a.tagName === b.tagName);
   function morph(from, to) {
     if (from.nodeType === 3 || from.nodeType === 8) { if (from.nodeValue !== to.nodeValue) from.nodeValue = to.nodeValue; return; }
@@ -431,19 +621,21 @@
   }
   function draw(locked) {
     const scroller = root.querySelector('.ob-scroll'), keep = !A.dir && scroller ? scroller.scrollTop : 0, winY = scrollY;
+    const before = new Set([...root.querySelectorAll('.ob-step [data-sec]')].map(x => x.dataset.sec));
     if (A.dir) A.entering = true;
     A.revealed = '';
-    const body = S.done ? stepDone() : [stepBusiness, stepProfile, stepVerify][S.step - 1]();
+    const flow = S.status === 'draft', done = !flow;
+    const body = S.status === 'submitted' ? stepSubmitted() : [stepBusiness, stepVerify, stepProfile][S.step - 1]();
     const pv = preview();
-    const wasDone = !!root.querySelector('.ob-done');
-    paint(`<div class="ob-grid ${S.done ? 'is-done' : ''} ${locked ? 'is-locked' : ''}"><main class="ob-main">
-      ${S.done ? '' : progress()}
-      <div class="ob-panel ${S.done ? 'is-done' : ''}"><div class="ob-scroll"><div class="ob-step ${A.dir ? 'is-in-' + A.dir : ''}">${body}</div></div>
-        ${S.done ? '' : `<div class="ob-nav">${S.step > 1 ? `<button type="button" class="btn btn-ghost" data-act="back">${ico('chevL')}Back</button>` : '<span></span>'}
-          <span class="ob-save ${A.saved ? 'is-on' : ''}">${ico('check')}Saved</span>
-          ${locked ? `<button type="button" class="btn btn-primary ob-next" data-act="signin">Sign in to start${ico('chevR')}</button>` : `<button type="button" class="btn btn-primary ob-next" data-act="next">${S.step === LAST ? 'Submit for review' : 'Continue'}${ico(S.step === LAST ? 'check' : 'chevR')}</button>`}</div>`}</div>
+    const wasMode = root.firstElementChild && root.firstElementChild.dataset.mode;
+    paint(`<div class="ob-grid ${done ? 'is-done' : ''} ${locked ? 'is-locked' : ''}" data-mode="${S.status}"><main class="ob-main">
+      ${flow ? progress() : ''}
+      <div class="ob-panel ${done ? 'is-done' : ''}"><div class="ob-scroll"><div class="ob-step ${A.dir ? 'is-in-' + A.dir : ''}">${body}</div></div>
+        ${done ? '' : `<div class="ob-nav">${S.step > 1 ? `<button type="button" class="btn btn-ghost" data-act="back">${ico('chevL')}Back</button>` : '<span></span>'}
+          <span class="ob-save ${A.saved ? 'is-on' : ''}">${ico('check')}Draft saved</span>
+          ${locked ? `<button type="button" class="btn btn-primary ob-next" data-act="signin">Continue with your mobile${ico('chevR')}</button>` : `<button type="button" class="btn btn-primary ob-next" data-act="next">${S.step === LAST ? 'Submit for verification' : 'Continue'}${ico(S.step === LAST ? 'check' : 'chevR')}</button>`}</div>`}</div>
     </main>
-      <aside class="ob-aside ${previewOpen ? 'is-open' : ''}"><button type="button" class="ob-preview-toggle" data-act="preview">${ico('eye')}<span>${previewOpen ? 'Hide profile preview' : 'Preview your profile'}</span>${ico('chev')}</button>${pv}</aside></div>`, !!A.dir || wasDone !== !!S.done);
+      <aside class="ob-aside ${previewOpen ? 'is-open' : ''}"><button type="button" class="ob-preview-toggle" data-act="preview">${ico('eye')}<span>${previewOpen ? 'Hide profile preview' : 'Preview your profile'}</span>${ico('chev')}</button>${pv}</aside></div>`, !!A.dir || (wasMode && wasMode !== S.status));
     // motion: keep the reading position, fill the bar, spring the control just picked, bring a new part into view
     const sc = root.querySelector('.ob-scroll');
     if (sc && keep) sc.scrollTop = keep;
@@ -452,7 +644,18 @@
     requestAnimationFrame(() => requestAnimationFrame(() => bars.forEach(b => { b.style.width = b.dataset.w; })));
     A.fill = STEPS.map((_, k) => fillOf(k + 1));
     if (A.pop) { const p = root.querySelector(A.pop); if (p) p.classList.add('is-pop'); }
-    if (A.revealed && !calm.matches) { const r = root.querySelector(`[data-sec="${A.revealed}"]`); if (r) setTimeout(() => r.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 120); }
+    // a question that just opened (after an answer, same step): bring it into view inside the card (or the page on phones)
+    const opened = !A.dir && before.size ? [...root.querySelectorAll('.ob-step [data-sec]')].find(x => !before.has(x.dataset.sec)) : null;
+    if (opened) setTimeout(() => {
+      const box = root.querySelector('.ob-scroll'), inner = box && getComputedStyle(box).overflowY === 'auto';
+      const behavior = calm.matches ? 'auto' : 'smooth';
+      if (inner) {
+        const r = opened.getBoundingClientRect(), b = box.getBoundingClientRect();
+        // show the whole new section if it fits, otherwise its top
+        const gap = 16, over = r.bottom - b.bottom + gap;
+        if (over > 0 || r.top < b.top) box.scrollBy({ top: Math.min(over > 0 ? over : r.top - b.top - gap, r.top - b.top - gap), behavior });
+      } else opened.scrollIntoView({ block: 'nearest', behavior });
+    }, 140);
     if (A.preview && A.preview !== pv && !A.dir) { const c = root.querySelector('.ob-preview .agent-card'); if (c) c.classList.add('is-bump'); }
     fitBio();
     A.preview = pv; A.pop = ''; A.dir = ''; A.entering = false; A.saved = false;
@@ -482,7 +685,7 @@
       return;
     }
     if (S.step < LAST) return go(S.step + 1);
-    S.done = true; save(); A.dir = 'fwd'; render(); window.scrollTo({ top: 0, behavior: 'smooth' });
+    confirmSubmit();
   }
 
   // "Write it for me": the draft types itself in
@@ -513,14 +716,31 @@
     };
     img.src = url;
   }
-  // a short upload bar, then the file row with its check
+  // upload → read the document → fill what was found (never over something the provider typed) → provider confirms
   function setDoc(id, f) {
-    const kb = f.size / 1024;
-    S.docs[id] = { name: f.name, size: kb > 1024 ? (kb / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(kb)) + ' KB' };
+    const kb = f.size / 1024, doc = docsFor(S).find(x => x.id === id); if (!doc) return;
+    S.docs[id] = { name: f.name, size: kb > 1024 ? (kb / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(kb)) + ' KB', state: 'scan', ok: false };
     delete errors['doc_' + id];
-    if (calm.matches) return commit(`[data-docid="${id}"]`);
-    A.uploading[id] = true; save(); render();
-    setTimeout(() => { delete A.uploading[id]; commit(`[data-docid="${id}"]`); }, 900);
+    save(); render();
+    if (calm.matches) readInto(id); else setTimeout(() => readInto(id), 1700);
+  }
+  function readInto(id) {
+    const doc = docsFor(S).find(x => x.id === id);
+    if (!doc || !S.docs[id] || S.docs[id].state !== 'scan') return;
+    const got = readDoc(id); S.orig = S.orig || {};
+    doc.fields.forEach(([k, , kind]) => {
+      let v = got[k] == null ? '' : String(got[k]); const unsure = v.startsWith('?'); if (unsure) v = v.slice(1);
+      if (kind === 'date' || kind === 'issued') v = isoDate(v);
+      if (S.src[k] && S.orig[k] !== S.d[k] && S.d[k]) return; // keep the provider's own edit
+      S.d[k] = v; S.orig[k] = v; S.src[k] = !v ? 'missing' : unsure ? 'check' : 'doc';
+    });
+    S.docs[id].state = 'read'; commit(`[data-docid="${id}"]`);
+  }
+
+  // the name on the confirmed ID becomes the account name (providers don't type it at sign-up)
+  function nameFromId() {
+    const full = String(S.d.fullName || S.d.sigName || '').trim(); if (!full || !auth.setName) return;
+    const parts = full.split(/\s+/); auth.setName(parts[0], parts.slice(1).join(' '));
   }
 
   /* ---------- events ---------- */
@@ -533,53 +753,37 @@
     if (k === 'bio') { const c = root.querySelector('[data-bio-count]'), v = e.target.value; if (c) { c.textContent = v.length < 60 ? `${v.length}/60 min` : `${v.length}/600`; c.classList.toggle('is-ok', v.trim().length >= 60); } }
     if (k === 'display') { const ini = root.querySelector('.ob-avatar-ini'); if (ini) ini.textContent = initials(e.target.value || S.name) || '?'; }
   });
+  // leaving a document field: refresh its "From document / Edited" tag
+  root.addEventListener('focusout', e => { if (e.target.closest && e.target.closest('.ob-xf')) render(); });
   root.addEventListener('change', e => {
     const t = e.target;
-    if (t.matches('select[data-k]')) { S.d[t.dataset.k] = t.value; delete errors[t.dataset.k]; commit(); return; }
+    if (t.matches('[data-city]')) { A.otherCity = t.value === '__other'; S.d.city = A.otherCity ? '' : t.value; delete errors.city; commit(); if (A.otherCity) { const c = root.querySelector('[data-cityin]'); if (c) c.focus(); } return; }
+    if (t.matches('[data-cityin]')) { S.d.city = t.value.trim(); delete errors.city; commit(); return; }
     if (t.matches('[data-country]')) {
-      // a new country changes the ID, licences and cities: start those parts again
-      S.country = t.value; Object.assign(S.d, { city: '', areas: [], auth: '', orn: '', licence: '' }); A.otherCity = false; A.areasOpen = false;
-      errors = {}; commit(); return;
+      // another country means other ID and licence documents: start the documents again
+      S.country = t.value; S.d.city = ''; A.otherCity = false; S.docs = {}; S.src = {}; errors = {}; commit(); return;
     }
-    if (t.matches('#ob-city')) { setCity(t.value); return; }
     if (t.matches('[data-langinput]')) { if (LANGS.some(l => l.toLowerCase() === t.value.trim().toLowerCase())) addLang(t.value); return; }
-    if (t.matches('[data-agree]')) { S.agree = t.checked; delete errors.agree; const l = t.closest('.ob-check'); l.classList.remove('has-error'); const m = l.nextElementSibling; if (m && m.matches('.ob-err')) m.remove(); save(); flashSaved(); refreshPreview(); const fill = root.querySelector('.ob-seg li.is-now [data-w]'); if (fill) fill.style.width = Math.round(fillOf(S.step) * 100) + '%'; return; }
+    if (t.matches('[data-docok]')) { const f = S.docs[t.dataset.docok]; if (f) { f.ok = t.checked; delete A.open[t.dataset.docok]; if (t.checked && ['eid', 'sig'].includes(t.dataset.docok)) nameFromId(); delete errors['ok_' + t.dataset.docok]; commit(`[data-docid="${t.dataset.docok}"]`); } return; }
     if (t.matches('[data-doc]') && t.files[0]) setDoc(t.dataset.doc, t.files[0]);
     if (t.matches('[data-photo]') && t.files[0]) setPhoto(t.files[0]);
   });
   root.addEventListener('toggle', e => { if (e.target.matches('.ob-more')) A.optOpen = e.target.open; }, true);
-  const MAX_AREAS = 8;
-  function setCity(v) { v = String(v).trim(); if (v !== S.d.city) { Object.assign(S.d, { city: v, areas: [] }); A.areasOpen = false; } delete errors.city; commit(); }
-  function addArea(v) {
-    v = String(v).trim().replace(/\s+/g, ' '); if (!v) return;
-    const cur = S.d.areas || [];
-    if (cur.some(a => a.toLowerCase() === v.toLowerCase())) return;
-    if (cur.length >= MAX_AREAS) { toast(`Up to ${MAX_AREAS} areas — or leave them empty to cover the whole city`); return; }
-    S.d.areas = [...cur, v]; delete errors.areas; commit();
-    const i = document.getElementById('ob-area'); if (i) i.focus({ preventScroll: true });
-  }
   // drag a file onto a document
-  root.addEventListener('dragover', e => { const d = e.target.closest('.ob-doc, .ob-avatar-up'); if (!d) return; e.preventDefault(); d.classList.add('is-drag'); });
-  root.addEventListener('dragleave', e => { const d = e.target.closest('.ob-doc, .ob-avatar-up'); if (d && !d.contains(e.relatedTarget)) d.classList.remove('is-drag'); });
+  root.addEventListener('dragover', e => { const d = e.target.closest('.ob-doc, .ob-avatar-up, .ob-main-up, .ob-need'); if (!d) return; e.preventDefault(); d.classList.add('is-drag'); });
+  root.addEventListener('dragleave', e => { const d = e.target.closest('.ob-doc, .ob-avatar-up, .ob-main-up, .ob-need'); if (d && !d.contains(e.relatedTarget)) d.classList.remove('is-drag'); });
   root.addEventListener('drop', e => {
-    const d = e.target.closest('.ob-doc, .ob-avatar-up'); if (!d) return; e.preventDefault(); const f = e.dataTransfer.files[0]; if (!f) return;
+    const d = e.target.closest('.ob-doc, .ob-avatar-up, .ob-main-up, .ob-need'); if (!d) return; e.preventDefault(); const f = e.dataTransfer.files[0]; if (!f) return;
     if (d.matches('.ob-avatar-up')) setPhoto(f); else setDoc(d.dataset.docid, f);
   });
   root.addEventListener('keydown', e => {
-    const i = e.target.closest('[data-areainput]');
-    if (i) {
-      if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addArea(i.value); }
-      else if (e.key === 'Backspace' && !i.value && (S.d.areas || []).length) { S.d.areas = S.d.areas.slice(0, -1); commit(); document.getElementById('ob-area').focus(); }
-      return;
-    }
     if (e.target.matches('[data-langinput]')) {
       if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addLang(e.target.value); }
       else if (e.key === 'Backspace' && !e.target.value && (S.d.langs || []).length) { S.d.langs = S.d.langs.slice(0, -1); commit(); const i = document.getElementById('ob-lang'); if (i) i.focus(); }
       return;
     }
-    if (e.key === 'Enter' && e.target.id === 'ob-city') { e.preventDefault(); setCity(e.target.value); return; }
     // Enter in a field: continue
-    if (e.key === 'Enter' && !e.defaultPrevented && e.target.tagName === 'INPUT' && !e.target.matches('#ob-city, [type=checkbox]')) { e.preventDefault(); next(); }
+    if (e.key === 'Enter' && !e.defaultPrevented && e.target.tagName === 'INPUT' && !e.target.matches('[type=checkbox]') && S.status === 'draft') { e.preventDefault(); next(); }
   });
   root.addEventListener('animationend', e => { if (e.target.classList) e.target.classList.remove('is-pop', 'is-bump', 'is-shake'); });
   function signIn() { auth.open({ intent: 'provider', onDone: () => { A.dir = 'fwd'; render(); } }); }
@@ -595,24 +799,37 @@
       else if (a === 'preview') { previewOpen = !previewOpen; render(); }
       else if (a === 'signin') signIn();
       else if (a === 'starter') typeAbout(aboutStarter());
-      else if (a === 'othercity') { A.otherCity = true; if (Object.keys(M().cities).includes(S.d.city)) { S.d.city = ''; S.d.areas = []; } commit('[data-act="othercity"]'); const c = document.getElementById('ob-city'); if (c) c.focus(); }
-      else if (a === 'areas') { A.areasOpen = true; render(); const i = document.getElementById('ob-area'); if (i) i.focus({ preventScroll: true }); }
       else if (a === 'rmphoto') { delete S.d.photo; commit(); }
-      else if (a === 'first') toast('The listing editor opens once your profile is approved');
-      else if (a === 'restart') { try { localStorage.removeItem(KEY); } catch (er) {} S = fresh(); errors = {}; A.seen.clear(); A.dir = 'fwd'; render(); }
       return;
     }
     if ((x = b('[data-goto]'))) return go(+x.dataset.goto);
-    if ((x = b('[data-city]'))) { A.otherCity = false; return setCity(x.dataset.city); }
-    if ((x = b('[data-addarea]'))) return addArea(x.dataset.addarea);
-    if ((x = b('[data-rmarea]'))) { S.d.areas = S.d.areas.filter(a => a !== x.dataset.rmarea); commit(); return; }
     if ((x = b('[data-vert]'))) {
       const v = x.dataset.vert;
-      if (S.v !== v) { S.v = v; S.role = rolesOf(v).length === 1 ? rolesOf(v)[0][0] : ''; S.cats = []; [...A.seen].forEach(k => k.startsWith('1:') && k !== '1:what' && k !== '1:list' && A.seen.delete(k)); }
-      delete errors.role; commit(`[data-vert="${v}"]`); return;
+      // another kind of business: other offers, maybe other documents (company-only verticals, sector licence)
+      if (S.v !== v) {
+        S.v = v; S.cats = []; S.sub = '';
+        if (COMPANY_ONLY.includes(v)) { if (S.role !== 'company') { S.docs = {}; S.src = {}; } S.role = 'company'; }
+        delete S.docs.sector;
+        [...A.seen].forEach(k => k.startsWith('1:') && k !== '1:what' && k !== '1:list' && A.seen.delete(k));
+      }
+      delete errors.cats; commit(`[data-vert="${v}"]`); return;
     }
-    if ((x = b('[data-role]'))) { S.role = x.dataset.role; delete errors.role; commit(`[data-role="${S.role}"]`); return; }
-    if ((x = b('[data-cat]'))) { const c = x.dataset.cat; S.cats = S.cats.includes(c) ? S.cats.filter(y => y !== c) : [...S.cats, c]; delete errors.cats; commit(`[data-cat="${c}"]`); return; }
+    if ((x = b('[data-docedit]'))) { A.open[x.dataset.docedit] = true; render(); return; }
+    if ((x = b('[data-cat]'))) {
+      const c = x.dataset.cat; S.cats = S.cats.includes(c) ? S.cats.filter(y => y !== c) : [...S.cats, c];
+      if (companyOnly(S) && S.role !== 'company') { S.role = 'company'; S.sub = ''; S.docs = {}; S.src = {}; }
+      delete errors.cats; commit(`[data-cat="${c}"]`); return;
+    }
+    if ((x = b('[data-sub]'))) {
+      if (S.sub !== x.dataset.sub) { S.sub = x.dataset.sub; S.docs = {}; S.src = {}; }
+      delete errors.sub; commit(`[data-sub="${S.sub}"]`); return;
+    }
+    if ((x = b('[data-size]'))) { S.d['size_' + x.dataset.size] = x.dataset.v; delete errors['size_' + x.dataset.size]; commit(`[data-size="${x.dataset.size}"][data-v="${x.dataset.v}"]`); return; }
+    if ((x = b('[data-role]'))) {
+      // another type means other documents
+      if (S.role !== x.dataset.role) { S.role = x.dataset.role; S.sub = ''; S.docs = {}; S.src = {}; }
+      delete errors.role; commit(`[data-role="${S.role}"]`); return;
+    }
     if ((x = b('[data-addlang]'))) return addLang(x.dataset.addlang);
     if ((x = b('[data-rmlang]'))) { S.d.langs = (S.d.langs || []).filter(l => l !== x.dataset.rmlang); commit(); return; }
     if ((x = b('[data-ch]'))) { const c = x.dataset.ch; S.channels = S.channels.includes(c) ? S.channels.filter(y => y !== c) : [...S.channels, c]; delete errors.channels; commit(`[data-ch="${c}"]`); return; }
@@ -621,5 +838,7 @@
 
   document.addEventListener('upnow:auth', () => render());
   render();
+  // a document still being read when the page was left: finish reading it
+  Object.keys(S.docs).forEach(id => { if (S.docs[id].state === 'scan') setTimeout(() => readInto(id), 900); });
   if (!auth.user()) signIn();
 })();
