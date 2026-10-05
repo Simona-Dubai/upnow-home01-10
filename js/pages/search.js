@@ -25,9 +25,13 @@ UPUI.bindHeader();
 const bar = UPF.SearchBar(document.getElementById("sb"), S, {
   mode: "bar",
   onChange: () => update(),
-  onSubmit: () => update(),
+  onSubmit: () => {
+    update();
+    closeSheet();
+  },
   onFilters: () => openDrawer(),
 });
+const PHONE = matchMedia("(max-width: 700px)");
 
 function update(push = true) {
   const q = toQuery(S);
@@ -171,7 +175,10 @@ function openDrawer() {
   drawer.classList.add("is-active");
   dscrim.classList.add("is-active");
 }
-document.addEventListener("upnow:escape", () => closeDrawer());
+document.addEventListener("upnow:escape", () => {
+  closeDrawer();
+  closeSheet();
+});
 function closeDrawer() {
   drawer.classList.remove("is-active");
   dscrim.classList.remove("is-active");
@@ -196,7 +203,7 @@ function paintDrawer() {
       : "";
   const extra = O.optional;
   const nSet = extra.filter((d) => !d.required && !empty(S.f[d.id])).length;
-  drawer.innerHTML = `<div class="filter-drawer-header"><div style="flex:1"><h3>${t("Filters")}${nSet ? ` <span class="filter-drawer-count">${nSet}</span>` : ""}</h3><div style="color:var(--color-text-muted);font-size:12.5px;margin-top:2px">${esc(O.label)} · priced ${esc(O.basis)}</div></div><button class="close-btn" aria-label="Close" data-dclose>${ico("x")}</button></div>
+  drawer.innerHTML = `<div class="filter-drawer-header"><div style="flex:1"><h3>${t("Filters")}${nSet ? ` <span class="filter-drawer-count">${nSet}</span>` : ""}</h3><div style="color:var(--color-text-muted);font-size:12.5px;margin-top:2px">${esc(O.label)} · priced ${esc(O.basis)}</div></div><button class="close-btn" aria-label="Close" data-dclose>${ico("x")}</button><button class="text-link m-reset" data-dreset>Reset</button></div>
     <div class="filter-drawer-body">
       ${sec("", extra.filter((d) => d.type !== "toggle"))}
       ${sec("Only show", extra.filter((d) => d.type === "toggle"))}
@@ -270,6 +277,8 @@ function mapHTML(list) {
     const n = UPUI.priceOf(l, S);
     return n >= 1000 ? UP.K(n) : n;
   };
+  // phone: the docked listing's pin is the highlighted one
+  const hl = PHONE.matches ? ((list.find((l) => l.id === hlId) || list[0] || {}).id) : hlId;
   return `<div class="map-panel"><svg class="map-base" viewBox="0 0 100 100" preserveAspectRatio="none">
       <path d="M0 0 L100 0 L100 8 C 80 10, 60 14, 40 22 C 25 28, 10 40, 0 48 Z" fill="#cfe3ea"/>
       ${[20, 40, 60, 80].map((x) => `<line x1="${x}" y1="0" x2="${x - 10}" y2="100" stroke="#fff" stroke-width=".6"/>`).join("")}
@@ -284,7 +293,7 @@ function mapHTML(list) {
             .slice(0, 3)
             .map(
               (l, i) =>
-                `<div class="map-pin ${hlId === l.id ? "is-highlighted" : ""}" data-pin="${l.id}" style="left:${a.x + (i - (Math.min(ls.length, 3) - 1) / 2) * 6}%;top:${a.y - (i % 2) * 2}%">${pp(l)}</div>`,
+                `<div class="map-pin ${hl === l.id ? "is-highlighted" : ""}" data-pin="${l.id}" style="left:${a.x + (i - (Math.min(ls.length, 3) - 1) / 2) * 6}%;top:${a.y - (i % 2) * 2}%">${pp(l)}</div>`,
             )
             .join("") +
           (ls.length > 3
@@ -293,7 +302,15 @@ function mapHTML(list) {
         );
       })
       .join("")}
-    <div class="map-note">${list.length} results · ${UPUI.prefs.cur} · illustrative map</div></div>`;
+    <div class="map-note">${list.length} results · ${UPUI.prefs.cur} · illustrative map</div>${mapDock(list)}</div>`;
+}
+// phone: the selected (or first) result docked at the bottom of the full-height map; hidden above 700px
+function mapDock(list) {
+  const l = list.find((x) => x.id === hlId) || list[0];
+  if (!l) return "";
+  const pt = UPUI.priceText(l, S);
+  return `<a class="map-dock" href="${PATHS.href.listing}?id=${l.id}" data-id="${l.id}">${UPUI.photo(l, 0)}<span><b>${pt.n}<small>${esc(pt.u)}</small></b><span class="map-dock-title">${esc(l.title)}</span><small>${ico("pin")}${esc(UPUI.locText(l))}</small></span>
+    <button class="fav-btn ${UPUI.favs.has(l.id) ? "is-active" : ""}" data-fav="${l.id}" aria-label="Save ${esc(l.title)}">${ico("heart")}</button></a>`;
 }
 
 // one concierge banner per page: after the first two grid rows (12 results), or after the last result on short pages
@@ -332,7 +349,7 @@ function paint() {
   const sortEl = document.getElementById("sort");
   sortEl.innerHTML = UPUI.SORTS.map(
     ([k, l]) =>
-      `<option value="${k}" ${S.sort === k ? "selected" : ""}>Sort: ${l}</option>`,
+      `<option value="${k}" ${S.sort === k ? "selected" : ""}>${PHONE.matches ? "" : "Sort: "}${l}</option>`,
   ).join("");
   sortEl.onchange = () => {
     S.sort = sortEl.value;
@@ -395,7 +412,18 @@ function paint() {
             ]);
         }
       });
-    body = `<div class="results-empty">${ico("search")}<h3>No exact matches</h3><p>Try widening your search — these would show results:</p><div class="option-chips">${
+    const nf = act.length + S.loc.length;
+    const mrelax = relax.length
+      ? `<div class="m-relax"><p>You're one change away</p>${relax
+          .slice(0, 4)
+          .map(([tx, k]) => {
+            const m = tx.match(/^(.*) \((\d+)\)$/);
+            const n = m ? +m[2] : k === "*loc" ? results({ ...S, loc: [] }).length : 0;
+            return `<button type="button" data-rm="${k}"><span>${esc(m ? m[1] : tx)}</span>${n ? `<em>+${n}</em>` : ""}</button>`;
+          })
+          .join("")}</div>`
+      : `<div class="m-relax"><button type="button" data-rm="*"><span>Clear all filters</span></button></div>`;
+    body = `<div class="results-empty"><div class="m-empty-ico">${ico("search")}</div><h3 class="m-empty-h">${nf > 1 ? `No results match all ${nf} filters` : "No exact matches"}</h3>${mrelax}${O ? `<button type="button" class="btn btn-outline m-empty-alert" data-alert>${ico("bell")}Alert me when one lists</button>` : ""}${ico("search")}<h3>No exact matches</h3><p>Try widening your search — these would show results:</p><div class="option-chips">${
       relax
         .slice(0, 4)
         .map(
@@ -408,7 +436,10 @@ function paint() {
   } else if (view === "list") {
     body = `<div class="row-list">${withConcierge(list.map(row))}</div>`;
   } else {
-    body = `<div class="compact-grid">${withConcierge(list.map((l) => UPUI.card(l, S)))}</div>`;
+    const cards = list.map((l) => UPUI.card(l, S, { acts: 1 }));
+    // phone only (hidden above 700px): kept inside the first item so the concierge position doesn't move
+    if (offer(S)) cards[0] += `<button type="button" class="m-alert" data-alert>${ico("bell")}<span><b>Be first to new matches</b><small>We'll WhatsApp you when one lists</small></span><em>Alert me</em></button>`;
+    body = `<div class="compact-grid">${withConcierge(cards)}</div>`;
   }
   const pager =
     pages > 1
@@ -420,8 +451,116 @@ function paint() {
   aside.style.display = view === "map" ? "" : "none";
   paintSave();
   paintSeo();
+  paintPhone(O, all);
   UPUI.updateHdrCounts();
 }
+
+/* ---- phone (≤700px): summary pill + chip row on top, count row, Map pill, full-screen search sheet ----
+   all of this markup is display:none above 700px (css/pages/search.css) */
+const msearch = document.getElementById("msearch"),
+  ssearch = document.getElementById("ssearch"),
+  mmap = document.getElementById("mmap");
+let lastView = S.view === "map" ? "grid" : S.view;
+// a bare number ("2", "Studio, 1", "5+") reads better with its label: "2 bedrooms"
+const mVal = (d, val) => {
+  const v = valueLabel(d, val);
+  return v && /^(studio|[\d+]+)([,\s]+(studio|[\d+]+))*( \+\d+)?$/i.test(v) ? `${v} ${d.label.toLowerCase()}` : v;
+};
+function summary(O) {
+  const where = S.loc.length
+    ? S.loc.map(areaName).slice(0, 2).join(", ") + (S.loc.length > 2 ? " +" + (S.loc.length - 2) : "")
+    : "Dubai";
+  const l1 = [S.q ? `“${S.q}”` : where, O ? O.label : "Everything"].join(" · ");
+  if (!O) return [l1, "Search anything — homes, services, experiences…"];
+  const main = O.fields.filter((f) => f !== "loc").map((f) => O.def(f)).filter(Boolean);
+  const set = main.map((d) => mVal(d, S.f[d.id])).filter(Boolean);
+  const more = O.optional.filter((d) => !d.required && !empty(S.f[d.id])).length;
+  if (S.q) set.unshift(where);
+  if (more) set.push(`+${more} filter${more > 1 ? "s" : ""}`);
+  return [l1, set.length ? set.join(" · ") : main.map((d) => d.label).join(" · ")];
+}
+function paintPhone(O, all) {
+  const [l1, l2] = summary(O);
+  const nSet = O ? O.optional.filter((d) => !d.required && !empty(S.f[d.id])).length : 0;
+  let chips = "";
+  if (O) {
+    chips =
+      `<button type="button" class="chip m-filters-chip ${nSet ? "is-set" : ""}" data-mf>${ico("sliders")}${t("Filters")}${nSet ? ` · ${nSet}` : ""}</button>` +
+      O.fields
+        .filter((f) => f !== "loc")
+        .map((f) => O.def(f))
+        .filter(Boolean)
+        .map((d) => {
+          const v = mVal(d, S.f[d.id]);
+          return `<button type="button" class="chip ${v && !d.required ? "is-active" : ""}" data-mfield="${d.id}">${esc(v && !d.required ? v : d.label)}${ico("chev")}</button>`;
+        })
+        .join("") +
+      O.optional
+        .filter((d) => d.type === "toggle")
+        .map((d) => `<button type="button" class="chip ${S.f[d.id] ? "is-active" : ""}" data-mtgl="${d.id}">${S.f[d.id] ? ico("check") : ""}${esc(d.label)}</button>`)
+        .join("");
+  } else {
+    chips = UPUI.TABS.filter((v) => v !== "all")
+      .map((v) => `<button type="button" class="chip" data-mvert="${v}">${ico(VERTICALS[v].icon)}${esc(t(VERTICALS[v].label))}</button>`)
+      .join("");
+  }
+  msearch.innerHTML = `<div class="m-search-row"><a class="m-back" href="${PATHS.href.home}" aria-label="Back">${ico("chevL")}</a>
+      <button type="button" class="m-summary" data-msum><b>${esc(l1)}</b><small>${esc(l2)}</small></button>
+      <button type="button" class="m-filter-btn ${nSet ? "is-set" : ""}" data-mf aria-label="${t("Filters")}">${ico("sliders")}${nSet ? `<em>${nSet}</em>` : ""}</button></div>
+    <div class="m-chips no-scrollbar">${chips}</div>`;
+  document.getElementById("mcount").innerHTML = `${all.length.toLocaleString()} ${all.length === 1 ? "result" : "results"}`;
+  document.getElementById("msheet").innerHTML = `<button type="button" class="close-btn" aria-label="Close" data-msclose>${ico("x")}</button><b>${t("Search")}</b><span></span>`;
+  const map = S.view === "map";
+  if (!map) lastView = S.view;
+  mmap.innerHTML = map ? `${ico("list")}${t("List")}` : `${ico("map")}${t("Map")}`;
+  mmap.hidden = !all.length;
+  document.body.classList.toggle("m-map", map);
+  if (map && PHONE.matches) document.body.style.setProperty("--m-top-h", msearch.offsetTop + msearch.offsetHeight + "px");
+}
+function openSheet(field) {
+  ssearch.classList.add("is-m-open");
+  document.body.classList.add("m-lock");
+  if (field) {
+    const b = ssearch.querySelector(`[data-b="open"][data-val="${field}"]`);
+    if (b) b.click();
+  }
+}
+function closeSheet() {
+  ssearch.classList.remove("is-m-open");
+  document.body.classList.remove("m-lock");
+}
+document.getElementById("msheet").addEventListener("click", (e) => {
+  if (e.target.closest("[data-msclose]")) closeSheet();
+});
+msearch.addEventListener("click", (e) => {
+  const tt = e.target;
+  if (tt.closest("[data-msum]")) return openSheet();
+  if (tt.closest("[data-mf]")) return offer(S) ? openDrawer() : openSheet();
+  const f = tt.closest("[data-mfield]");
+  if (f) return openSheet(f.dataset.mfield);
+  const g = tt.closest("[data-mtgl]");
+  if (g) {
+    UPF.setVal(S, offer(S).def(g.dataset.mtgl), S.f[g.dataset.mtgl] ? null : true);
+    bar.render();
+    return update();
+  }
+  const v = tt.closest("[data-mvert]");
+  if (v) {
+    UPF.switchVertical(S, v.dataset.mvert);
+    bar.render();
+    update();
+  }
+});
+mmap.addEventListener("click", () => {
+  S.view = S.view === "map" ? lastView || "grid" : "map";
+  update();
+  window.scrollTo(0, 0);
+  paintPhone(offer(S), results(S));
+});
+PHONE.addEventListener("change", () => {
+  if (!PHONE.matches) closeSheet();
+  paint();
+});
 
 function paintSeo() {
   const O = offer(S),
@@ -493,6 +632,11 @@ document.querySelector("main").addEventListener("click", (e) => {
     openConcierge();
     return;
   }
+  if (tt.closest("[data-alert]")) {
+    if (!alerts().includes(alertKey())) document.getElementById("saveS").click();
+    else UPUI.toast("Alert already on for this search");
+    return;
+  }
   const pg = tt.closest("[data-pg]");
   if (pg && !pg.disabled) {
     S.page = +pg.dataset.pg;
@@ -503,6 +647,10 @@ document.querySelector("main").addEventListener("click", (e) => {
   const pin = tt.closest("[data-pin]");
   if (pin) {
     hlId = pin.dataset.pin;
+    if (PHONE.matches) {
+      paint(); // phone: the map is full height — the pinned listing docks at its bottom
+      return;
+    }
     const idx = results(S).findIndex((l) => l.id === hlId);
     S.page = Math.floor(idx / PER) + 1;
     paint();

@@ -1155,6 +1155,13 @@ body.mobile-shell {
   text-overflow: ellipsis;
 }
 
+/* the avatar is a span too — keep it a fixed circle */
+.m-card .agent-row span.avatar {
+  flex: none;
+  color: #fff;
+  overflow: visible;
+}
+
 .m-card .agent-row span b {
   color: var(--color-text-secondary);
 }

@@ -68,12 +68,15 @@
   function open(opts = {}) {
     const u = user();
     if (u) { done(opts, u); return; }
-    const pane = opts.mode || (opts.intent === 'provider' ? 'signup' : 'login');
+    // providers have one door: mobile → code; a new number then only adds an email (their name comes from their ID)
+    const pane = opts.intent === 'provider' ? 'login' : opts.mode || 'login';
     A = { pane, from: pane, intent: opts.intent || '', next: opts.next || '', onDone: opts.onDone, iso: 'AE', phone: '', email: '', via: '', first: '', last: '', err: {}, sent: 0 };
     paint();
   }
   const provider = () => A.intent === 'provider';
   const emailRequired = () => provider(); // providers get approvals and lead summaries by email; customers may skip it
+  // providers don't type their name: it comes from the ID they upload in onboarding (js/pages/join.js → setName)
+  const askName = () => !provider();
 
   function paint() {
     const c = byIso(A.iso), r = rules(A.iso);
@@ -90,26 +93,26 @@
     let body = '';
     if (A.pane === 'login') body = `
         <div class="auth-art">${ART.phone}</div>
-        <div class="auth-hello"><h4>Welcome back</h4><p>Sign in with your phone or email — we'll send you a 6-digit code.</p></div>
+        <div class="auth-hello">${provider() ? `<h4>List on ${esc(SITE.name)}</h4><p>Enter your mobile number and we'll text you a code. It works whether you're new or coming back.</p>` : `<h4>Welcome back</h4><p>Log in with your mobile number or email. We'll send you a code — no password needed.</p>`}</div>
         ${A.useEmail ? `${field('email', 'Email', 'type="email" placeholder="you@example.com" autocomplete="email"')}${err('email')}` : phoneBox()}
         <button class="text-link auth-use" type="button" data-au="use">${A.useEmail ? `${ico('phone')}Use phone instead` : `${SVG.mail}Use email instead`}</button>
-        <button class="btn btn-primary auth-cta" type="button" data-au="login">Send code${ico('chevR')}</button>
+        <button class="btn btn-primary auth-cta" type="button" data-au="login">${provider() ? 'Continue' : 'Send code'}${ico('chevR')}</button>
         ${socials()}
-        <p class="auth-switch">New to ${esc(SITE.name)}? <button class="text-link" type="button" data-au="go" data-to="signup">Create an account</button></p>`;
+        ${provider() ? terms : `<p class="auth-switch">New to ${esc(SITE.name)}? <button class="text-link" type="button" data-au="go" data-to="signup">Create an account</button></p>`}`;
     if (A.pane === 'signup') body = `
         <div class="auth-art is-xs">${ART.finish}</div>
-        <div class="auth-hello"><h4>${provider() ? 'Create your provider account' : 'Create your account'}</h4><p>${provider() ? 'Free to list · no commission · takes a minute' : `Save homes, track enquiries and hear back faster on ${esc(SITE.name)}.`}</p></div>
-        <div class="form-grid">${field('first', 'First name', 'autocomplete="given-name"')}${field('last', 'Last name', 'autocomplete="family-name"')}</div>${err('first') || err('last')}
+        <div class="auth-hello"><h4>${provider() ? 'Create your provider account' : 'Create your account'}</h4><p>${provider() ? 'Just your mobile and email for now — we take your name from your ID later.' : 'Save places you like, keep track of enquiries and get faster replies.'}</p></div>
+        ${askName() ? `<div class="form-grid">${field('first', 'First name', 'autocomplete="given-name"')}${field('last', 'Last name', 'autocomplete="family-name"')}</div>${err('first') || err('last')}` : ''}
         ${phoneBox()}
         ${field('email', `Email${emailRequired() ? '' : ' <small>(optional)</small>'}`, 'type="email" placeholder="you@example.com" autocomplete="email"')}${err('email')}
-        <p class="auth-hint">${ico('phone')}We'll send a 6-digit code to your mobile by SMS.</p>
+        <p class="auth-hint">${ico('phone')}We'll text you a 6-digit code to confirm your number.</p>
         <button class="btn btn-primary auth-cta" type="button" data-au="signup">Create account${ico('chevR')}</button>
         ${socials()}${terms}
         <p class="auth-switch">Already have an account? <button class="text-link" type="button" data-au="go" data-to="login">Log in</button></p>`;
     if (A.pane === 'code') {
       const byEmail = A.codeFor === 'email', to = byEmail ? esc(A.email) : `${c.dial} ${esc(fmt(A.iso, A.phone))}`;
       body = `<div class="auth-art is-sm">${ART.code}</div>
-        <div class="auth-hello"><h4>Enter the 6-digit code</h4><p>${A.from === 'signup' ? 'Confirm your mobile to create your account. ' : ''}Sent ${byEmail ? 'to your email' : 'by SMS to'} <b>${to}</b> · <button class="text-link" type="button" data-au="edit">Change</button></p></div>
+        <div class="auth-hello"><h4>Enter your code</h4><p>We ${byEmail ? 'emailed' : 'texted'} a 6-digit code to <b>${to}</b> · <button class="text-link" type="button" data-au="edit">Change</button></p></div>
         <div class="auth-otp ${A.err.code ? 'has-error' : ''}">${[0, 1, 2, 3, 4, 5].map(i => `<input data-otp="${i}" inputmode="numeric" maxlength="1" autocomplete="${i ? 'off' : 'one-time-code'}" aria-label="Digit ${i + 1}">`).join('')}</div>${err('code')}
         <div class="auth-code-foot"><span data-resend></span></div>
         <button class="btn btn-primary auth-cta" type="button" data-au="verify" disabled>Verify${ico('chevR')}</button>
@@ -118,11 +121,12 @@
     if (A.pane === 'finish') {
       const needPhone = !A.phoneVerified, needEmail = !A.email || A.via === 'phone', social = A.via === 'google' || A.via === 'apple';
       body = `<div class="auth-art is-sm">${ART.finish}</div>
-        <div class="auth-hello"><h4>${social ? `Almost there, ${esc(A.first)}` : 'Finish signing up'}</h4><p>${social ? (provider() ? 'Add your mobile — customers will reach you on it.' : 'Check your name, then you’re in.') : (A.via === 'email' ? `You’re new here — just your name${provider() ? ' and mobile' : ''} and you’re in.` : 'You’re new here — just your name and email and you’re in.')}</p></div>
-        <div class="form-grid">${field('first', 'First name', 'autocomplete="given-name"')}${field('last', 'Last name', 'autocomplete="family-name"')}</div>${err('first') || err('last')}
-        <p class="auth-small">As on your ${A.iso === 'AE' ? 'Emirates ID' : 'government ID'}.</p>
+        <div class="auth-hello"><h4>${social && A.first ? `Almost there, ${esc(A.first)}` : provider() ? 'One last thing' : 'Finish signing up'}</h4><p>${provider()
+          ? `Add your ${[needEmail && 'email', needPhone && 'mobile number'].filter(Boolean).join(' and ') || 'details'} so we can send you updates on your application. We'll take your name from your ID in the next step.`
+          : social ? 'Check your name and you’re in.' : `Welcome! Just your name${needEmail ? ' and email' : ''} and you’re in.`}</p></div>
+        ${askName() ? `<div class="form-grid">${field('first', 'First name', 'autocomplete="given-name"')}${field('last', 'Last name', 'autocomplete="family-name"')}</div>${err('first') || err('last')}` : ''}
         ${needEmail ? `${field('email', `Email${emailRequired() ? '' : ' <small>(optional)</small>'}`, 'type="email" placeholder="you@example.com" autocomplete="email"')}${err('email')}` : `<p class="auth-known">${SVG.mail}${esc(A.email)}</p>`}
-        ${needPhone ? `${phoneBox()}<p class="auth-hint">${ico('phone')}${provider() ? 'Required for providers. ' : 'Optional. '}We'll verify it with a code by SMS.</p>` : `<p class="auth-known">${ico('check')}${c.dial} ${esc(fmt(A.iso, A.phone))} · verified</p>`}
+        ${needPhone ? `${phoneBox()}<p class="auth-hint">${ico('phone')}${provider() ? 'Customers will reach you on this number. ' : 'Optional. '}We'll text you a code to confirm it.</p>` : `<p class="auth-known">${ico('check')}${c.dial} ${esc(fmt(A.iso, A.phone))} · verified</p>`}
         <button class="btn btn-primary auth-cta" type="button" data-au="finish">${needPhone && provider() ? 'Continue' : 'Create account'}${ico('chevR')}</button>${terms}`;
     }
     const back = A.pane === 'code' || A.pane === 'finish' ? `<button class="auth-back" type="button" data-au="back" aria-label="Back">${ico('chevL')}</button>` : '<span></span>';
@@ -136,17 +140,17 @@
   function tick() {
     clearInterval(A.timer);
     const el = () => document.querySelector('.auth-modal [data-resend]');
-    const draw = () => { const left = Math.max(0, 30 - Math.round((Date.now() - A.sent) / 1000)); const e = el(); if (!e) return clearInterval(A.timer); e.innerHTML = left ? `Resend in 0:${String(left).padStart(2, '0')}` : `<button class="text-link" type="button" data-au="resend">Resend code</button>`; if (!left) clearInterval(A.timer); };
+    const draw = () => { const left = Math.max(0, 30 - Math.round((Date.now() - A.sent) / 1000)); const e = el(); if (!e) return clearInterval(A.timer); e.innerHTML = left ? `You can resend in 0:${String(left).padStart(2, '0')}` : `Didn't get it? <button class="text-link" type="button" data-au="resend">Resend code</button>`; if (!left) clearInterval(A.timer); };
     draw(); A.timer = setInterval(draw, 1000);
   }
 
   /* ---------- steps ---------- */
-  const phoneErr = () => `Enter a valid ${byIso(A.iso).name} mobile number${/\d/.test(rules(A.iso).phone.example) ? ', e.g. ' + rules(A.iso).phone.example : ''}`;
+  const phoneErr = () => `Check your number${/\d/.test(rules(A.iso).phone.example) ? ` — a ${byIso(A.iso).name} mobile looks like ${rules(A.iso).phone.example}` : ''}`;
   function sendCode(to = 'phone') { A.err = {}; A.codeFor = to; A.sent = Date.now(); A.pane = 'code'; paint(); }
   function submitLogin() {
     A.from = 'login';
     if (A.useEmail) {
-      if (!emailOk(A.email)) { A.err = { email: 'Enter a valid email address' }; return paint(); }
+      if (!emailOk(A.email)) { A.err = { email: 'That email doesn’t look right — check for typos' }; return paint(); }
       A.via = 'email'; return sendCode('email');
     }
     if (!phoneOk(A.iso, A.phone)) { A.err = { phone: phoneErr() }; return paint(); }
@@ -154,10 +158,10 @@
   }
   function submitSignup() {
     const e = {};
-    if (!A.first.trim()) e.first = 'Enter your first name';
-    else if (!A.last.trim()) e.last = 'Enter your last name';
+    if (askName() && !A.first.trim()) e.first = 'Enter your first name';
+    else if (askName() && !A.last.trim()) e.last = 'Enter your last name';
     if (!phoneOk(A.iso, A.phone)) e.phone = phoneErr();
-    if ((emailRequired() || A.email.trim()) && !emailOk(A.email)) e.email = emailRequired() && !A.email.trim() ? 'Enter your email' : 'Enter a valid email address';
+    if ((emailRequired() || A.email.trim()) && !emailOk(A.email)) e.email = emailRequired() && !A.email.trim() ? 'Add your email address' : 'That email doesn’t look right — check for typos';
     A.err = e; if (Object.keys(e).length) return paint();
     A.via = 'phone'; A.from = 'signup'; sendCode();
   }
@@ -167,10 +171,10 @@
     const known = accounts()[keyOf(byEmail ? { email: A.email } : { dial: byIso(A.iso).dial, phone: digits(A.phone) })];
     // an existing account logs in, whichever screen they came from (providers still need a verified mobile)
     if (known && !(provider() && !known.phone && !A.phoneVerified)) {
-      if (A.from === 'signup') toast('You already have an account with this number — logged you in');
+      if (A.from === 'signup') toast('This number already has an account, so we’ve logged you in');
       return finish(known, true);
     }
-    if (A.first.trim() && A.last.trim() && (!emailRequired() || emailOk(A.email)) && (A.phoneVerified || !provider())) return complete();
+    if ((!askName() || (A.first.trim() && A.last.trim())) && (!emailRequired() || emailOk(A.email)) && (A.phoneVerified || !provider())) return complete();
     A.pane = 'finish'; A.err = {}; paint();
   }
   function social(kind) {
@@ -183,9 +187,9 @@
   }
   function submitFinish() {
     const e = {};
-    if (!A.first.trim()) e.first = 'Enter your first name';
-    else if (!A.last.trim()) e.last = 'Enter your last name';
-    if ((emailRequired() || A.email.trim()) && !emailOk(A.email)) e.email = 'Enter a valid email address';
+    if (askName() && !A.first.trim()) e.first = 'Enter your first name';
+    else if (askName() && !A.last.trim()) e.last = 'Enter your last name';
+    if ((emailRequired() || A.email.trim()) && !emailOk(A.email)) e.email = A.email.trim() ? 'That email doesn’t look right — check for typos' : 'Add your email address';
     const needPhone = !A.phoneVerified;
     if (needPhone && (A.phone || provider()) && !phoneOk(A.iso, A.phone)) e.phone = phoneErr();
     A.err = e; if (Object.keys(e).length) return paint();
@@ -201,7 +205,7 @@
     const all = accounts(); all[keyOf(u)] = u; if (u.email) all[u.email.toLowerCase()] = u; store.set('accounts', all);
     store.set('user', u);
     const opts = A; clearInterval(A.timer); A = null; closeModal();
-    toast(returning ? `Welcome back, ${u.first}` : `Welcome to ${SITE.name}, ${u.first}`);
+    toast(returning ? `Welcome back${u.first ? ', ' + u.first : ''}` : `You’re in — welcome to ${SITE.name}${u.first ? ', ' + u.first : ''}`);
     document.dispatchEvent(new CustomEvent('upnow:auth', { detail: u }));
     done(opts, u);
   }
@@ -213,7 +217,7 @@
   function signOut() {
     store.set('user', null);
     document.dispatchEvent(new CustomEvent('upnow:auth', { detail: null }));
-    toast('Signed out'); refreshHeader();
+    toast('You’ve signed out'); refreshHeader();
   }
   // the header shows "Sign in" or the account menu: re-render that slot in place
   function refreshHeader() {
@@ -237,9 +241,9 @@
     else if (k === 'go') { A.pane = A.from = b.dataset.to; A.err = {}; paint(); }
     else if (k === 'google' || k === 'apple') social(k);
     else if (k === 'finish') submitFinish();
-    else if (k === 'verify') { const code = [...document.querySelectorAll('.auth-modal [data-otp]')].map(x => x.value).join(''); if (/^\d{6}$/.test(code)) codeEntered(); else { A.err = { code: 'Enter all 6 digits' }; paint(); } }
+    else if (k === 'verify') { const code = [...document.querySelectorAll('.auth-modal [data-otp]')].map(x => x.value).join(''); if (/^\d{6}$/.test(code)) codeEntered(); else { A.err = { code: 'Enter all 6 digits of the code' }; paint(); } }
     else if (k === 'edit' || k === 'back') { A.pane = A.pane === 'code' && (A.via === 'google' || A.via === 'apple') || (A.pane === 'code' && A.from !== 'signup' && A.via === 'email' && A.codeFor === 'phone') ? 'finish' : A.from; A.err = {}; paint(); }
-    else if (k === 'resend') { A.sent = Date.now(); tick(); toast(A.codeFor === 'email' ? 'New code emailed' : 'New code sent by SMS'); }
+    else if (k === 'resend') { A.sent = Date.now(); tick(); toast(A.codeFor === 'email' ? 'We’ve emailed you a new code' : 'We’ve texted you a new code'); }
     else if (k === 'use') { A.useEmail = !A.useEmail; A.err = {}; paint(); }
   }, true);
   document.addEventListener('input', e => {
@@ -269,20 +273,30 @@
   // the modal was closed (×, Esc, backdrop) — forget the half-finished flow
   document.addEventListener('upnow:modal-closed', () => { if (A) { clearInterval(A.timer); A = null; } });
 
+  const initialsOf = u => ((u.first || '')[0] || '') + ((u.last || '')[0] || '') || (u.email || '?')[0].toUpperCase();
+  // the verified name (read from the provider's ID) becomes the account name
+  function setName(first, last) {
+    const u = user(); if (!u || !first) return;
+    Object.assign(u, { first, last: last || '', name: (first + ' ' + (last || '')).trim() });
+    store.set('user', u);
+    const all = accounts(); all[keyOf(u)] = u; if (u.email) all[u.email.toLowerCase()] = u; store.set('accounts', all);
+    refreshHeader(); document.dispatchEvent(new CustomEvent('upnow:auth', { detail: u }));
+  }
+
   /* ---------- header account button (used by components/layout.js) ---------- */
   U.accountButton = () => {
     const u = user();
     if (!u) return `<button class="btn btn-outline btn-sm" data-open="signin" data-auth-slot>${ico('user')}${U.t ? U.t('Log in') : 'Log in'}</button>`;
     // this account's provider application (js/pages/join.js), if any
     const app = (() => { try { const d = JSON.parse(localStorage.getItem('upnow.join') || 'null'); return d && (!d.owner || d.owner === (u.email || u.dial + u.phone)) ? d : null; } catch (e) { return null; } })();
-    const applied = app && app.done, draft = app && !app.done && (app.cats || []).length;
-    return `<div class="account-menu" data-auth-slot><button class="account-btn" type="button" data-account aria-label="Account menu"><span class="account-av">${esc((u.first[0] || '') + (u.last[0] || ''))}</span><span class="account-name">${esc(u.first)}</span>${ico('chev')}</button>
-      <div class="account-drop"><div class="account-who"><b>${esc(u.name)}</b><small>${u.phone ? esc(u.dial + ' ' + fmt(u.iso || 'AE', u.phone)) : esc(u.email)}</small></div>
-        <a href="${HREF.join}">${ico('brief')}${applied ? 'Provider application · under review' : draft ? 'Continue provider application' : 'Become a provider'}</a>
+    const st = app && (app.status || (app.done ? 'submitted' : 'draft')), applied = st === 'submitted', approved = st === 'approved', draft = st === 'draft' && app.role;
+    return `<div class="account-menu" data-auth-slot><button class="account-btn" type="button" data-account aria-label="Account menu"><span class="account-av">${esc(initialsOf(u))}</span><span class="account-name">${esc(u.first || 'Account')}</span>${ico('chev')}</button>
+      <div class="account-drop"><div class="account-who"><b>${esc(u.name || u.email || 'Your account')}</b><small>${u.phone ? esc(u.dial + ' ' + fmt(u.iso || 'AE', u.phone)) : esc(u.email)}</small></div>
+        <a href="${HREF.join}">${ico('brief')}${applied || approved ? 'Provider application · in review' : draft ? 'Finish your provider application' : 'Become a provider'}</a>
         <button type="button" data-open="enq">${ico('msg')}My enquiries</button>
         <button type="button" data-open="saved">${ico('heart')}Saved</button>
         <button type="button" data-auth-out>${ico('x')}Sign out</button></div></div>`;
   };
 
-  Object.assign(U, { auth: { user, open, signOut } });
+  Object.assign(U, { auth: { user, open, signOut, setName, initialsOf } });
 })();

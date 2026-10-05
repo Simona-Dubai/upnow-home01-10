@@ -140,7 +140,13 @@ function paint() {
     <div class="provider-header">
       <div class="provider-avatar is-business" style="--hue:${(org.length * 47) % 360}">${initials(org)}</div>
       <div><div class="provider-name">${esc(org)}<svg class="icon" viewBox="0 0 24 24">${UPUI.ICONS.badge}</svg></div>
-        <div class="provider-meta"><span>${ico("brief")}${esc(kind)}</span><span class="rating">${ico("star")}<b>${rating.toFixed(1)}</b>&nbsp;(${reviews.toLocaleString()} reviews)</span><span>${ico("pin")}${esc(office)}, Dubai</span><span>${ico("cal")}On UpNow since ${since}</span></div></div>
+        <div class="provider-meta"><span>${ico("brief")}${esc(kind)}</span><span class="rating m-hide">${ico("star")}<b>${rating.toFixed(1)}</b>&nbsp;(${reviews.toLocaleString()} reviews)</span><span>${ico("pin")}${esc(office)}, Dubai</span><span>${ico("cal")}On UpNow since ${since}</span></div>
+        ${PROFILE.statsStrip([
+          [`${rating.toFixed(1)}<i>★</i>`, `${reviews.toLocaleString()} reviews`],
+          [agents.length, SP ? "Agents" : "Team"],
+          [L.length, SP ? "Listings" : "Offers"],
+          [`~${reply} min`, "Reply time"],
+        ])}</div>
       <div class="provider-actions"><button class="btn btn-outline" onclick="navigator.clipboard&&navigator.clipboard.writeText(location.href);UPUI.toast('Agency link copied')">${ico("share")}Share</button><button class="btn btn-outline" onclick="UPUI.toast('Following ${esc(org)} — you’ll get new listings')">${ico("bell")}Follow</button></div>
     </div>
     <div class="provider-layout"><div>
@@ -177,10 +183,12 @@ function paint() {
         ${SP && LEASE ? `<div class="verification-row">${ico("check")}<span>Listings with DLD permit</span><b>${L.filter((l) => l.a.verified).length}/${L.length}</b></div>` : ""}
         <p style="font-size:12px;color:var(--color-text-muted);margin:10px 0 0">UpNow never takes payments. <a class="text-link" href="#" onclick="UPUI.toast('Thanks — our trust team will review');return false">Report agency</a></p></div>
     </aside></div>
-  </div>`;
+  </div>
+  ${PROFILE.contactBar(L0.id, org)}`;
   if (tab === "listings") PROFILE.mount(L, pf);
   PROFILE.fitAbout();
   PROFILE.stickySidebar();
+  PROFILE.watchContactBar();
 }
 document.addEventListener("click", (e) => {
   const t = e.target.closest("[data-tab]");

@@ -5018,3 +5018,179 @@ select.is-menu-open {
   cursor: not-allowed;
   box-shadow: none;
 }
+
+/* ---------- phones: bottom tab bar, compact header, sheets (desktop unchanged) ---------- */
+.m-tabs {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  body:has(.m-tabs) {
+    --m-tabs-h: calc(62px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: var(--m-tabs-h);
+  }
+
+  .m-tabs {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 150;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    height: var(--m-tabs-h);
+    padding: 6px 4px env(safe-area-inset-bottom, 0px);
+    background: rgba(255, 255, 255, .97);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .m-tabs > a,
+  .m-tabs > button {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 0;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    transition: color .2s;
+  }
+
+  .m-tabs .icon {
+    width: 22px;
+    height: 22px;
+    stroke-width: 1.8;
+  }
+
+  .m-tabs .is-active {
+    color: var(--color-primary);
+  }
+
+  .m-tabs .is-active .icon {
+    stroke-width: 2.2;
+  }
+
+  .m-tabs > :active {
+    transform: scale(.94);
+  }
+
+  .m-tabs em {
+    position: absolute;
+    top: 2px;
+    left: calc(50% + 6px);
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 99px;
+    background: var(--color-danger);
+    color: #fff;
+    font-style: normal;
+    font-size: 9.5px;
+    font-weight: 800;
+    display: grid;
+    place-items: center;
+  }
+
+  .m-tabs em[hidden] {
+    display: none;
+  }
+
+  .m-tabs-av {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--color-primary);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 800;
+  }
+
+  /* compact header: logo + log in / avatar; saved, enquiries and the provider button live in the tab bar / account menu */
+  .site-header .wrap {
+    height: 56px;
+    gap: 10px;
+  }
+
+  .site-header .icon-btn,
+  .site-header .header-actions > .btn-primary {
+    display: none;
+  }
+
+  .site-header .header-actions > .btn-outline {
+    display: inline-flex;
+  }
+
+  .site-header .account-name {
+    display: none;
+  }
+
+  /* the account menu opens as a sheet above the tab bar (and above any sticky page bar) */
+  .site-header:has(.account-menu.is-open) {
+    z-index: 160;
+  }
+
+  /* the account menu opens as a sheet above the tab bar */
+  .account-drop {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    top: auto;
+    bottom: calc(var(--m-tabs-h, 0px) + 8px);
+    width: auto;
+    padding: 8px;
+    border-radius: 18px;
+    transform: translateY(16px);
+    transform-origin: bottom center;
+  }
+
+  .account-drop a,
+  .account-drop button {
+    min-height: 46px;
+  }
+
+  /* sign-in: a bottom sheet with a grab handle */
+  .scrim:has(.auth-modal) {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal.auth-modal,
+  .modal.auth-modal.is-login,
+  .modal.auth-modal.is-code {
+    width: 100%;
+    max-height: calc(100dvh - 24px);
+    min-height: 0;
+    border-radius: 22px 22px 0 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .modal.auth-modal::before {
+    content: '';
+    flex: none;
+    width: 40px;
+    height: 5px;
+    margin: 8px auto 0;
+    border-radius: 9px;
+    background: var(--color-border-strong);
+  }
+
+  .scrim.is-active .modal.auth-modal {
+    animation: sheet-up .32s cubic-bezier(.2, .8, .2, 1);
+  }
+
+  .auth-modal .auth-head {
+    padding-top: 2px;
+  }
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
