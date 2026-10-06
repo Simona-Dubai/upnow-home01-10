@@ -292,6 +292,7 @@
     const st = app && (app.status || (app.done ? 'submitted' : 'draft')), applied = st === 'submitted', approved = st === 'approved', draft = st === 'draft' && app.role;
     return `<div class="account-menu" data-auth-slot><button class="account-btn" type="button" data-account aria-label="Account menu"><span class="account-av">${esc(initialsOf(u))}</span><span class="account-name">${esc(u.first || 'Account')}</span>${ico('chev')}</button>
       <div class="account-drop"><div class="account-who"><b>${esc(u.name || u.email || 'Your account')}</b><small>${u.phone ? esc(u.dial + ' ' + fmt(u.iso || 'AE', u.phone)) : esc(u.email)}</small></div>
+        <a href="${HREF.account}">${ico('home')}My account</a>
         <a href="${HREF.join}">${ico('brief')}${applied || approved ? 'Provider application · in review' : draft ? 'Finish your provider application' : 'Become a provider'}</a>
         <button type="button" data-open="enq">${ico('msg')}My enquiries</button>
         <button type="button" data-open="saved">${ico('heart')}Saved</button>

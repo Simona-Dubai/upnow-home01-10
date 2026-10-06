@@ -87,6 +87,8 @@
   /* ---------- request-to-book confirmation ---------- */
   function confirmReq(l, g) {
     const fn = l.provider.name.split(' ')[0];
+    // whichever way it is sent (WhatsApp, email, call), the enquiry keeps the day and time asked for — see contact.js logLead
+    UPUI.pendingReq = { lid: l.id, title: g.title, rows: g.rows.filter(Boolean) };
     openModal(`<div class="contact-header"><div class="avatar">${ico('cal')}</div><div class="contact-title"><b>${esc(g.title)}</b><span>Sent to ${esc(l.provider.name)} · replies in ~${l.provider.reply} min</span></div><button class="close-btn" aria-label="Close" data-close>${ico('x')}</button></div>
       <div class="contact-body" style="padding-top:4px"><div class="table-wrap"><table class="detail-table"><tbody>${g.rows.filter(Boolean).map(([k, v]) => `<tr><td style="color:var(--color-text-muted)">${esc(k)}</td><td class="numeric">${esc(v)}</td></tr>`).join('')}${g.total ? `<tr class="total-row"><td>${esc(g.tl || 'Estimated total')}</td><td class="numeric">${g.total}</td></tr>` : ''}</tbody></table></div>
       <p class="contact-tip">Nothing is charged on ${SITE.name}. ${esc(fn)} confirms availability and you pay ${l.v === 'spaces' && offerOf(l.v, l.cat).lease ? 'the landlord / agent' : 'the provider'} directly.</p>

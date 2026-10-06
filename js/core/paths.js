@@ -13,7 +13,8 @@
       listing: page('listing.html'),
       provider: page('provider.html'),
       agency: page('agency.html'),
-      join: page('join.html')
+      join: page('join.html'),
+      account: page('account.html')
     },
     asset: p => root + 'assets/' + p,
     // accepts 'hero.jpg', 'img/hero.jpg', 'assets/images/hero.jpg' (older saved data) or an absolute URL
