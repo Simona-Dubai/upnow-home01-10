@@ -476,9 +476,10 @@
     const d = S.d;
     if (n === 1) return [S.cats.length, S.role, typeOf(S), ...(typeOf(S) ? typeOf(S).size.map(([k]) => S.d['size_' + k]) : [0])];
     if (n === 2) return docsFor(S).filter(x => x.req).map(settled);
-    return [d.photo, String(d.display || '').trim(), String(d.bio || '').trim().length >= 60, (d.langs || []).length, S.channels.length];
+    return [String(d.display || '').trim(), String(d.bio || '').trim().length >= 60, (d.langs || []).length, S.channels.length]; // photo is optional: not counted
   }
-  const fillOf = n => n < S.step ? 1 : n > S.step ? 0 : (p => p.filter(Boolean).length / p.length)(partsDone(n));
+  // a bar shows how much of its own step is answered — steps you haven't reached yet stay empty
+  const fillOf = n => n > S.step ? 0 : (p => p.length ? p.filter(Boolean).length / p.length : n < S.step ? 1 : 0)(partsDone(n));
   function stepSummary(n) {
     if (n === 1) return [VERTICALS[S.v].label, typeOf(S) ? typeOf(S).t : roleOf(S) && roleOf(S)[1]].filter(Boolean).join(' · ');
     if (n === 2) return legalName() || '';
@@ -487,7 +488,7 @@
   }
   const progress = () => `<div class="ob-head"><div class="ob-progress"><span><b>Step ${S.step} of ${LAST}</b> · ${STEPS[S.step - 1][0]}</span><span>About ${MINUTES[S.step - 1]} min left</span></div>
     <ol class="ob-seg">${STEPS.map(([t], k) => { const n = k + 1, st = n < S.step ? 'is-done' : n === S.step ? 'is-now' : '', tag = n < S.step ? 'button' : 'span';
-      return `<li class="${st}"><${tag} ${n < S.step ? `type="button" data-goto="${n}" title="Edit ${t}"` : ''}><i><b style="width:${Math.round(A.fill[k] * 100)}%" data-w="${Math.round(fillOf(n) * 100)}%"></b></i><small>${n < S.step ? ico('check') : ''}${t}</small>${n < S.step && stepSummary(n) ? `<em>${esc(stepSummary(n))}</em>` : ''}</${tag}></li>`; }).join('')}</ol></div>`;
+      return `<li class="${st}"><${tag} ${n < S.step ? `type="button" data-goto="${n}" title="Edit ${t}"` : ''}><i><b style="width:${Math.round(A.fill[k] * 100)}%" data-w="${Math.round(fillOf(n) * 100)}%"></b></i><small>${n < S.step && fillOf(n) === 1 ? ico('check') : ''}${t}</small>${n < S.step && stepSummary(n) ? `<em>${esc(stepSummary(n))}</em>` : ''}</${tag}></li>`; }).join('')}</ol></div>`;
 
   /* ---------- live profile preview (right column) ---------- */
   function card() {
@@ -667,7 +668,7 @@
     const p = root.querySelector('.ob-preview'); if (!p) return;
     const pv = preview(); if (pv === A.preview) return;
     const t = document.createElement('div'); t.innerHTML = pv; morph(p, t.firstElementChild); A.preview = pv;
-    const fill = root.querySelector('.ob-seg li.is-now [data-w]'); if (fill) fill.style.width = Math.round(fillOf(S.step) * 100) + '%';
+    root.querySelectorAll('.ob-seg [data-w]').forEach((b, k) => { b.style.width = Math.round(fillOf(k + 1) * 100) + '%'; });
   }
 
   function go(step) {

@@ -2781,7 +2781,7 @@
 
 /* progress and "verified" bits in the softer green */
 .ob-seg i b {
-  background: linear-gradient(90deg, var(--color-primary-lighter), #5fbf96);
+  background: linear-gradient(90deg, var(--color-primary-light), #5fbf96);
 }
 
 .ob-x-ok:has(input:checked) {
