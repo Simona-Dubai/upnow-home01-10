@@ -16,7 +16,7 @@
 
   /* ---------- provider types (vertical-agnostic) ---------- */
   const ROLES = [
-    ['individual', 'Individual', 'You work or own in your own name', 'user'],
+    ['individual', 'Individual', 'You work for yourself or own in your own name', 'user'],
     ['company', 'Company', 'A registered business with a trade licence', 'building']
   ];
   const roleOf = s => ROLES.find(r => r[0] === s.role);
@@ -43,7 +43,7 @@
      Researched for Dubai (DLD/RERA, DET, KHDA, MoHRE, MoHESR, DHA, Dubai Sports Council, DMA, CBUAE, Dubai Municipality), 2025–26.
      docs: [document id, 'req' | 'opt' | 'later'] — the first one is the main document we read and pre-fill.
      'later' = may follow after approval (listings in that category stay in draft). size: one or two sizing questions. */
-  const ID_SET = [['eid', 'req'], ['passport', 'opt'], ['visa', 'opt']];
+  const ID_SET = [['eid', 'req'], ['passport', 'req'], ['visa', 'opt']]; // individuals: ID and passport both required
   const SIG_SET = [['sig', 'req'], ['sigPass', 'opt']];
   const TYPES = {
     spaces: {
@@ -52,8 +52,8 @@
         { id: 'broker', t: 'Property manager / broker', sub: 'You list owners’ properties with a RERA broker card', icon: 'brief', docs: [['brn', 'req'], ...ID_SET], size: [['units', 'How many units do you handle?', ['1–5', '6–20', '21–50', '50+']]] }
       ],
       company: [
-        { id: 'landlord', t: 'Landlord company', sub: 'The company leases or sells its own portfolio', icon: 'building', docs: [['tl', 'req'], ...SIG_SET, ['vat', 'opt']], size: [['units', 'How many units does the company own?', ['1–5', '6–20', '21–100', '101–500', '500+']]] },
-        { id: 'manager', t: 'Property management / brokerage', sub: 'You manage or broker properties for owners', icon: 'users', docs: [['tl', 'req'], ['orn', 'req'], ...SIG_SET, ['vat', 'opt']], size: [['units', 'How many units do you manage?', ['1–20', '21–100', '101–500', '500+']], ['team', 'How many agents / property managers?', ['1', '2–5', '6–20', '21–50', '50+']]] }
+        { id: 'landlord', t: 'Landlord company', sub: 'Your company rents out or sells property it owns', icon: 'building', docs: [['tl', 'req'], ...SIG_SET, ['vat', 'opt']], size: [['units', 'How many units does the company own?', ['1–5', '6–20', '21–100', '101–500', '500+']]] },
+        { id: 'manager', t: 'Property management / brokerage', sub: 'Your company manages or brokers property for owners', icon: 'users', docs: [['tl', 'req'], ['orn', 'req'], ...SIG_SET, ['vat', 'opt']], size: [['units', 'How many units do you manage?', ['1–20', '21–100', '101–500', '500+']], ['team', 'How many agents / property managers?', ['1', '2–5', '6–20', '21–50', '50+']]] }
       ]
     },
     services: {
@@ -133,7 +133,7 @@
       guide: { t: u('DET tour guide licence', 'Tour guide licence'), hint: 'Department of Economy & Tourism', fields: f3('tg') },
       tourOp: { t: u('DET tourism licence (tour operator)', (L.tour || ['Tour operator licence'])[0]), hint: 'Required for tours and safaris', fields: f3('to') },
       safari: { t: u('Desert safari permit + RTA vehicle permits', 'Safari / vehicle permits'), hint: 'Only if you run desert safaris', fields: f3('sa', 'Permit no.') },
-      tutor: { t: u('Private teacher work permit (MoHRE)', 'Teacher registration'), hint: 'Free, valid for two years', fields: f3('tu', 'Permit no.') },
+      tutor: { t: u('Private teacher work permit (MoHRE)', 'Teacher registration'), hint: 'Issued by MoHRE, valid for two years', fields: f3('tu', 'Permit no.') },
       khdaTrain: { t: u('KHDA training institute permit', (L.education || ['Education licence'])[0]), hint: 'Knowledge & Human Development Authority', fields: f3('kh', 'Permit no.') },
       khdaEcc: { t: u('KHDA early childhood centre permit', 'Nursery licence'), hint: 'Knowledge & Human Development Authority', fields: f3('kh', 'Permit no.') },
       khdaSchool: { t: u('KHDA school permit', 'School licence'), hint: 'Knowledge & Human Development Authority', fields: f3('kh', 'Permit no.') },
@@ -167,20 +167,6 @@
   }
   // a document is settled when it is checked, or when it may follow later and hasn't been added
   const settled = doc => { const f = S.docs[doc.id]; return (f && f.state === 'read' && f.ok) || (doc.later && !f); };
-  // checked when each listing is created, not here
-  function perListing(s) {
-    const cats = s.cats || [], has = (...c) => c.some(x => cats.includes(x)), out = [];
-    if (s.v === 'spaces' && has('residential', 'commercial', 'industrial', 'land', 'mixed')) {
-      if (s.sub === 'owner' || s.sub === 'landlord') out.push(u('Title deed (or Oqood for off-plan) for every property', 'Proof of ownership for every property'));
-      if (s.sub === 'broker' || s.sub === 'manager') out.push(u('Form A / owner agreement and a Trakheesi advertising permit for every property', 'Owner’s authority for every property'));
-    }
-    if (s.v === 'spaces' && has('holiday')) out.push(u('DET holiday home permit for every unit', 'Short-stay registration for every unit'));
-    if (s.v === 'spaces' && has('yacht')) out.push(u('DMA vessel licence and insurance for every yacht', 'Vessel registration for every yacht'));
-    if (s.v === 'spaces' && has('venue')) out.push(u('DET event permit for public or ticketed events', 'Event permits where required'));
-    if (s.v === 'experiences' && s.sub === 'host') out.push(u('DET event permit for public or ticketed sessions', 'Event permits where required'));
-    if (s.v === 'health') out.push(u('DHA professional licence for every practitioner you list', 'Practitioner licence for every professional you list'));
-    return out;
-  }
   // demo document reader: what a scan of each document returns. '' = not found on the document; '?' prefix = unsure, please check
   function readDoc(id) {
     const idName = S.name || 'Aisha Al Mansoori', parts = idName.split(' '), last = parts[parts.length - 1] || 'Palm', auth1 = (M().licences.authorities || ['Department of Economy'])[0];
@@ -312,7 +298,7 @@
       ? `<label class="ob-country ob-city ${errors.city ? 'has-error' : ''}" title="City">${ico('pin')}<select data-city aria-label="City"><option value="">City</option>${cities.map(c => `<option ${S.d.city === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}<option value="__other" ${S.d.city && !cities.includes(S.d.city) ? 'selected' : ''}>Other…</option></select>${ico('chev')}</label>${S.d.city && !cities.includes(S.d.city) || A.otherCity ? `<input class="ob-city-in" data-cityin placeholder="Type your city" value="${esc(cities.includes(S.d.city) ? '' : S.d.city || '')}">` : ''}`
       : `<input class="ob-city-in ${errors.city ? 'has-error' : ''}" data-cityin placeholder="City" value="${esc(S.d.city || '')}">`;
     const pick = `<span class="ob-where">${countryPick}${cityPick}</span>`;
-    let html = hero('Tell us about your business', `${firstName() ? `Hi ${esc(firstName())}! ` : ''}A few quick taps so we know which documents to ask for.`, 'business');
+    let html = hero('Tell us about your business', `${firstName() ? `Hi ${esc(firstName())}! ` : ''}A few quick taps — your answers decide which documents we ask for.`, 'business');
     html += sec('what', 'What kind of business is it?', `<div class="ob-verticals">${verticalsInOrder().map(v => `<button type="button" class="ob-tile ${S.v === v ? 'is-active' : ''}" data-vert="${v}"><i>${ico(VERTICALS[v].icon)}</i><span>${esc(VERTICALS[v].label)}</span></button>`).join('')}</div>`);
     html += sec('list', 'What do you offer?', `<div class="ob-cats ${errors.cats ? 'has-error' : ''}">${cats.map(o => { const on = S.cats.includes(o.id); return `<button type="button" class="ob-chip ${on ? 'is-active' : ''}" data-cat="${o.id}">${ico(o.icon || UPF.OICO[o.id] || VERTICALS[S.v].icon)}<span>${esc(o.label)}</span><span class="ob-tick">${ico('check')}</span></button>`; }).join('')}</div>${err('cats')}`, '<small>Choose all that apply</small>');
     if (S.cats.length) {
@@ -322,7 +308,7 @@
     // one question at a time: the business type only once what you offer and individual / company are answered
     if (S.cats.length && S.role && typesOf(S).length) {
       const types = typesOf(S);
-      html += sec('kind', 'Which best describes you?', `<div class="ob-roles ${types.length > 2 ? 'is-grid' : ''} ${errors.sub ? 'has-error' : ''}">${types.map(t => `<button type="button" class="ob-role ${S.sub === t.id ? 'is-active' : ''}" data-sub="${t.id}"><i>${ico(t.icon)}</i><span><b>${esc(t.t)}</b><small>${esc(t.sub)}</small></span><span class="ob-radio"></span></button>`).join('')}</div>${err('sub')}`);
+      html += sec('kind', isBiz(S) ? 'Which best describes your company?' : 'Which best describes you?', `<div class="ob-roles ${types.length > 2 ? 'is-grid' : ''} ${errors.sub ? 'has-error' : ''}">${types.map(t => `<button type="button" class="ob-role ${S.sub === t.id ? 'is-active' : ''}" data-sub="${t.id}"><i>${ico(t.icon)}</i><span><b>${esc(t.t)}</b><small>${esc(t.sub)}</small></span><span class="ob-radio"></span></button>`).join('')}</div>${err('sub')}`);
       const t = typeOf(S);
       // one block: sizing question(s) + where you're based, all as "question · answer" rows
       if (t) html += sec('size', 'A few details', '<div class="ob-details">' + t.size.map(([k, q, opts]) => `<div class="ob-size ${errors['size_' + k] ? 'has-error' : ''}"><span>${esc(q)}</span><div class="ob-seg-ctl">${opts.map(o => `<button type="button" class="${S.d['size_' + k] === o ? 'is-active' : ''}" data-size="${k}" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>${err('size_' + k)}</div>`).join('')
@@ -371,7 +357,7 @@
   function needRow(doc) {
     if (S.docs[doc.id]) return docCard(doc);
     // licences that may follow later don't ask for a decision: upload now, or simply continue
-    return `<div class="ob-need ${errors['doc_' + doc.id] ? 'has-error' : ''}" data-docid="${doc.id}"><i>${ico(['eid', 'sig', 'passport', 'sigPass', 'visa'].includes(doc.id) ? 'user' : 'shield')}</i>
+    return `<div class="ob-need ${errors['doc_' + doc.id] ? 'has-error' : ''}" data-docid="${doc.id}"><i>${ico({ eid: 'user', sig: 'user', passport: 'globe', sigPass: 'globe', visa: 'flag' }[doc.id] || 'shield')}</i>
       <span><b>${esc(doc.t)}</b><small>${esc(doc.hint)}</small>${err('doc_' + doc.id)}</span>
       ${doc.later ? '<em class="ob-need-tag">Now or later</em>' : !doc.req ? '<em class="ob-need-tag">Optional</em>' : ''}
       <label class="btn ${doc.later || !doc.req ? 'btn-outline' : 'btn-primary'} btn-sm ob-need-up">${ico('upload')}Upload<input type="file" accept="image/*,.pdf" data-doc="${doc.id}" hidden></label></div>`;
@@ -380,13 +366,12 @@
     const docs = docsFor(S); if (!docs.length) return `<p class="ob-sub">Choose your business type first.</p><button type="button" class="btn btn-outline" data-goto="1">Back to step 1</button>`;
     const main = docs[0], rest = docs.slice(1), f = S.docs[main.id];
     const mainCard = f ? docCard(main) : `<label class="ob-main-up ${errors['doc_' + main.id] ? 'has-error' : ''}" data-docid="${main.id}"><input type="file" accept="image/*,.pdf" data-doc="${main.id}" hidden>
-        <i>${ico('doc')}</i><span><b>Upload ${esc(/^your /i.test(main.t) ? 'your ' + main.t.slice(5) : 'your ' + (/^[A-Z][a-z]/.test(main.t) ? main.t[0].toLowerCase() + main.t.slice(1) : main.t))}</b><small>PDF or photo · we fill in the details for you</small>${err('doc_' + main.id)}</span><span class="btn btn-primary">Choose file</span></label>`;
-    return `${hero('Verify your business', `Upload your ${isBiz(S) ? 'licence' : 'document'} and we'll read the details. Checks usually take under 24 hours.`, 'verify')}
-      <div class="ob-known">${ico(VERTICALS[S.v].icon)}<span><b>${esc(roleOf(S) ? roleOf(S)[1] : '')}</b> · ${esc(VERTICALS[S.v].label)} · ${esc([S.d.city, country().name].filter(Boolean).join(', '))}</span><button type="button" class="text-link" data-goto="1">Change</button></div>
+        <i>${ico('doc')}</i><span><b>Upload ${esc(/^your /i.test(main.t) ? 'your ' + main.t.slice(5) : 'your ' + (/^[A-Z][a-z]/.test(main.t) ? main.t[0].toLowerCase() + main.t.slice(1) : main.t))}</b><small>A photo or PDF — we'll read it and fill in the details for you</small>${err('doc_' + main.id)}</span><span class="btn btn-primary">Choose file</span></label>`;
+    return `${hero(isBiz(S) ? 'Verify your business' : 'Verify your identity', `Upload your ${isBiz(S) ? 'licence' : 'ID'} — we fill in the details, you just check them.`, 'verify')}
+      <div class="ob-known">${ico(VERTICALS[S.v].icon)}<span><b>${esc(typeOf(S) ? typeOf(S).t : roleOf(S) ? roleOf(S)[1] : '')}</b> · ${esc(VERTICALS[S.v].label)} · ${esc([S.d.city, country().name].filter(Boolean).join(', '))}</span><button type="button" class="text-link" data-goto="1">Change</button></div>
       <div class="ob-mainwrap">${mainCard}</div>
-      ${rest.length ? sec('need', 'Also needed', `<p class="ob-need-sub">Anything marked “Now or later” can follow — listings in that category stay in draft until it's approved.</p><div class="ob-needs">${rest.map(needRow).join('')}</div>`) : ''}
-      ${perListing(S).length ? `<div class="ob-later"><b>${ico('clock')}Checked with each listing</b><ul>${perListing(S).map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}
-      <p class="ob-private">${ico('lock')}<span>Your documents stay private — customers only see the “Verified by ${esc(SITE.name)}” badge. Reading them just saves you typing; a person on our team still reviews every application.</span></p>`;
+      ${rest.length ? sec('need', 'Also needed', `<p class="ob-need-sub">${rest.some(x => x.later) ? 'Documents marked “Now or later” can wait — related listings stay in draft until you add them.' : rest.every(x => !x.req) ? 'Optional, but they help us approve you faster.' : rest.every(x => x.req) ? 'We need these too before we can approve you.' : 'Upload the required ones to continue — optional ones help us approve you faster.'}</p><div class="ob-needs">${rest.map(needRow).join('')}</div>`) : ''}
+      <p class="ob-private">${ico('lock')}<span>Your documents stay private. Customers only see a “Verified by ${esc(SITE.name)}” badge, and a real person reviews every application.</span></p>`;
   }
 
   /* ---------- step 3: profile — only what the documents can't tell us ---------- */
@@ -394,10 +379,12 @@
   function kindOf() { const what = S.cats.length ? S.cats.map(offerLabel).filter(Boolean).slice(0, 2).join(' · ') : VERTICALS[S.v].label; const t = typeOf(S); return t ? `${t.t} · ${what}` : isBiz(S) ? `Licensed company · ${what}` : what; }
   // a first draft of the About text from the verified details — the provider edits it
   function aboutStarter() {
-    const d = S.d, langs = (d.langs || ['English']).join(', '), city = (d.address || '').split(',').map(x => x.trim()).filter(Boolean).pop() || country().name;
-    const offers = S.cats.map(offerLabel).filter(Boolean).map(x => x.toLowerCase()), list = offers.length > 1 ? offers.slice(0, -1).join(', ') + ' and ' + offers[offers.length - 1] : offers[0] || VERTICALS[S.v].label.toLowerCase();
-    if (isBiz(S)) return `${d.display || d.trade || 'We'} is a licensed business in ${city} offering ${list}. We reply quickly on WhatsApp and calls, in ${langs}, and every listing is checked by ${SITE.name} before it goes live.`.replace(/\s+/g, ' ');
-    return `I'm ${firstName() || 'a verified provider'}, offering ${list} in ${country().name}. I reply quickly on WhatsApp and calls, and speak ${langs}.`.replace(/\s+/g, ' ');
+    const d = S.d, and = a => a.length > 1 ? a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1] : a[0] || '';
+    const langs = and(d.langs && d.langs.length ? d.langs : ['English']), city = d.city || country().name;
+    const list = (and(S.cats.map(offerLabel).filter(Boolean).map(x => x.toLowerCase())) || VERTICALS[S.v].label.toLowerCase()) + (S.v === 'spaces' ? ' property' : '');
+    const name = d.display || d.trade;
+    if (isBiz(S)) return `${name ? name + ' is' : 'We are'} a licensed business in ${city} offering ${list}. We reply quickly on WhatsApp and by phone, in ${langs}.`;
+    return `I'm ${firstName() || 'a verified provider'}, offering ${list} in ${city}. I reply quickly on WhatsApp and by phone, and speak ${langs}.`;
   }
   // languages: tags + type to add (themed suggestions) + a few one-tap picks
   function langPicker() {
@@ -419,12 +406,12 @@
     const d = S.d, biz = isBiz(S), bio = d.bio || '';
     if (!d.display) d.display = (biz ? d.trade || d.legal : d.fullName || S.name) || ''; // start from the document
     const shown = d.display || S.name || '?';
-    return `<div class="ob-prof">${hero('Set up your public profile', 'What customers see when they find you.', 'profile')}
+    return `<div class="ob-prof">${hero('Set up your public profile', 'This is what customers see. You can change it any time.', 'profile')}
       ${sec('who', '', `<div class="ob-idcard">
         <label class="ob-avatar-up ${biz ? 'is-logo' : ''} ${d.photo ? 'has-photo' : ''}" title="${d.photo ? 'Change' : 'Add'} ${biz ? 'logo' : 'photo'}">
           <input type="file" accept="image/*" data-photo hidden>${d.photo ? `<img src="${d.photo}" alt="">` : `<span class="ob-avatar-ini">${esc(initials(shown) || '?')}</span>`}<span class="ob-cam">${ico('camera')}</span></label>
         <div class="ob-idcard-txt">${text('display', 'Display name', biz ? 'Your brand or trading name' : 'Your full name')}
-          <small class="ob-idcard-tip">${d.photo ? `<button type="button" class="text-link" data-act="rmphoto">Remove ${biz ? 'logo' : 'photo'}</button>` : `${ico('camera')}Add a ${biz ? 'logo' : 'photo'} — profiles with one get up to 2× more enquiries`}</small></div>
+          <small class="ob-idcard-tip">${d.photo ? `<button type="button" class="text-link" data-act="rmphoto">Remove ${biz ? 'logo' : 'photo'}</button>` : `${ico('camera')}Add a ${biz ? 'logo' : 'photo'} — profiles with one get more enquiries`}</small></div>
       </div>`)}
       ${sec('about', 'About', `<div class="ob-field ob-about ${errors.bio ? 'has-error' : ''}" data-f="bio">
           <textarea id="ob-bio" data-k="bio" maxlength="600" placeholder="Tell customers what you do and why they should choose you…">${esc(bio)}</textarea>
@@ -437,16 +424,27 @@
 
   /* ---------- submit: a short confirmation, not a review page ---------- */
   function confirmSubmit() {
-    const d = S.d, biz = isBiz(S);
-    const line = (icon, t, sub, step) => `<div class="ob-cf-row"><i>${ico(icon)}</i><span><b>${esc(t)}</b><small>${esc(sub)}</small></span><button type="button" class="text-link" data-cfgoto="${step}">Edit</button></div>`;
-    UPUI.openModal(`<div class="ob-cf"><div class="ob-cf-h"><h3>Ready to submit?</h3><button class="close-btn" data-close aria-label="Close">${ico('x')}</button></div>
-      <p class="ob-cf-sub">We'll check these against your documents — usually in under 24 hours.</p>
-      ${line(VERTICALS[S.v].icon, VERTICALS[S.v].label, [typeOf(S) ? typeOf(S).t : roleOf(S) && roleOf(S)[1], S.cats.map(offerLabel).filter(Boolean).join(', ')].filter(Boolean).join(' · '), 1)}
-      ${line('shield', legalName() || '—', biz ? [d.licence && 'Licence ' + d.licence, d.expiry && 'valid to ' + niceDate(d.expiry)].filter(Boolean).join(' · ') : [d.eidNo, d.eidExp && 'valid to ' + niceDate(d.eidExp)].filter(Boolean).join(' · '), 2)}
-      ${line('user', d.display || S.name, [d.photo ? 'Photo added' : 'No photo', (d.langs || []).join(', ')].filter(Boolean).join(' · '), 3)}
-      ${docsFor(S).some(x => x.later && x.req && !S.docs[x.id]) ? `<p class="ob-cf-later">${ico('clock')}<span>Added later: ${esc(docsFor(S).filter(x => x.later && x.req && !S.docs[x.id]).map(x => x.t).join(', '))} — those listings stay in draft until approved.</span></p>` : ''}
-      <label class="ob-check ob-cf-check"><input type="checkbox" data-cfagree ${S.agree ? 'checked' : ''}><span>I confirm these details are accurate, that I'm authorised to act for ${biz ? esc(d.legal || 'this business') : 'myself'}, and I agree to the <a class="text-link" href="#" onclick="return false">Provider terms</a>.</span></label>
-      <button type="button" class="btn btn-primary ob-cf-go" data-cfsubmit ${S.agree ? '' : 'disabled'}>Submit for verification${ico('check')}</button></div>`, 'ob-cf-modal');
+    const d = S.d, biz = isBiz(S), main = docsFor(S)[0], t = typeOf(S);
+    const idNo = biz ? d.licence : d.eidNo, until = biz ? d.expiry : d.eidExp;
+    const later = docsFor(S).filter(x => x.later && x.req && !S.docs[x.id]);
+    const shown = d.display || S.name || '';
+    // one line per step, each saying something new (no name repeated three times)
+    const item = (label, val, sub, step, lead = '') => `<div class="ob-cf-item">${lead}<span><small>${label}</small><b>${val}</b>${sub ? `<em>${sub}</em>` : ''}</span><button type="button" class="ob-cf-edit" data-cfgoto="${step}" aria-label="Edit ${label.toLowerCase()}">Edit</button></div>`;
+    UPUI.openModal(`<div class="ob-cf"><button class="close-btn ob-cf-x" data-close aria-label="Close">${ico('x')}</button>
+      <span class="ob-cf-mark">${ico('shield')}</span>
+      <h3>Send for review?</h3>
+      <p class="ob-cf-sub">Our team checks your details against your ${biz ? 'licence' : 'ID'} — usually within 24 hours. Nothing goes live until you're approved.</p>
+      <div class="ob-cf-sum">
+        ${item('You’ll list', esc([S.cats.map(offerLabel).filter(Boolean).join(', ') || VERTICALS[S.v].label].join('')), esc(t ? t.t : ''), 1, `<span class="ob-cf-av">${ico(VERTICALS[S.v].icon)}</span>`)}
+        ${item('Verified with', esc(main ? main.t.replace(/^your /i, '').replace(/^./, c => c.toUpperCase()) : 'Your document'), esc([idNo && 'ending ' + String(idNo).replace(/[^0-9A-Za-z]/g, '').slice(-4), until && 'valid to ' + niceDate(until), biz && d.legal].filter(Boolean).join(' · ')), 2, `<span class="ob-cf-av">${ico(biz ? 'doc' : 'user')}</span>`)}
+        ${item('Customers see', esc(shown), esc([(d.langs || []).join(', '), d.photo ? '' : `No ${biz ? 'logo' : 'photo'} yet`].filter(Boolean).join(' · ')), 3,
+          `<span class="ob-cf-av">${d.photo ? `<img src="${d.photo}" alt="">` : esc(initials(shown) || '?')}</span>`)}
+      </div>
+      ${later.length ? `<p class="ob-cf-later">${ico('clock')}<span>You can add your ${esc(later.map(x => x.t).join(', '))} later — those listings wait in draft until approved.</span></p>` : ''}
+      <label class="ob-cf-agree"><input type="checkbox" data-cfagree ${S.agree ? 'checked' : ''}><span>These details are correct${biz ? `, I'm authorised to act for ${esc(d.legal || 'this business')}` : ''} and I agree to the <a class="text-link" href="#" onclick="return false">Provider terms</a>.</span></label>
+      <button type="button" class="btn btn-primary ob-cf-go" data-cfsubmit ${S.agree ? '' : 'disabled'}>Send for review</button>
+      ${S.phone ? `<p class="ob-cf-foot">${ico('wa')}We'll WhatsApp you on <span class="nowrap" style="white-space:nowrap">${S.dial || country().dial} ${esc(fmtPhone(S.phone))}</span> with the decision</p>`
+        : S.email ? `<p class="ob-cf-foot">${ico('mail')}We'll email ${esc(S.email)} with the decision</p>` : ''}</div>`, 'ob-cf-modal');
   }
   document.addEventListener('change', e => {
     if (!e.target.matches('[data-cfagree]')) return;
@@ -464,11 +462,11 @@
     const bits = Array.from({ length: 18 }, (_, k) => { const a = k / 18 * Math.PI * 2, r = 70 + (k % 3) * 22; return `<span style="--x:${Math.round(Math.cos(a) * r)}px;--y:${Math.round(Math.sin(a) * r)}px;--r:${k * 47}deg;--d:${(k % 4) * 40}ms" class="c${k % 4}"></span>`; }).join('');
     return `<div class="ob-done"><div class="ob-done-mark"><span class="ob-confetti" aria-hidden="true">${bits}</span><span class="ob-done-ic"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span></div>
       <h1 class="ob-h1">Application sent — we're on it</h1>
-      <p class="ob-sub">Thanks${firstName() ? ', ' + esc(firstName()) : ''}. There's nothing else to do for now — we'll WhatsApp you on ${S.dial || country().dial} ${esc(fmtPhone(S.phone))} as soon as there's a decision, usually in under 24 hours.</p>
+      <p class="ob-sub">Thanks${firstName() ? ', ' + esc(firstName()) : ''}. There's nothing else to do for now. We'll ${S.phone ? `WhatsApp you on <span style="white-space:nowrap">${S.dial || country().dial} ${esc(fmtPhone(S.phone))}</span>` : S.email ? `email ${esc(S.email)}` : 'let you know'} as soon as there's a decision — usually within 24 hours.</p>
       <ol class="ob-timeline"><li class="is-done" style="--i:0"><i>${ico('check')}</i><span><b>Details checked</b><small>You confirmed what we read from your documents</small></span></li>
         <li class="is-done" style="--i:1"><i>${ico('check')}</i><span><b>Application sent</b><small>We have everything we need</small></span></li>
         <li class="is-now" style="--i:2"><i>3</i><span><b>Team review</b><small>We're checking your ${isBiz(S) ? 'licence and signatory ID' : 'ID'}</small></span></li>
-        <li style="--i:3"><i>4</i><span><b>You're approved</b><small>Then you can create your first ${esc(VERTICALS[S.v].label)} listing</small></span></li></ol>
+        <li style="--i:3"><i>4</i><span><b>You're approved</b><small>Then you can add your first ${esc(VERTICALS[S.v].label)} listing</small></span></li></ol>
       <div class="ob-done-cta"><a class="btn btn-outline" href="${PATHS.href.home}">Back to ${esc(SITE.name)}</a></div>
       ${S.email ? `<p class="ob-done-note">We've emailed a copy to <b>${esc(S.email)}</b></p>` : ''}</div>`;
   }
@@ -544,20 +542,20 @@
   function validate(step) {
     const e = {}, d = S.d;
     if (step === 1) {
-      if (!S.cats.length) e.cats = 'Choose at least one thing you offer';
-      else if (!S.role) e.role = 'Choose individual or company to continue';
-      else if (!typeOf(S)) e.sub = 'Choose what best describes you';
+      if (!S.cats.length) e.cats = 'Pick at least one thing you offer';
+      else if (!S.role) e.role = 'Tell us if you’re an individual or a company';
+      else if (!typeOf(S)) e.sub = 'Pick the option that fits you best';
       else {
         typeOf(S).size.forEach(([k]) => { if (!S.d['size_' + k]) e['size_' + k] = 'Pick one'; });
-        if (!String(S.d.city || '').trim()) e.city = 'Choose the city your business is based in';
+        if (!String(S.d.city || '').trim()) e.city = 'Choose your city';
       }
     }
     if (step === 2) docsFor(S).forEach(doc => {
       const f = S.docs[doc.id];
       if (!f) { if (doc.req && !doc.later) e['doc_' + doc.id] = 'Upload this document to continue'; return; }
       if (f.state !== 'read') return;
-      doc.fields.forEach(([k, , kind]) => { if (!String(d[k] || '').trim()) e[k] = 'Add this detail'; else if (kind === 'date' && expired(d[k])) e[k] = 'This date has passed — upload a current document'; });
-      if (!f.ok) e['ok_' + doc.id] = 'Tick the box once you’ve checked these details';
+      doc.fields.forEach(([k, , kind]) => { if (!String(d[k] || '').trim()) e[k] = 'This can’t be empty'; else if (kind === 'date' && expired(d[k])) e[k] = 'This date has passed — upload a current document'; });
+      if (!f.ok) e['ok_' + doc.id] = 'Check the details, then tick this box';
     });
     if (step === 3) {
       if (!String(d.display || '').trim()) e.display = 'Add the name customers will see';
@@ -633,7 +631,7 @@
       <div class="ob-panel ${done ? 'is-done' : ''}"><div class="ob-scroll"><div class="ob-step ${A.dir ? 'is-in-' + A.dir : ''}">${body}</div></div>
         ${done ? '' : `<div class="ob-nav">${S.step > 1 ? `<button type="button" class="btn btn-ghost" data-act="back">${ico('chevL')}Back</button>` : '<span></span>'}
           <span class="ob-save ${A.saved ? 'is-on' : ''}">${ico('check')}Draft saved</span>
-          ${locked ? `<button type="button" class="btn btn-primary ob-next" data-act="signin">Continue with your mobile${ico('chevR')}</button>` : `<button type="button" class="btn btn-primary ob-next" data-act="next">${S.step === LAST ? 'Submit for verification' : 'Continue'}${ico(S.step === LAST ? 'check' : 'chevR')}</button>`}</div>`}</div>
+          ${locked ? `<button type="button" class="btn btn-primary ob-next" data-act="signin">Continue with your mobile${ico('chevR')}</button>` : `<button type="button" class="btn btn-primary ob-next" data-act="next">${S.step === LAST ? 'Review and send' : 'Continue'}${ico('chevR')}</button>`}</div>`}</div>
     </main>
       <aside class="ob-aside ${previewOpen ? 'is-open' : ''}"><button type="button" class="ob-preview-toggle" data-act="preview">${ico('eye')}<span>${previewOpen ? 'Hide profile preview' : 'Preview your profile'}</span>${ico('chev')}</button>${pv}</aside></div>`, !!A.dir || (wasMode && wasMode !== S.status));
     // motion: keep the reading position, fill the bar, spring the control just picked, bring a new part into view

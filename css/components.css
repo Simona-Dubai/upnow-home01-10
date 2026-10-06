@@ -4591,6 +4591,11 @@ h1,
   animation: drop-in 0.16s var(--ease-out);
 }
 
+.select-menu:focus-visible, .select-menu:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 .select-menu.is-up {
   transform-origin: bottom left;
 }
