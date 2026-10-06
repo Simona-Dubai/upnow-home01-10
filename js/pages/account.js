@@ -22,7 +22,7 @@
   const setAlerts = a => localStorage.setItem(ALERT_KEY, JSON.stringify(a));
   const D = Object.assign({
     lead: {}, lists: [], notes: {}, read: [], check: {}, alert: {},
-    notify: { replies: { on: true, ch: ['wa', 'push'] }, matches: { on: true, ch: ['wa'] }, drops: { on: true, ch: ['push'] }, tips: { on: false, ch: ['email'] } },
+    notify: { replies: { on: true, ch: ['wa', 'push'] }, matches: { on: true, ch: ['wa'] }, tips: { on: false, ch: ['email'] } },
     quiet: true, privacy: { history: true, share: true }
   }, store.get('dash') || {});
   const save = () => store.set('dash', D);
@@ -125,8 +125,6 @@
 
   /* ---------- saved ---------- */
   const savedList = () => [...favs];
-  // price change since saving — prototype: a stable subset of saved listings shows a drop
-  const dropOf = l => { const h = hash(l.id); if (h % 5) return 0; const st = l.price > 5000 ? 500 : 10; return Math.round(l.price * (3 + h % 5) / 100 / st) * st; };
   const viewingFor = lid => all().find(m => m.r.lid === lid && m.stage === 'confirmed');
 
   /* ---------- saved searches ---------- */
@@ -150,8 +148,7 @@
       if (m.late) out.push({ id: 'late' + r.id, kind: 'enq', icon: 'clock', tone: 'amber', t: r.t + SLA, title: `No reply yet from ${m.who}`, text: `${r.title} — nudge them or contact similar listings.`, go: at });
       if (m.closedEv) out.push({ id: 'cls' + r.id, kind: 'enq', icon: 'x', tone: 'red', t: m.closedEv.t, title: `${r.provider} closed your enquiry`, text: `${r.title} — ${m.closedEv.text}`, go: at });
     });
-    alerts().forEach(q => { const s = searchInfo(q); if (s.fresh.length && alertMeta(q).freq !== 'paused') out.push({ id: 'new' + q + s.fresh.length, kind: 'match', icon: 'spark', tone: 'ok', t: now() - 6 * 3600000, title: `${s.fresh.length} new for “${s.title}”`, text: `Including ${s.fresh[0].title} · ${money(s.fresh[0].price)}.`, go: s.href }); });
-    savedList().map(byId).filter(Boolean).forEach(l => { const d = dropOf(l); if (d) out.push({ id: 'drop' + l.id, kind: 'drop', icon: 'trend', tone: 'red', t: now() - 26 * 3600000, title: 'Price drop on a saved listing', text: `${l.title} — now ${money(l.price - d)} (−${money(d)}).`, go: HREF.listing + '?id=' + l.id }); });
+    alerts().forEach(q => { const s = searchInfo(q); if (s.fresh.length && alertMeta(q).freq !== 'paused') out.push({ id: 'new' + q + s.fresh.length, kind: 'match', icon: 'spark', tone: 'ok', t: now() - 6 * 3600000, title: `${s.fresh.length} new for “${s.title}”`, text: `Including ${s.fresh[0].title}.`, go: s.href }); });
     return out.sort((a, b) => b.t - a.t);
   }
   const unread = () => feed().filter(n => !D.read.includes(n.id)).length;
@@ -216,12 +213,22 @@
     return `<a class="btn btn-outline btn-sm" href="#enquiry=${id}">Open</a>`;
   }
 
-  function actCard(m) {
-    const { r } = m;
-    return `<a class="acc-act ${m.needs ? 'is-hot' : ''}" href="#enquiry=${r.id}">
-      <div class="acc-act-top">${thumb(r)}<div><div class="acc-act-meta">${pill(m.pill)}<small>${ago(r.t)}</small></div><b>${esc(r.title)}</b><small>${money(r.price)}${esc(r.unit || '')} · ${esc(r.provider)}</small></div></div>
-      <div class="acc-act-next">${ico(STAGE_ICON[m.stage])}<span>${esc(m.next)}</span>${ico('chevR')}</div></a>`;
+  // how you contacted them — the same source tags and colours as the provider's Leads board
+  const VIA = { email: ['UpNow', '#136142'], request: ['UpNow', '#136142'], whatsapp: ['WhatsApp', '#1faa59'], call: ['Phone', '#b7791f'] };
+  const srcTag = r => { const [t, c] = VIA[r.type] || VIA.email; return `<span class="lead-src" style="--c:${c}"><i></i>${t}</span>`; };
+  const av = (n, cls = '') => `<span class="lead-av ${cls}">${esc(initials(n))}</span>`;
+  const spec = r => [...(r.spec || []).slice(0, 2), r.building || r.area].filter(Boolean).join(' · ');
+  // the latest thing said in the conversation, like the message line on a provider's lead card
+  const lastMsg = m => { const e = [...m.ev].reverse().find(x => x.text && x.t <= now()); return e ? m.who + ': ' + e.text : m.r.msg ? 'You: ' + m.r.msg : m.r.req && m.r.req.when ? 'You asked for ' + m.r.req.when : m.next; };
+  function leadCard(m) {
+    const { r } = m, waited = m.late ? Math.round((now() - r.t) / 60000) : 0;
+    return `<a class="lead-card ${m.needs ? 'is-hot' : ''}" href="#enquiry=${r.id}">
+      <div class="lead-t">${av(r.provider)}<b>${esc(r.provider)}</b></div>
+      <div class="lead-lst">${ico('building')}<span>${esc(r.title)}</span></div>
+      <p>${esc(lastMsg(m))}</p>
+      <div class="lead-f">${srcTag(r)}<span class="sp"></span>${m.needs && !m.late ? '<span class="lead-tag">Your turn</span>' : m.late ? `<span class="late">${waited < 120 ? waited + 'm' : Math.round(waited / 60) + 'h'} no reply</span>` : `<span>${ago(m.ev.length ? m.ev[m.ev.length - 1].t : r.t)}</span>`}</div></a>`;
   }
+  const actCard = leadCard;
 
   /* ---------- overview (C17, signed-in home) ---------- */
   function overview() {
@@ -245,35 +252,30 @@
       ${cross.length ? `<section class="acc-sec"><div class="acc-sec-h"><h2>Moving soon? Get it sorted</h2></div><div class="acc-cross">${cross.map(([v, o, i, t, s]) => `<a href="${HREF.search}?v=${v}&o=${o}">${ico(i)}<span><b>${t}</b><small>${s}</small></span>${ico('chevR')}</a>`).join('')}</div></section>` : ''}`;
   }
 
-  /* ---------- my enquiries (C18) ---------- */
+  /* ---------- my enquiries (C18) — the provider's Leads board, from the customer's side ---------- */
+  // columns follow the agent's stages: New → Contacted → Viewing → Offer → Won / Lost
+  const COLS = [['sent', 'Sent', ['sent', 'direct']], ['replied', 'Replied', ['talking', 'proposed', 'asked']], ['viewing', 'Viewing', ['confirmed']], ['after', 'After viewing', ['viewed', 'discussing']], ['closed', 'Closed', ['closed']]];
+  const colOf = m => COLS.findIndex(c => c[2].includes(m.stage));
   function enquiries() {
-    const L = all(), month = new Date(); month.setDate(1); month.setHours(0, 0, 0, 0);
-    const groups = { active: L.filter(m => m.stage !== 'closed'), viewings: L.filter(m => m.stage === 'confirmed'), needs: L.filter(m => m.needs), closed: L.filter(m => m.stage === 'closed') };
-    const list = groups[A.etab] || groups.active;
-    const next = groups.viewings.slice().sort((a, b) => a.slot.ts - b.slot.ts)[0];
-    const thisMonth = L.filter(m => m.r.t >= month), agents = new Set(thisMonth.map(m => m.r.provider)).size, homes = new Set(thisMonth.map(m => m.r.lid)).size;
-    const rep = L.filter(m => m.replyMin != null), avg = rep.length ? Math.round(rep.reduce((s, m) => s + m.replyMin, 0) / rep.length) : null;
-    const needWhat = [...new Set(groups.needs.map(m => ({ proposed: 'reply to ' + m.who, viewed: 'rate a viewing', direct: 'confirm a call', sent: 'nudge ' + m.who }[m.stage])))].slice(0, 2).join(' · ');
-    const kpi = [['Needs you', groups.needs.length, needWhat || 'You’re all caught up', groups.needs.length ? 'is-hot' : ''], ['Upcoming viewing', next ? shortSlot(next.slot.ts) : '—', next ? next.r.building || next.r.area : 'None booked yet', ''],
-      ['Awaiting replies', L.filter(m => m.stage === 'sent' || m.stage === 'asked').length, avg ? `Avg reply ${avg} min` : 'Agents aim to reply in 15 min', ''], ['Contacted this month', thisMonth.length, `${agents} ${agents === 1 ? 'agent' : 'agents'} · ${homes} ${homes === 1 ? 'listing' : 'listings'}`, '']];
-    const row = m => { const { r } = m, steps = progress(m), cur = steps.find(s => s.cur); return `<tr data-href="#enquiry=${r.id}" class="${m.needs ? 'is-hot' : ''}">
-        <td><div class="acc-cell">${thumb(r)}<span><b>${esc(r.title)}</b><small>${money(r.price)}${esc(r.unit || '')} · ${esc(r.ref)}</small></span></div></td>
-        <td><div class="acc-cell"><span class="acc-av is-sm">${esc(initials(r.provider))}</span><span><b>${esc(r.provider)}</b><small>${esc(r.org)}</small></span></div></td>
-        <td><div class="acc-steps">${steps.map((s, i) => `<i class="${s.done ? 'is-done' : s.cur ? 'is-cur' : ''}" title="${esc(s.t)}">${s.done ? ico('check') : i + 1}</i>`).join('<b></b>')}</div><small class="acc-steps-l">${esc(cur ? cur.t : 'Closed')}</small></td>
-        <td>${pill(m.pill)}<small class="acc-next">${esc(m.next)}</small></td>
-        <td class="acc-go">${nextBtn(m)}</td></tr>`; };
-    return `${head('My enquiries', `Every request, call and WhatsApp you started on ${esc(SITE.name)} — across all agents.`, L.length ? `<button class="btn btn-outline btn-sm" type="button" data-act="export">${ico('upload')}Export</button>` : '')}
-      ${L.length ? `<div class="acc-kpis">${kpi.map(([l, v, s, k]) => `<div class="${k}"><small>${l}</small><b>${esc(v)}</b><span>${esc(s)}</span></div>`).join('')}</div>
-      ${tabs([['active', 'Active', groups.active.length], ['viewings', 'Viewings', groups.viewings.length], ['needs', 'Needs you', groups.needs.length], ['closed', 'Closed', groups.closed.length]], A.etab, 'etab')}
-      ${list.length ? `<div class="acc-box acc-table-wrap"><table class="acc-table"><thead><tr><th>Listing</th><th>Agent</th><th>Progress</th><th>Status &amp; next step</th><th></th></tr></thead><tbody>${list.map(row).join('')}</tbody></table></div>
-        <div class="acc-acts acc-only-m">${list.map(actCard).join('')}</div>` : empty('check', 'Nothing here', A.etab === 'needs' ? 'You’re all caught up.' : A.etab === 'viewings' ? 'When an agent confirms a viewing, it shows up here.' : 'No enquiries in this tab yet.')}
-      <p class="acc-foot">${ico('shield')}Calls and WhatsApps you start from ${esc(SITE.name)} appear here too, so you never lose track of who you contacted.</p>`
-      : noEnq()}`;
+    const L = all();
+    if (!L.length) return head('My enquiries', `Every request, call and WhatsApp you started on ${esc(SITE.name)} — across all agents.`) + noEnq();
+    const f = A.via || 'all', LL = L.filter(m => f === 'all' || (VIA[m.r.type] || VIA.email)[0] === f);
+    const vias = [...new Set(L.map(m => (VIA[m.r.type] || VIA.email)[0]))];
+    const view = A.eview || 'board';
+    const bar = `<div class="lead-bar"><button class="chip ${f === 'all' ? 'is-active' : ''}" data-tab="via" data-v="all">All <em>${L.length}</em></button>${vias.map(v => `<button class="chip ${f === v ? 'is-active' : ''}" data-tab="via" data-v="${v}"><span class="lead-src" style="--c:${Object.values(VIA).find(x => x[0] === v)[1]}"><i></i>${v}</span><em>${L.filter(m => (VIA[m.r.type] || VIA.email)[0] === v).length}</em></button>`).join('')}</div>`;
+    const seg = `<div class="lead-seg">${[['board', 'Board', 'grid4'], ['list', 'List', 'list']].map(([k, l, i]) => `<button type="button" class="${view === k ? 'is-on' : ''}" data-tab="eview" data-v="${k}">${ico(i)}${l}</button>`).join('')}</div>`;
+    const body = view === 'list'
+      ? `<div class="acc-box acc-table-wrap"><table class="acc-table"><thead><tr><th>Agent</th><th>Via</th><th>Listing</th><th>Stage</th><th>Next step</th><th>Last activity</th></tr></thead><tbody>${LL.sort((a, b) => b.r.t - a.r.t).map(m => `<tr data-href="#enquiry=${m.r.id}" class="${m.needs ? 'is-hot' : ''}">
+          <td><div class="acc-cell">${av(m.r.provider, 'sm')}<span><b>${esc(m.r.provider)}</b><small>${esc(orgOf(m.r))}</small></span></div></td><td>${srcTag(m.r)}</td><td><b class="lead-cell-t">${esc(m.r.title)}</b></td>
+          <td><span class="lead-st ${m.stage === 'closed' ? 'is-mute' : ''}">${esc(COLS[colOf(m)][1])}</span></td><td><small class="acc-next">${esc(m.next)}</small></td><td>${ago(m.ev.length ? m.ev[m.ev.length - 1].t : m.r.t)}</td></tr>`).join('')}</tbody></table></div>`
+      : `<div class="lead-board">${COLS.map((c, i) => { const ms = LL.filter(m => colOf(m) === i); return `<div class="lead-col"><div class="lead-col-h">${c[1]}<span>${ms.length}</span></div>${ms.map(leadCard).join('') || '<div class="lead-col-empty">—</div>'}</div>`; }).join('')}</div>`;
+    return `${head('My enquiries', `Every request, call and WhatsApp you started on ${esc(SITE.name)} — one place to see where each agent is.`, seg)}${bar}${body}
+      <p class="acc-foot">${ico('shield')}Calls and WhatsApps you start from ${esc(SITE.name)} appear here too, so you never lose track of who you contacted.</p>`;
   }
-  // four steps, matching the agent's lead stages: Sent (New) → Replied (Contacted) → Viewing → Feedback (Won / Lost)
+  // the stage stepper, same steps as the board columns
   function progress(m) {
-    const idx = { sent: 0, direct: 0, talking: 1, proposed: 1, asked: 1, confirmed: 2, viewed: 3, discussing: 3, closed: 4 }[m.stage];
-    return ['Sent', m.direct ? 'In touch' : 'Replied', m.Step, m.stage === 'discussing' ? 'Interested' : 'Feedback'].map((t, i) => ({ t, done: i < idx, cur: i === idx }));
+    const idx = colOf(m);
+    return COLS.map((c, i) => ({ t: c[1], done: i < idx, cur: i === idx }));
   }
 
   /* ---------- one enquiry (C19 tracking) ---------- */
@@ -332,13 +334,16 @@
       ...m.ev.map(e => ({ t: e.t, text: e.text || (e.k === 'confirm' ? `Confirmed ${fmtSlot(e.slot)}` : e.k === 'propose' ? `Suggested ${fmtSlot(e.slot)}` : ''), via: 'WhatsApp' })), ...(S.log || [])].filter(x => x.t <= now()).sort((a, b) => a.t - b.t);
     const checks = lease ? ['Emirates ID or passport', 'Your move-in date and who will live there', 'Questions: parking, chiller, building rules'] : ['Reference ' + r.ref, 'Questions about price and what’s included'];
     const ck = D.check[r.id] || [];
-    const u = user();
+    const u = user(), P = l && window.DM ? DM.prov(l.provider.name) : null;
+    const kv = [r.req && r.req.when && ['You asked for', r.req.when], r.req && r.req.mode && ['Viewing', r.req.mode], ['Contacted via', (VIA[r.type] || VIA.email)[0]], ['Usually replies', P ? (P.reply <= 5 ? 'within 5 min' : 'within ' + P.reply + ' min') : 'within ' + (r.reply || 10) + ' min'], ['Listing ref', r.ref], ['Enquiry', r.id]].filter(Boolean);
     return `<nav class="acc-crumbs"><a href="#enquiries">${ico('chevL')}My enquiries</a><span>${esc(r.id)}</span></nav>
-      <div class="acc-box acc-track-h">${thumb(r)}<div>${pill(m.pill)}<h1>${esc(r.title)}</h1><small>${money(r.price)}${esc(r.unit || '')} · ${esc(r.ref)} · ${esc(r.id)}</small></div>${l ? `<a class="btn btn-outline btn-sm" href="${HREF.listing}?id=${r.lid}">View listing</a>` : `<span class="status-pill is-muted">No longer listed</span>`}</div>
+      <div class="acc-box lead-h"><div class="lead-h-top">${av(r.provider, 'is-lg')}<div><h1>${esc(r.provider)}</h1><small>${srcTag(r)} · ${esc(orgOf(r))} · sent ${ago(r.t)}</small></div>${pill(m.pill)}</div>
+        <div class="lead-stp">${progress(m).map(s => `<span class="${s.done ? 'is-done' : ''} ${s.cur ? 'is-on' : ''}">${esc(s.t)}</span>`).join('')}</div>
+        <a class="lead-orig" href="${l ? HREF.listing + '?id=' + r.lid : '#'}">${thumb(r)}<span><b>${esc(r.title)}</b><small>${esc(spec(r))}${l ? '' : ' · no longer listed'}</small></span>${ico('chevR')}</a>
+        <div class="lead-kv">${kv.map(([k, v]) => `<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div></div>
       <div class="acc-track"><div class="acc-box"><h2>Progress</h2><ol class="acc-tl">${items.join('')}</ol></div>
         <aside class="acc-track-side">
-          <div class="acc-box"><a class="acc-cell acc-agent" href="${provHref(r.provider)}"><span class="acc-av">${esc(initials(r.provider))}</span><span><b>${esc(r.provider)}</b><small>${esc(r.org)}${l && l.provider.brn ? ' · BRN ' + esc(l.provider.brn) : ''}</small><small>${l ? `★ ${l.rating} (${l.reviews}) · ` : ''}replies in ~${r.reply || 10} min</small></span>${ico('chevR')}</a>
-            <div class="acc-two">${waBtn(hi)}<a class="btn btn-outline btn-sm" href="tel:${esc(r.pphone)}" data-calllog="${r.id}">${ico('phone')}Call</a></div></div>
+          ${l && window.DM ? DM.agentCard(l) : `<div class="acc-box"><a class="acc-cell acc-agent" href="${provHref(r.provider)}">${av(r.provider)}<span><b>${esc(r.provider)}</b><small>${esc(orgOf(r))}</small></span>${ico('chevR')}</a><div class="acc-two">${waBtn(hi)}<a class="btn btn-outline btn-sm" href="tel:${esc(r.pphone)}" data-calllog="${r.id}">${ico('phone')}Call</a></div></div>`}
           <div class="acc-box"><h3>Contact log</h3><ul class="acc-log">${log.map(x => `<li class="${x.out ? 'is-out' : ''}"><span>${esc(x.text)}</span><small>${x.out ? 'You' : esc(who)} · ${fmtSlot(x.t)} · ${esc(x.via)}</small></li>`).join('')}</ul></div>
           <div class="acc-box"><h3>What ${esc(who)} can see</h3>
             <p class="acc-shared-l">${ico('eye')}<span>Your name${u && u.phone ? ' and mobile' : ''}${r.msg ? ' and your message' : ''} — shared when you ${r.type === 'call' ? 'called' : r.type === 'whatsapp' ? 'messaged them' : 'sent the request'}. Documents are never shared automatically.</span></p>
@@ -435,23 +440,22 @@
     const item = id => {
       const l = byId(id);
       if (!l) return `<div class="acc-saved is-gone"><div class="acc-gone">${ico('x')}<b>No longer available</b><small>This listing was removed by the agent.</small><button class="btn btn-outline btn-sm" data-fav="${esc(id)}">Remove</button></div></div>`;
-      const d = dropOf(l), note = D.notes[id], v = L.find(m => m.r.lid === id && m.stage === 'confirmed');
-      return `<div class="acc-saved">${v ? `<a class="acc-drop is-view" href="#enquiry=${v.r.id}">${ico('cal')}${esc(v.Step)} ${esc(shortSlot(v.slot.ts))}</a>` : d ? `<span class="acc-drop">${ico('trend')}−${money(d)} since you saved</span>` : ''}${U.card(l)}
+      const note = D.notes[id], v = L.find(m => m.r.lid === id && m.stage === 'confirmed');
+      return `<div class="acc-saved">${v ? `<a class="acc-drop is-view" href="#enquiry=${v.r.id}">${ico('cal')}${esc(v.Step)} ${esc(shortSlot(v.slot.ts))}</a>` : ''}${U.card(l)}
         <div class="acc-saved-bar"><label class="acc-pick"><input type="checkbox" data-pick="${id}" ${A.pick.has(id) ? 'checked' : ''}><span>Compare</span></label>
           <button type="button" data-act="note" data-id="${id}">${ico('pen')}${note ? 'Note' : 'Add note'}</button>
           <button type="button" data-act="move" data-id="${id}">${ico('list')}List</button></div>
         ${note ? `<p class="acc-note">${esc(note)}</p>` : ''}</div>`;
     };
-    const drops = arr => arr.map(byId).filter(Boolean).filter(dropOf).length;
     const listCards = `<div class="acc-lists"><button type="button" class="${A.list === 'all' ? 'is-active' : ''}" data-list="all"><b>All saved</b><small>${ids.length} ${ids.length === 1 ? 'listing' : 'listings'}</small></button>
-      ${lists.map(x => { const n = x.ids.filter(i => favs.has(i)), dr = drops(n); return `<button type="button" class="${A.list === x.id ? 'is-active' : ''}" data-list="${x.id}"><b>${esc(x.name)}</b><small>${n.length} saved${dr ? ` · ${dr} price drop` : ''}</small></button>`; }).join('')}
+      ${lists.map(x => { const n = x.ids.filter(i => favs.has(i)); return `<button type="button" class="${A.list === x.id ? 'is-active' : ''}" data-list="${x.id}"><b>${esc(x.name)}</b><small>${n.length} saved</small></button>`; }).join('')}
       <button type="button" class="is-new" data-act="newlist">${ico('plus')}New list</button></div>`;
     const body = {
       items: () => ids.length ? `${listCards}
           ${curList ? `<div class="acc-list-h"><h2>${esc(curList.name)}</h2><button type="button" class="btn btn-ghost btn-sm" data-act="renamelist">Rename</button><button type="button" class="btn btn-ghost btn-sm" data-act="dellist">Delete list</button></div>` : ''}
           ${shown.length ? `<div class="acc-grid is-saved">${shown.map(item).join('')}</div>` : empty('heart', 'This list is empty', 'Use “List” under any saved listing to add it here.')}
           <p class="acc-foot">${ico('grid4')}Tick up to 3 listings to compare them side by side.</p>`
-        : empty('heart', 'Nothing saved yet', 'Tap the heart on any listing to keep it here — we’ll tell you if the price drops.', `<a class="btn btn-primary btn-sm" href="${HREF.search}">${ico('search')}Browse listings</a>`),
+        : empty('heart', 'Nothing saved yet', 'Tap the heart on any listing to keep it here — and see it here on any device.', `<a class="btn btn-primary btn-sm" href="${HREF.search}">${ico('search')}Browse listings</a>`),
       searches: () => searches.length ? `<div class="acc-searches">${searches.map(q => { const s = searchInfo(q), a = alertMeta(q); return `<div class="acc-box acc-search">
           <span class="acc-search-ic">${ico('search')}</span><div class="acc-search-t"><b>${esc(s.title)}</b><small>${esc(s.sub)} · ${s.count} listings</small>${s.fresh.length && a.freq !== 'paused' ? `<span class="status-pill is-success">${s.fresh.length} new</span>` : '<span class="status-pill is-muted">Up to date</span>'}</div>
           <label class="acc-sel"><span>Alerts</span><select data-afreq="${esc(q)}">${[['instant', 'Instantly'], ['daily', 'Daily'], ['weekly', 'Weekly'], ['paused', 'Paused']].map(([v, t]) => `<option value="${v}" ${a.freq === v ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
@@ -484,14 +488,14 @@
   function alertsView() {
     const F = feed(), list = A.ntab === 'all' ? F : F.filter(n => n.kind === A.ntab);
     const need = all().filter(m => m.needs).length;
-    const TYPES = [['replies', 'Agent replies & viewings', 'Suggested times, confirmations, reminders 2 h before'], ['matches', 'New matches', 'For your saved searches'], ['drops', 'Price drops', 'On listings you saved'], ['tips', 'Tips & news', 'Occasional, never more than monthly']];
+    const TYPES = [['replies', 'Agent replies & viewings', 'Suggested times, confirmations, reminders 2 h before'], ['matches', 'New matches', 'For your saved searches'], ['tips', 'Tips & news', 'Occasional, never more than monthly']];
     const CH = [['wa', 'WhatsApp'], ['push', 'Push'], ['email', 'Email']];
     const pref = k => D.notify[k] || (D.notify[k] = { on: false, ch: [] });
     return `${head('Alerts', need ? `${need} ${need === 1 ? 'needs' : 'need'} your attention` : F.length ? `${unread()} unread` : '', F.length ? `<button class="btn btn-ghost btn-sm" type="button" data-act="readall">Mark all as read</button>` : '')}
       <div class="acc-alerts"><div>
-        ${tabs([['all', 'All', F.length], ['enq', 'Enquiries', F.filter(n => n.kind === 'enq').length], ['match', 'Matches', F.filter(n => n.kind === 'match').length], ['drop', 'Price drops', F.filter(n => n.kind === 'drop').length]], A.ntab, 'ntab')}
+        ${tabs([['all', 'All', F.length], ['enq', 'Enquiries', F.filter(n => n.kind === 'enq').length], ['match', 'Matches', F.filter(n => n.kind === 'match').length]], A.ntab, 'ntab')}
         ${list.length ? `<div class="acc-box acc-feed">${list.map(n => `<a href="${esc(n.go)}" class="acc-ntf ${D.read.includes(n.id) ? '' : 'is-unread'}" data-read="${esc(n.id)}"><i class="is-${n.tone}">${ico(n.icon)}</i><span><b>${esc(n.title)}</b><small>${esc(n.text)}</small></span><em>${ago(n.t)}</em></a>`).join('')}</div>`
-          : empty('bell', 'No alerts yet', 'Agent replies, viewing reminders, new matches and price drops will show up here.')}</div>
+          : empty('bell', 'No alerts yet', 'Agent replies, viewing reminders, and new matches will show up here.')}</div>
         <aside class="acc-box acc-prefs"><h3>Where should we reach you?</h3>
           <div class="acc-grid-pref"><span></span>${CH.map(([, t]) => `<small>${t}</small>`).join('')}
             ${TYPES.map(([k, t, s]) => `<span><b>${t}</b><small>${s}</small></span>${CH.map(([c]) => `<label class="acc-box-check"><input type="checkbox" data-pref="${k}" data-ch="${c}" ${pref(k).ch.includes(c) ? 'checked' : ''} aria-label="${t} by ${c}"><i>${ico('check')}</i></label>`).join('')}`).join('')}</div>
