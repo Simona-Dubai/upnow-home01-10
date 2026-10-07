@@ -74,13 +74,13 @@ body.mobile-shell {
   z-index: 100;
 }
 
-.home-hero .hero-bg {
+.home-hero .hero-background {
   position: absolute;
   inset: 0;
   overflow: hidden;
 }
 
-.home-hero .hero-bg img {
+.home-hero .hero-background img {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -91,12 +91,12 @@ body.mobile-shell {
   transition: opacity 0.7s ease, transform 6s ease;
 }
 
-.home-hero .hero-bg img.is-active {
+.home-hero .hero-background img.is-active {
   opacity: 1;
   transform: scale(1);
 }
 
-.home-hero .hero-bg::after {
+.home-hero .hero-background::after {
   content: "";
   position: absolute;
   inset: 0;

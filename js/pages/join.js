@@ -252,16 +252,16 @@
   let previewOpen = false;
 
   /* ---------- small builders ---------- */
-  const err = k => errors[k] ? `<span class="ob-err">${ico('x')}${esc(errors[k])}</span>` : '';
-  const field = (k, label, input, hint = '') => `<div class="field ob-field ${errors[k] ? 'has-error' : ''}" data-f="${k}"><label for="ob-${k}">${esc(label)}</label>${input}${hint && !errors[k] ? `<small class="ob-hint">${esc(hint)}</small>` : ''}${err(k)}</div>`;
-  const text = (k, label, ph = '', hint = '') => field(k, label, `<input id="ob-${k}" data-k="${k}" value="${esc(S.d[k] || '')}" placeholder="${esc(ph)}">`, hint);
+  const err = k => errors[k] ? `<span class="onboarding-error">${ico('x')}${esc(errors[k])}</span>` : '';
+  const field = (k, label, input, hint = '') => `<div class="field onboarding-field ${errors[k] ? 'has-error' : ''}" data-f="${k}"><label for="onboarding-${k}">${esc(label)}</label>${input}${hint && !errors[k] ? `<small class="onboarding-hint">${esc(hint)}</small>` : ''}${err(k)}</div>`;
+  const text = (k, label, ph = '', hint = '') => field(k, label, `<input id="onboarding-${k}" data-k="${k}" value="${esc(S.d[k] || '')}" placeholder="${esc(ph)}">`, hint);
   const firstName = () => (S.name || '').split(' ')[0];
   // a part of a step; parts that appear later fade up the first time they're shown
   function sec(id, title, body, aside = '') {
     const key = S.step + ':' + id, isNew = !A.seen.has(key);
     A.seen.add(key);
     if (isNew && !A.entering) A.revealed = id;
-    return `<section class="ob-sec ${isNew && !A.entering ? 'is-enter' : ''}" data-sec="${id}">${title || aside ? `<div class="ob-sec-h"><h2>${title}</h2>${aside}</div>` : ''}${body}</section>`;
+    return `<section class="onboarding-section ${isNew && !A.entering ? 'is-enter' : ''}" data-sec="${id}">${title || aside ? `<div class="onboarding-section-header"><h2>${title}</h2>${aside}</div>` : ''}${body}</section>`;
   }
 
   /* ---------- step illustrations (brand greens, drawn inline) ---------- */
@@ -271,48 +271,48 @@
       <g fill="#fff" opacity=".85"><rect x="80" y="42" width="7" height="7" rx="1.5"/><rect x="93" y="42" width="7" height="7" rx="1.5"/><rect x="80" y="55" width="7" height="7" rx="1.5"/><rect x="93" y="55" width="7" height="7" rx="1.5"/><rect x="80" y="68" width="7" height="7" rx="1.5"/><rect x="93" y="68" width="7" height="7" rx="1.5"/><rect x="115" y="68" width="5" height="5" rx="1"/><rect x="123" y="68" width="5" height="5" rx="1"/><rect x="115" y="78" width="5" height="5" rx="1"/><rect x="123" y="78" width="5" height="5" rx="1"/></g>
       <g fill="#136142" opacity=".55"><rect x="50" y="60" width="5" height="5" rx="1"/><rect x="59" y="60" width="5" height="5" rx="1"/><rect x="50" y="70" width="5" height="5" rx="1"/><rect x="59" y="70" width="5" height="5" rx="1"/></g>
       <rect x="86" y="88" width="10" height="14" rx="2" fill="#fff"/><path d="M30 102h112" stroke="#d3dad5" stroke-width="2" stroke-linecap="round"/>
-      <g class="ob-art-pin"><path d="M128 14c-9 0-15 7-15 15 0 11 15 24 15 24s15-13 15-24c0-8-6-15-15-15z" fill="#e0a526"/><circle cx="128" cy="29" r="5.5" fill="#fff"/></g></svg>`,
+      <g class="onboarding-illustration-pin"><path d="M128 14c-9 0-15 7-15 15 0 11 15 24 15 24s15-13 15-24c0-8-6-15-15-15z" fill="#e0a526"/><circle cx="128" cy="29" r="5.5" fill="#fff"/></g></svg>`,
     profile: `<svg viewBox="0 0 160 120" aria-hidden="true"><circle cx="80" cy="62" r="50" fill="#eef7f2"/>
       <rect x="34" y="30" width="96" height="70" rx="12" fill="#fff" stroke="#d8efe3" stroke-width="2"/><path d="M34 42a12 12 0 0 1 12-12h72a12 12 0 0 1 12 12v6H34z" fill="#136142"/>
       <circle cx="58" cy="58" r="14" fill="#25946a" stroke="#fff" stroke-width="3"/><circle cx="58" cy="54" r="5" fill="#fff"/><path d="M49 66c2-5 5-7 9-7s7 2 9 7" fill="#fff"/>
       <rect x="78" y="54" width="38" height="6" rx="3" fill="#136142"/><rect x="78" y="65" width="26" height="5" rx="2.5" fill="#d3dad5"/>
       <rect x="46" y="80" width="30" height="10" rx="5" fill="#d8efe3"/><rect x="80" y="80" width="30" height="10" rx="5" fill="#d8efe3"/>
-      <g class="ob-art-star"><circle cx="130" cy="30" r="13" fill="#e0a526"/><path d="m130 23 2.2 4.5 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5-3.6-3.5 5-.7z" fill="#fff"/></g>
-      <path class="ob-art-spark" d="M24 30v8M20 34h8M140 94v6M137 97h6" stroke="#25946a" stroke-width="2" stroke-linecap="round"/></svg>`,
+      <g class="onboarding-illustration-star"><circle cx="130" cy="30" r="13" fill="#e0a526"/><path d="m130 23 2.2 4.5 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5-3.6-3.5 5-.7z" fill="#fff"/></g>
+      <path class="onboarding-illustration-spark" d="M24 30v8M20 34h8M140 94v6M137 97h6" stroke="#25946a" stroke-width="2" stroke-linecap="round"/></svg>`,
     verify: `<svg viewBox="0 0 160 120" aria-hidden="true"><circle cx="80" cy="62" r="50" fill="#eef7f2"/>
       <rect x="44" y="22" width="60" height="78" rx="8" fill="#fff" stroke="#d8efe3" stroke-width="2" transform="rotate(-6 74 61)"/>
       <g transform="rotate(-6 74 61)"><rect x="54" y="36" width="34" height="5" rx="2.5" fill="#136142"/><rect x="54" y="48" width="40" height="4" rx="2" fill="#d3dad5"/><rect x="54" y="57" width="36" height="4" rx="2" fill="#d3dad5"/><rect x="54" y="66" width="28" height="4" rx="2" fill="#d3dad5"/></g>
-      <g class="ob-art-shield"><path d="M112 44l22 8v16c0 15-10 24-22 28-12-4-22-13-22-28V52z" fill="#136142"/><path d="m102 70 7 7 13-14" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>
+      <g class="onboarding-illustration-shield"><path d="M112 44l22 8v16c0 15-10 24-22 28-12-4-22-13-22-28V52z" fill="#136142"/><path d="m102 70 7 7 13-14" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>
       <g><rect x="30" y="76" width="22" height="18" rx="4" fill="#e0a526"/><path d="M35 76v-5a6 6 0 0 1 12 0v5" fill="none" stroke="#e0a526" stroke-width="3"/><circle cx="41" cy="85" r="2.5" fill="#fff"/></g></svg>`
   };
-  const hero = (title, sub, art) => `<div class="ob-hero"><div><h1 class="ob-h1">${title}</h1><p class="ob-sub">${sub}</p></div><div class="ob-art">${ART[art]}</div></div>`;
+  const hero = (title, sub, art) => `<div class="onboarding-hero"><div><h1 class="onboarding-title">${title}</h1><p class="onboarding-subtitle">${sub}</p></div><div class="onboarding-illustration">${ART[art]}</div></div>`;
 
   /* ---------- step 1: your business — what it does (location belongs to each listing) ---------- */
   function stepBusiness() {
     const cats = VERTICALS[S.v].offers, only = companyOnly(S);
     const why = esc(COMPANY_ONLY.includes(S.v) ? VERTICALS[S.v].label : S.cats.filter(c => COMPANY_CATS.includes(c)).map(offerLabel).join(' and '));
-    const countryPick = `<label class="ob-country" title="Country of registration">${country().flag}<select data-country aria-label="Country">${MARKETS.COUNTRIES.map(x => `<option value="${x.iso}" ${x.iso === S.country ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>${ico('chev')}</label>`;
+    const countryPick = `<label class="onboarding-country" title="Country of registration">${country().flag}<select data-country aria-label="Country">${MARKETS.COUNTRIES.map(x => `<option value="${x.iso}" ${x.iso === S.country ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>${ico('chev')}</label>`;
     // city of the business, next to the country (known cities as a list, any other city typed in)
     const cities = Object.keys(M().cities || {});
     const cityPick = cities.length
-      ? `<label class="ob-country ob-city ${errors.city ? 'has-error' : ''}" title="City">${ico('pin')}<select data-city aria-label="City"><option value="">City</option>${cities.map(c => `<option ${S.d.city === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}<option value="__other" ${S.d.city && !cities.includes(S.d.city) ? 'selected' : ''}>Other…</option></select>${ico('chev')}</label>${S.d.city && !cities.includes(S.d.city) || A.otherCity ? `<input class="ob-city-in" data-cityin placeholder="Type your city" value="${esc(cities.includes(S.d.city) ? '' : S.d.city || '')}">` : ''}`
-      : `<input class="ob-city-in ${errors.city ? 'has-error' : ''}" data-cityin placeholder="City" value="${esc(S.d.city || '')}">`;
-    const pick = `<span class="ob-where">${countryPick}${cityPick}</span>`;
+      ? `<label class="onboarding-country onboarding-city ${errors.city ? 'has-error' : ''}" title="City">${ico('pin')}<select data-city aria-label="City"><option value="">City</option>${cities.map(c => `<option ${S.d.city === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}<option value="__other" ${S.d.city && !cities.includes(S.d.city) ? 'selected' : ''}>Other…</option></select>${ico('chev')}</label>${S.d.city && !cities.includes(S.d.city) || A.otherCity ? `<input class="onboarding-city-input" data-cityin placeholder="Type your city" value="${esc(cities.includes(S.d.city) ? '' : S.d.city || '')}">` : ''}`
+      : `<input class="onboarding-city-input ${errors.city ? 'has-error' : ''}" data-cityin placeholder="City" value="${esc(S.d.city || '')}">`;
+    const pick = `<span class="onboarding-where">${countryPick}${cityPick}</span>`;
     let html = hero('Tell us about your business', `${firstName() ? `Hi ${esc(firstName())}! ` : ''}A few quick taps — your answers decide which documents we ask for.`, 'business');
-    html += sec('what', 'What kind of business is it?', `<div class="ob-verticals">${verticalsInOrder().map(v => `<button type="button" class="ob-tile ${S.v === v ? 'is-active' : ''}" data-vert="${v}"><i>${ico(VERTICALS[v].icon)}</i><span>${esc(VERTICALS[v].label)}</span></button>`).join('')}</div>`);
-    html += sec('list', 'What do you offer?', `<div class="ob-cats ${errors.cats ? 'has-error' : ''}">${cats.map(o => { const on = S.cats.includes(o.id); return `<button type="button" class="ob-chip ${on ? 'is-active' : ''}" data-cat="${o.id}">${ico(o.icon || UPF.OICO[o.id] || VERTICALS[S.v].icon)}<span>${esc(o.label)}</span><span class="ob-tick">${ico('check')}</span></button>`; }).join('')}</div>${err('cats')}`, '<small>Choose all that apply</small>');
+    html += sec('what', 'What kind of business is it?', `<div class="onboarding-verticals">${verticalsInOrder().map(v => `<button type="button" class="onboarding-tile ${S.v === v ? 'is-active' : ''}" data-vert="${v}"><i>${ico(VERTICALS[v].icon)}</i><span>${esc(VERTICALS[v].label)}</span></button>`).join('')}</div>`);
+    html += sec('list', 'What do you offer?', `<div class="onboarding-categories ${errors.cats ? 'has-error' : ''}">${cats.map(o => { const on = S.cats.includes(o.id); return `<button type="button" class="onboarding-chip ${on ? 'is-active' : ''}" data-cat="${o.id}">${ico(o.icon || UPF.OICO[o.id] || VERTICALS[S.v].icon)}<span>${esc(o.label)}</span><span class="onboarding-tick">${ico('check')}</span></button>`; }).join('')}</div>${err('cats')}`, '<small>Choose all that apply</small>');
     if (S.cats.length) {
-      html += only ? `<p class="ob-only">${ico('building')}<span>${why} can only be listed by a licensed business, so you'll join as a <b>company</b> with a valid trade licence.</span></p>`
-        : sec('as', 'Are you an individual or a company?', `<div class="ob-roles ${errors.role ? 'has-error' : ''}">${ROLES.map(([id, t, sub, icon]) => `<button type="button" class="ob-role ${S.role === id ? 'is-active' : ''}" data-role="${id}"><i>${ico(icon)}</i><span><b>${esc(t)}</b><small>${esc(sub)}</small></span><span class="ob-radio"></span></button>`).join('')}</div>${err('role')}`);
+      html += only ? `<p class="onboarding-business-only">${ico('building')}<span>${why} can only be listed by a licensed business, so you'll join as a <b>company</b> with a valid trade licence.</span></p>`
+        : sec('as', 'Are you an individual or a company?', `<div class="onboarding-roles ${errors.role ? 'has-error' : ''}">${ROLES.map(([id, t, sub, icon]) => `<button type="button" class="onboarding-role ${S.role === id ? 'is-active' : ''}" data-role="${id}"><i>${ico(icon)}</i><span><b>${esc(t)}</b><small>${esc(sub)}</small></span><span class="onboarding-radio"></span></button>`).join('')}</div>${err('role')}`);
     }
     // one question at a time: the business type only once what you offer and individual / company are answered
     if (S.cats.length && S.role && typesOf(S).length) {
       const types = typesOf(S);
-      html += sec('kind', isBiz(S) ? 'Which best describes your company?' : 'Which best describes you?', `<div class="ob-roles ${types.length > 2 ? 'is-grid' : ''} ${errors.sub ? 'has-error' : ''}">${types.map(t => `<button type="button" class="ob-role ${S.sub === t.id ? 'is-active' : ''}" data-sub="${t.id}"><i>${ico(t.icon)}</i><span><b>${esc(t.t)}</b><small>${esc(t.sub)}</small></span><span class="ob-radio"></span></button>`).join('')}</div>${err('sub')}`);
+      html += sec('kind', isBiz(S) ? 'Which best describes your company?' : 'Which best describes you?', `<div class="onboarding-roles ${types.length > 2 ? 'is-grid' : ''} ${errors.sub ? 'has-error' : ''}">${types.map(t => `<button type="button" class="onboarding-role ${S.sub === t.id ? 'is-active' : ''}" data-sub="${t.id}"><i>${ico(t.icon)}</i><span><b>${esc(t.t)}</b><small>${esc(t.sub)}</small></span><span class="onboarding-radio"></span></button>`).join('')}</div>${err('sub')}`);
       const t = typeOf(S);
       // one block: sizing question(s) + where you're based, all as "question · answer" rows
-      if (t) html += sec('size', 'A few details', '<div class="ob-details">' + t.size.map(([k, q, opts]) => `<div class="ob-size ${errors['size_' + k] ? 'has-error' : ''}"><span>${esc(q)}</span><div class="ob-seg-ctl">${opts.map(o => `<button type="button" class="${S.d['size_' + k] === o ? 'is-active' : ''}" data-size="${k}" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>${err('size_' + k)}</div>`).join('')
-        + `<div class="ob-size ob-based ${errors.city ? 'has-error' : ''}"><span>Where are you based?</span>${pick}${err('city')}</div></div>`);
+      if (t) html += sec('size', 'A few details', '<div class="onboarding-details">' + t.size.map(([k, q, opts]) => `<div class="onboarding-size ${errors['size_' + k] ? 'has-error' : ''}"><span>${esc(q)}</span><div class="onboarding-segmented-control">${opts.map(o => `<button type="button" class="${S.d['size_' + k] === o ? 'is-active' : ''}" data-size="${k}" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>${err('size_' + k)}</div>`).join('')
+        + `<div class="onboarding-size onboarding-based-in ${errors.city ? 'has-error' : ''}"><span>Where are you based?</span>${pick}${err('city')}</div></div>`);
     }
 
     return html;
@@ -322,56 +322,56 @@
   // a detail read from a document: editable, with where it came from
   function xField([k, label, kind]) {
     const v = S.d[k] || '', src = S.src[k], edited = src && S.orig && S.orig[k] !== undefined && S.orig[k] !== v;
-    const tag = !src ? '' : edited ? `<em class="ob-tag is-edit">${ico('pen')}Edited by you</em>`
-      : src === 'missing' && !v ? `<em class="ob-tag is-miss">Not on the document — please add</em>`
-      : src === 'check' ? `<em class="ob-tag is-check">Double-check this</em>`
-      : src === 'missing' ? `<em class="ob-tag is-edit">${ico('pen')}Added by you</em>` : `<em class="ob-tag is-doc">${ico('doc')}From your document</em>`;
+    const tag = !src ? '' : edited ? `<em class="onboarding-tag is-edit">${ico('pen')}Edited by you</em>`
+      : src === 'missing' && !v ? `<em class="onboarding-tag is-miss">Not on the document — please add</em>`
+      : src === 'check' ? `<em class="onboarding-tag is-check">Double-check this</em>`
+      : src === 'missing' ? `<em class="onboarding-tag is-edit">${ico('pen')}Added by you</em>` : `<em class="onboarding-tag is-from-document">${ico('doc')}From your document</em>`;
     const bad = kind === 'date' && expired(v);
-    return `<div class="field ob-field ob-xf ${kind === 'wide' ? 'is-wide' : ''} ${errors[k] || bad ? 'has-error' : ''} ${src === 'missing' && !v ? 'is-missing' : ''} ${src === 'check' && !edited ? 'is-check' : ''}" data-f="${k}">
-      <label for="ob-${k}">${esc(label)}${tag}</label>${kind === 'date' || kind === 'issued' ? `<input type="date" class="ob-date" id="ob-${k}" data-k="${k}" value="${esc(isoDate(v))}">` : `<input id="ob-${k}" data-k="${k}" value="${esc(v)}">`}${bad ? `<span class="ob-err">${ico('x')}This document has expired — upload a current one</span>` : err(k)}</div>`;
+    return `<div class="field onboarding-field onboarding-extracted-field ${kind === 'wide' ? 'is-wide' : ''} ${errors[k] || bad ? 'has-error' : ''} ${src === 'missing' && !v ? 'is-missing' : ''} ${src === 'check' && !edited ? 'is-check' : ''}" data-f="${k}">
+      <label for="onboarding-${k}">${esc(label)}${tag}</label>${kind === 'date' || kind === 'issued' ? `<input type="date" class="onboarding-date" id="onboarding-${k}" data-k="${k}" value="${esc(isoDate(v))}">` : `<input id="onboarding-${k}" data-k="${k}" value="${esc(v)}">`}${bad ? `<span class="onboarding-error">${ico('x')}This document has expired — upload a current one</span>` : err(k)}</div>`;
   }
   // a document: reading → details to check → once checked, one quiet summary line (Edit opens it again)
   function docCard(doc) {
     const f = S.docs[doc.id], st = f && f.state;
-    const replace = `<label class="ob-doc-re">Replace<input type="file" accept="image/*,.pdf" data-doc="${doc.id}" hidden></label>`;
+    const replace = `<label class="onboarding-document-replace">Replace<input type="file" accept="image/*,.pdf" data-doc="${doc.id}" hidden></label>`;
     if (st === 'read' && f.ok && !A.open[doc.id]) {
       const vals = doc.fields.map(([k, , kind]) => kind === 'date' ? S.d[k] && 'valid to ' + niceDate(S.d[k]) : S.d[k]).filter(Boolean).slice(0, 3).join(' · ');
-      return `<div class="ob-doc is-done is-compact" data-docid="${doc.id}"><div class="ob-doc-h"><i>${ico('check')}</i><span><b>${esc(doc.t)}</b><small>${esc(vals)}</small></span>
+      return `<div class="onboarding-document is-done is-compact" data-docid="${doc.id}"><div class="onboarding-document-header"><i>${ico('check')}</i><span><b>${esc(doc.t)}</b><small>${esc(vals)}</small></span>
         <button type="button" class="text-link" data-docedit="${doc.id}">Edit</button></div></div>`;
     }
-    const head = `<div class="ob-doc-h"><i>${ico('doc')}</i><span><b>${esc(doc.t)}</b><small>${st ? esc(f.name) : esc(doc.hint)}</small></span>
+    const head = `<div class="onboarding-document-header"><i>${ico('doc')}</i><span><b>${esc(doc.t)}</b><small>${st ? esc(f.name) : esc(doc.hint)}</small></span>
       ${st === 'scan' ? '<em class="is-scan">Reading…</em>' : st === 'read' ? replace : `<em class="${doc.req ? 'is-req' : ''}">${doc.req ? 'Required' : 'Optional'}</em>`}</div>`;
     let body = '';
-    if (st === 'scan') body = `<div class="ob-scan" aria-live="polite"><div class="ob-scan-doc"><i></i><i></i><i></i><i></i><span class="ob-scan-beam"></span></div>
+    if (st === 'scan') body = `<div class="onboarding-scan" aria-live="polite"><div class="onboarding-scan-document"><i></i><i></i><i></i><i></i><span class="onboarding-scan-beam"></span></div>
         <div><b>Reading your document…</b><small>A few seconds</small></div></div>`;
     if (st === 'read') {
       const found = doc.fields.filter(([k]) => S.src[k] && S.src[k] !== 'missing').length;
-      body = `<div class="ob-x"><p class="ob-x-h">${ico('spark')}<span>We filled in ${found} of ${doc.fields.length} details — check them against your document.</span></p>
-        <div class="ob-xgrid">${doc.fields.map(xField).join('')}</div>
-        <label class="ob-x-ok ${errors['ok_' + doc.id] ? 'has-error' : ''}"><input type="checkbox" data-docok="${doc.id}" ${f.ok ? 'checked' : ''}><span>Everything matches my document</span></label>${err('ok_' + doc.id)}</div>`;
+      body = `<div class="onboarding-extracted"><p class="onboarding-extracted-header">${ico('spark')}<span>We filled in ${found} of ${doc.fields.length} details — check them against your document.</span></p>
+        <div class="onboarding-extracted-grid">${doc.fields.map(xField).join('')}</div>
+        <label class="onboarding-extracted-confirm ${errors['ok_' + doc.id] ? 'has-error' : ''}"><input type="checkbox" data-docok="${doc.id}" ${f.ok ? 'checked' : ''}><span>Everything matches my document</span></label>${err('ok_' + doc.id)}</div>`;
     }
-    const drop = !f ? `<label class="ob-drop"><input type="file" accept="image/*,.pdf" data-doc="${doc.id}" hidden><span class="ob-drop-empty">${ico('upload')}<span><b>Drag your file here or <u>browse</u></b><small>PDF, JPG or PNG</small></span></span></label>` : '';
-    return `<div class="ob-doc ${errors['doc_' + doc.id] ? 'has-error' : ''}" data-docid="${doc.id}">${head}${drop}${body}${err('doc_' + doc.id)}</div>`;
+    const drop = !f ? `<label class="onboarding-dropzone"><input type="file" accept="image/*,.pdf" data-doc="${doc.id}" hidden><span class="onboarding-dropzone-empty">${ico('upload')}<span><b>Drag your file here or <u>browse</u></b><small>PDF, JPG or PNG</small></span></span></label>` : '';
+    return `<div class="onboarding-document ${errors['doc_' + doc.id] ? 'has-error' : ''}" data-docid="${doc.id}">${head}${drop}${body}${err('doc_' + doc.id)}</div>`;
   }
   // "Also needed": a compact row until the document is uploaded (then it opens into the read-and-check card)
   function needRow(doc) {
     if (S.docs[doc.id]) return docCard(doc);
     // licences that may follow later don't ask for a decision: upload now, or simply continue
-    return `<div class="ob-need ${errors['doc_' + doc.id] ? 'has-error' : ''}" data-docid="${doc.id}"><i>${ico({ eid: 'user', sig: 'user', passport: 'globe', sigPass: 'globe', visa: 'flag' }[doc.id] || 'shield')}</i>
+    return `<div class="onboarding-need ${errors['doc_' + doc.id] ? 'has-error' : ''}" data-docid="${doc.id}"><i>${ico({ eid: 'user', sig: 'user', passport: 'globe', sigPass: 'globe', visa: 'flag' }[doc.id] || 'shield')}</i>
       <span><b>${esc(doc.t)}</b><small>${esc(doc.hint)}</small>${err('doc_' + doc.id)}</span>
-      ${doc.later ? '<em class="ob-need-tag">Now or later</em>' : !doc.req ? '<em class="ob-need-tag">Optional</em>' : ''}
-      <label class="btn ${doc.later || !doc.req ? 'btn-outline' : 'btn-primary'} btn-sm ob-need-up">${ico('upload')}Upload<input type="file" accept="image/*,.pdf" data-doc="${doc.id}" hidden></label></div>`;
+      ${doc.later ? '<em class="onboarding-need-tag">Now or later</em>' : !doc.req ? '<em class="onboarding-need-tag">Optional</em>' : ''}
+      <label class="btn ${doc.later || !doc.req ? 'btn-outline' : 'btn-primary'} btn-sm onboarding-need-upload">${ico('upload')}Upload<input type="file" accept="image/*,.pdf" data-doc="${doc.id}" hidden></label></div>`;
   }
   function stepVerify() {
-    const docs = docsFor(S); if (!docs.length) return `<p class="ob-sub">Choose your business type first.</p><button type="button" class="btn btn-outline" data-goto="1">Back to step 1</button>`;
+    const docs = docsFor(S); if (!docs.length) return `<p class="onboarding-subtitle">Choose your business type first.</p><button type="button" class="btn btn-outline" data-goto="1">Back to step 1</button>`;
     const main = docs[0], rest = docs.slice(1), f = S.docs[main.id];
-    const mainCard = f ? docCard(main) : `<label class="ob-main-up ${errors['doc_' + main.id] ? 'has-error' : ''}" data-docid="${main.id}"><input type="file" accept="image/*,.pdf" data-doc="${main.id}" hidden>
+    const mainCard = f ? docCard(main) : `<label class="onboarding-main-upload ${errors['doc_' + main.id] ? 'has-error' : ''}" data-docid="${main.id}"><input type="file" accept="image/*,.pdf" data-doc="${main.id}" hidden>
         <i>${ico('doc')}</i><span><b>Upload ${esc(/^your /i.test(main.t) ? 'your ' + main.t.slice(5) : 'your ' + (/^[A-Z][a-z]/.test(main.t) ? main.t[0].toLowerCase() + main.t.slice(1) : main.t))}</b><small>A photo or PDF — we'll read it and fill in the details for you</small>${err('doc_' + main.id)}</span><span class="btn btn-primary">Choose file</span></label>`;
     return `${hero(isBiz(S) ? 'Verify your business' : 'Verify your identity', `Upload your ${isBiz(S) ? 'licence' : 'ID'} — we fill in the details, you just check them.`, 'verify')}
-      <div class="ob-known">${ico(VERTICALS[S.v].icon)}<span><b>${esc(typeOf(S) ? typeOf(S).t : roleOf(S) ? roleOf(S)[1] : '')}</b> · ${esc(VERTICALS[S.v].label)} · ${esc([S.d.city, country().name].filter(Boolean).join(', '))}</span><button type="button" class="text-link" data-goto="1">Change</button></div>
-      <div class="ob-mainwrap">${mainCard}</div>
-      ${rest.length ? sec('need', 'Also needed', `<p class="ob-need-sub">${rest.some(x => x.later) ? 'Documents marked “Now or later” can wait — related listings stay in draft until you add them.' : rest.every(x => !x.req) ? 'Optional, but they help us approve you faster.' : rest.every(x => x.req) ? 'We need these too before we can approve you.' : 'Upload the required ones to continue — optional ones help us approve you faster.'}</p><div class="ob-needs">${rest.map(needRow).join('')}</div>`) : ''}
-      <p class="ob-private">${ico('lock')}<span>Your documents stay private. Customers only see a “Verified by ${esc(SITE.name)}” badge, and a real person reviews every application.</span></p>`;
+      <div class="onboarding-known">${ico(VERTICALS[S.v].icon)}<span><b>${esc(typeOf(S) ? typeOf(S).t : roleOf(S) ? roleOf(S)[1] : '')}</b> · ${esc(VERTICALS[S.v].label)} · ${esc([S.d.city, country().name].filter(Boolean).join(', '))}</span><button type="button" class="text-link" data-goto="1">Change</button></div>
+      <div class="onboarding-main-wrap">${mainCard}</div>
+      ${rest.length ? sec('need', 'Also needed', `<p class="onboarding-need-subtitle">${rest.some(x => x.later) ? 'Documents marked “Now or later” can wait — related listings stay in draft until you add them.' : rest.every(x => !x.req) ? 'Optional, but they help us approve you faster.' : rest.every(x => x.req) ? 'We need these too before we can approve you.' : 'Upload the required ones to continue — optional ones help us approve you faster.'}</p><div class="onboarding-needs">${rest.map(needRow).join('')}</div>`) : ''}
+      <p class="onboarding-private">${ico('lock')}<span>Your documents stay private. Customers only see a “Verified by ${esc(SITE.name)}” badge, and a real person reviews every application.</span></p>`;
   }
 
   /* ---------- step 3: profile — only what the documents can't tell us ---------- */
@@ -389,9 +389,9 @@
   // languages: tags + type to add (themed suggestions) + a few one-tap picks
   function langPicker() {
     const cur = S.d.langs || [], left = LANGS.filter(l => !cur.includes(l)), full = cur.length >= MAX_LANGS;
-    return `<div class="ob-tags ob-langs ${errors.langs ? 'has-error' : ''}">${cur.map(l => `<span class="loc-token">${esc(l)}<button type="button" data-rmlang="${esc(l)}" aria-label="Remove ${esc(l)}">${ico('x')}</button></span>`).join('')}
-        ${full ? '' : `<input id="ob-lang" data-langinput list="ob-langlist" placeholder="${cur.length ? 'Add another' : 'Type a language'}" autocomplete="off"><datalist id="ob-langlist">${left.map(l => `<option value="${esc(l)}">`).join('')}</datalist>`}</div>
-      ${full ? '' : `<div class="ob-quick">${left.slice(0, 3).map(l => `<button type="button" data-addlang="${esc(l)}">${ico('plus')}${esc(l)}</button>`).join('')}</div>`}${err('langs')}`;
+    return `<div class="onboarding-tags onboarding-languages ${errors.langs ? 'has-error' : ''}">${cur.map(l => `<span class="loc-token">${esc(l)}<button type="button" data-rmlang="${esc(l)}" aria-label="Remove ${esc(l)}">${ico('x')}</button></span>`).join('')}
+        ${full ? '' : `<input id="onboarding-lang" data-langinput list="onboarding-langlist" placeholder="${cur.length ? 'Add another' : 'Type a language'}" autocomplete="off"><datalist id="onboarding-langlist">${left.map(l => `<option value="${esc(l)}">`).join('')}</datalist>`}</div>
+      ${full ? '' : `<div class="onboarding-quick">${left.slice(0, 3).map(l => `<button type="button" data-addlang="${esc(l)}">${ico('plus')}${esc(l)}</button>`).join('')}</div>`}${err('langs')}`;
   }
   function addLang(v) {
     const l = LANGS.find(x => x.toLowerCase() === String(v).trim().toLowerCase()) || (String(v).trim() && String(v).trim()[0].toUpperCase() + String(v).trim().slice(1));
@@ -399,26 +399,26 @@
     if (!l || cur.includes(l)) return;
     if (cur.length >= MAX_LANGS) { toast(`Up to ${MAX_LANGS} languages`); return; }
     S.d.langs = [...cur, l]; delete errors.langs; commit();
-    const i = document.getElementById('ob-lang'); if (i) { i.value = ''; i.focus({ preventScroll: true }); }
+    const i = document.getElementById('onboarding-lang'); if (i) { i.value = ''; i.focus({ preventScroll: true }); }
   }
   // compact: photo + name on one row, about, then languages / contact / hours as tight rows (no extra banners)
   function stepProfile() {
     const d = S.d, biz = isBiz(S), bio = d.bio || '';
     if (!d.display) d.display = (biz ? d.trade || d.legal : d.fullName || S.name) || ''; // start from the document
     const shown = d.display || S.name || '?';
-    return `<div class="ob-prof">${hero('Set up your public profile', 'This is what customers see. You can change it any time.', 'profile')}
-      ${sec('who', '', `<div class="ob-idcard">
-        <label class="ob-avatar-up ${biz ? 'is-logo' : ''} ${d.photo ? 'has-photo' : ''}" title="${d.photo ? 'Change' : 'Add'} ${biz ? 'logo' : 'photo'}">
-          <input type="file" accept="image/*" data-photo hidden>${d.photo ? `<img src="${d.photo}" alt="">` : `<span class="ob-avatar-ini">${esc(initials(shown) || '?')}</span>`}<span class="ob-cam">${ico('camera')}</span></label>
-        <div class="ob-idcard-txt">${text('display', 'Display name', biz ? 'Your brand or trading name' : 'Your full name')}
-          <small class="ob-idcard-tip">${d.photo ? `<button type="button" class="text-link" data-act="rmphoto">Remove ${biz ? 'logo' : 'photo'}</button>` : `${ico('camera')}Add a ${biz ? 'logo' : 'photo'} — profiles with one get more enquiries`}</small></div>
+    return `<div class="onboarding-profile">${hero('Set up your public profile', 'This is what customers see. You can change it any time.', 'profile')}
+      ${sec('who', '', `<div class="onboarding-id-card">
+        <label class="onboarding-avatar-upload ${biz ? 'is-logo' : ''} ${d.photo ? 'has-photo' : ''}" title="${d.photo ? 'Change' : 'Add'} ${biz ? 'logo' : 'photo'}">
+          <input type="file" accept="image/*" data-photo hidden>${d.photo ? `<img src="${d.photo}" alt="">` : `<span class="onboarding-avatar-initials">${esc(initials(shown) || '?')}</span>`}<span class="onboarding-camera">${ico('camera')}</span></label>
+        <div class="onboarding-id-card-text">${text('display', 'Display name', biz ? 'Your brand or trading name' : 'Your full name')}
+          <small class="onboarding-id-card-tip">${d.photo ? `<button type="button" class="text-link" data-act="rmphoto">Remove ${biz ? 'logo' : 'photo'}</button>` : `${ico('camera')}Add a ${biz ? 'logo' : 'photo'} — profiles with one get more enquiries`}</small></div>
       </div>`)}
-      ${sec('about', 'About', `<div class="ob-field ob-about ${errors.bio ? 'has-error' : ''}" data-f="bio">
-          <textarea id="ob-bio" data-k="bio" maxlength="600" placeholder="Tell customers what you do and why they should choose you…">${esc(bio)}</textarea>
-          <div class="ob-about-foot"><button type="button" class="ob-magic" data-act="starter">${ico('spark')}${bio ? 'Rewrite it for me' : 'Write it for me'}</button><span class="ob-count ${bio.trim().length >= 60 ? 'is-ok' : ''}" data-bio-count>${bio.length < 60 ? `${bio.length}/60 min` : `${bio.length}/600`}</span></div>${err('bio')}</div>`)}
+      ${sec('about', 'About', `<div class="onboarding-field onboarding-about ${errors.bio ? 'has-error' : ''}" data-f="bio">
+          <textarea id="onboarding-bio" data-k="bio" maxlength="600" placeholder="Tell customers what you do and why they should choose you…">${esc(bio)}</textarea>
+          <div class="onboarding-about-footer"><button type="button" class="onboarding-magic-write" data-act="starter">${ico('spark')}${bio ? 'Rewrite it for me' : 'Write it for me'}</button><span class="onboarding-count ${bio.trim().length >= 60 ? 'is-ok' : ''}" data-bio-count>${bio.length < 60 ? `${bio.length}/60 min` : `${bio.length}/600`}</span></div>${err('bio')}</div>`)}
       ${sec('langs', 'Languages', langPicker())}
-      ${sec('reach', 'Contact', `<div class="ob-channels ${errors.channels ? 'has-error' : ''}">${CHANNELS.map(([id, t, i]) => `<button type="button" class="ob-chtile ${S.channels.includes(id) ? 'is-active' : ''}" data-ch="${id}"><i>${ico(i)}</i><span>${t}</span><span class="ob-tick">${ico('check')}</span></button>`).join('')}</div>${err('channels')}`,
-        `<div class="ob-hours"><span>${ico('clock')}Available</span><div class="ob-seg-ctl">${HOURS.map(([id, t]) => `<button type="button" class="${S.hours === id ? 'is-active' : ''}" data-hours="${id}">${t}</button>`).join('')}</div></div>`)}</div>`;
+      ${sec('reach', 'Contact', `<div class="onboarding-channels ${errors.channels ? 'has-error' : ''}">${CHANNELS.map(([id, t, i]) => `<button type="button" class="onboarding-channel-tile ${S.channels.includes(id) ? 'is-active' : ''}" data-ch="${id}"><i>${ico(i)}</i><span>${t}</span><span class="onboarding-tick">${ico('check')}</span></button>`).join('')}</div>${err('channels')}`,
+        `<div class="onboarding-hours"><span>${ico('clock')}Available</span><div class="onboarding-segmented-control">${HOURS.map(([id, t]) => `<button type="button" class="${S.hours === id ? 'is-active' : ''}" data-hours="${id}">${t}</button>`).join('')}</div></div>`)}</div>`;
   }
 
 
@@ -429,22 +429,22 @@
     const later = docsFor(S).filter(x => x.later && x.req && !S.docs[x.id]);
     const shown = d.display || S.name || '';
     // one line per step, each saying something new (no name repeated three times)
-    const item = (label, val, sub, step, lead = '') => `<div class="ob-cf-item">${lead}<span><small>${label}</small><b>${val}</b>${sub ? `<em>${sub}</em>` : ''}</span><button type="button" class="ob-cf-edit" data-cfgoto="${step}" aria-label="Edit ${label.toLowerCase()}">Edit</button></div>`;
-    UPUI.openModal(`<div class="ob-cf"><button class="close-btn ob-cf-x" data-close aria-label="Close">${ico('x')}</button>
-      <span class="ob-cf-mark">${ico('shield')}</span>
+    const item = (label, val, sub, step, lead = '') => `<div class="onboarding-confirm-item">${lead}<span><small>${label}</small><b>${val}</b>${sub ? `<em>${sub}</em>` : ''}</span><button type="button" class="onboarding-confirm-edit" data-cfgoto="${step}" aria-label="Edit ${label.toLowerCase()}">Edit</button></div>`;
+    UPUI.openModal(`<div class="onboarding-confirm"><button class="close-btn onboarding-confirm-close" data-close aria-label="Close">${ico('x')}</button>
+      <span class="onboarding-confirm-mark">${ico('shield')}</span>
       <h3>Send for review?</h3>
-      <p class="ob-cf-sub">Our team checks your details against your ${biz ? 'licence' : 'ID'} — usually within 24 hours. Nothing goes live until you're approved.</p>
-      <div class="ob-cf-sum">
-        ${item('You’ll list', esc([S.cats.map(offerLabel).filter(Boolean).join(', ') || VERTICALS[S.v].label].join('')), esc(t ? t.t : ''), 1, `<span class="ob-cf-av">${ico(VERTICALS[S.v].icon)}</span>`)}
-        ${item('Verified with', esc(main ? main.t.replace(/^your /i, '').replace(/^./, c => c.toUpperCase()) : 'Your document'), esc([idNo && 'ending ' + String(idNo).replace(/[^0-9A-Za-z]/g, '').slice(-4), until && 'valid to ' + niceDate(until), biz && d.legal].filter(Boolean).join(' · ')), 2, `<span class="ob-cf-av">${ico(biz ? 'doc' : 'user')}</span>`)}
+      <p class="onboarding-confirm-subtitle">Our team checks your details against your ${biz ? 'licence' : 'ID'} — usually within 24 hours. Nothing goes live until you're approved.</p>
+      <div class="onboarding-confirm-summary">
+        ${item('You’ll list', esc([S.cats.map(offerLabel).filter(Boolean).join(', ') || VERTICALS[S.v].label].join('')), esc(t ? t.t : ''), 1, `<span class="onboarding-confirm-avatar">${ico(VERTICALS[S.v].icon)}</span>`)}
+        ${item('Verified with', esc(main ? main.t.replace(/^your /i, '').replace(/^./, c => c.toUpperCase()) : 'Your document'), esc([idNo && 'ending ' + String(idNo).replace(/[^0-9A-Za-z]/g, '').slice(-4), until && 'valid to ' + niceDate(until), biz && d.legal].filter(Boolean).join(' · ')), 2, `<span class="onboarding-confirm-avatar">${ico(biz ? 'doc' : 'user')}</span>`)}
         ${item('Customers see', esc(shown), esc([(d.langs || []).join(', '), d.photo ? '' : `No ${biz ? 'logo' : 'photo'} yet`].filter(Boolean).join(' · ')), 3,
-          `<span class="ob-cf-av">${d.photo ? `<img src="${d.photo}" alt="">` : esc(initials(shown) || '?')}</span>`)}
+          `<span class="onboarding-confirm-avatar">${d.photo ? `<img src="${d.photo}" alt="">` : esc(initials(shown) || '?')}</span>`)}
       </div>
-      ${later.length ? `<p class="ob-cf-later">${ico('clock')}<span>You can add your ${esc(later.map(x => x.t).join(', '))} later — those listings wait in draft until approved.</span></p>` : ''}
-      <label class="ob-cf-agree"><input type="checkbox" data-cfagree ${S.agree ? 'checked' : ''}><span>These details are correct${biz ? `, I'm authorised to act for ${esc(d.legal || 'this business')}` : ''} and I agree to the <a class="text-link" href="#" onclick="return false">Provider terms</a>.</span></label>
-      <button type="button" class="btn btn-primary ob-cf-go" data-cfsubmit ${S.agree ? '' : 'disabled'}>Send for review</button>
-      ${S.phone ? `<p class="ob-cf-foot">${ico('wa')}We'll WhatsApp you on <span class="nowrap" style="white-space:nowrap">${S.dial || country().dial} ${esc(fmtPhone(S.phone))}</span> with the decision</p>`
-        : S.email ? `<p class="ob-cf-foot">${ico('mail')}We'll email ${esc(S.email)} with the decision</p>` : ''}</div>`, 'ob-cf-modal');
+      ${later.length ? `<p class="onboarding-confirm-later">${ico('clock')}<span>You can add your ${esc(later.map(x => x.t).join(', '))} later — those listings wait in draft until approved.</span></p>` : ''}
+      <label class="onboarding-confirm-agree"><input type="checkbox" data-cfagree ${S.agree ? 'checked' : ''}><span>These details are correct${biz ? `, I'm authorised to act for ${esc(d.legal || 'this business')}` : ''} and I agree to the <a class="text-link" href="#" onclick="return false">Provider terms</a>.</span></label>
+      <button type="button" class="btn btn-primary onboarding-confirm-submit" data-cfsubmit ${S.agree ? '' : 'disabled'}>Send for review</button>
+      ${S.phone ? `<p class="onboarding-confirm-footer">${ico('wa')}We'll WhatsApp you on <span class="nowrap" style="white-space:nowrap">${S.dial || country().dial} ${esc(fmtPhone(S.phone))}</span> with the decision</p>`
+        : S.email ? `<p class="onboarding-confirm-footer">${ico('mail')}We'll email ${esc(S.email)} with the decision</p>` : ''}</div>`, 'onboarding-confirm-modal');
   }
   document.addEventListener('change', e => {
     if (!e.target.matches('[data-cfagree]')) return;
@@ -454,21 +454,21 @@
   document.addEventListener('click', e => {
     const g = e.target.closest('[data-cfgoto]');
     if (g) { UPUI.closeModal(); go(+g.dataset.cfgoto); return; }
-    if (e.target.closest('[data-cfsubmit]') && S.agree) { UPUI.closeModal(); S.status = 'submitted'; save(); A.dir = 'fwd'; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    if (e.target.closest('[data-cfsubmit]') && S.agree) { UPUI.closeModal(); S.status = 'submitted'; save(); A.dir = 'forward'; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
   });
 
   /* ---------- after submitting: under review ---------- */
   function stepSubmitted() {
     const bits = Array.from({ length: 18 }, (_, k) => { const a = k / 18 * Math.PI * 2, r = 70 + (k % 3) * 22; return `<span style="--x:${Math.round(Math.cos(a) * r)}px;--y:${Math.round(Math.sin(a) * r)}px;--r:${k * 47}deg;--d:${(k % 4) * 40}ms" class="c${k % 4}"></span>`; }).join('');
-    return `<div class="ob-done"><div class="ob-done-mark"><span class="ob-confetti" aria-hidden="true">${bits}</span><span class="ob-done-ic"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span></div>
-      <h1 class="ob-h1">Application sent — we're on it</h1>
-      <p class="ob-sub">Thanks${firstName() ? ', ' + esc(firstName()) : ''}. There's nothing else to do for now. We'll ${S.phone ? `WhatsApp you on <span style="white-space:nowrap">${S.dial || country().dial} ${esc(fmtPhone(S.phone))}</span>` : S.email ? `email ${esc(S.email)}` : 'let you know'} as soon as there's a decision — usually within 24 hours.</p>
-      <ol class="ob-timeline"><li class="is-done" style="--i:0"><i>${ico('check')}</i><span><b>Details checked</b><small>You confirmed what we read from your documents</small></span></li>
+    return `<div class="onboarding-done"><div class="onboarding-done-mark"><span class="onboarding-confetti" aria-hidden="true">${bits}</span><span class="onboarding-done-icon"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span></div>
+      <h1 class="onboarding-title">Application sent — we're on it</h1>
+      <p class="onboarding-subtitle">Thanks${firstName() ? ', ' + esc(firstName()) : ''}. There's nothing else to do for now. We'll ${S.phone ? `WhatsApp you on <span style="white-space:nowrap">${S.dial || country().dial} ${esc(fmtPhone(S.phone))}</span>` : S.email ? `email ${esc(S.email)}` : 'let you know'} as soon as there's a decision — usually within 24 hours.</p>
+      <ol class="onboarding-timeline"><li class="is-done" style="--i:0"><i>${ico('check')}</i><span><b>Details checked</b><small>You confirmed what we read from your documents</small></span></li>
         <li class="is-done" style="--i:1"><i>${ico('check')}</i><span><b>Application sent</b><small>We have everything we need</small></span></li>
         <li class="is-now" style="--i:2"><i>3</i><span><b>Team review</b><small>We're checking your ${isBiz(S) ? 'licence and signatory ID' : 'ID'}</small></span></li>
         <li style="--i:3"><i>4</i><span><b>You're approved</b><small>Then you can add your first ${esc(VERTICALS[S.v].label)} listing</small></span></li></ol>
-      <div class="ob-done-cta"><a class="btn btn-outline" href="${PATHS.href.home}">Back to ${esc(SITE.name)}</a></div>
-      ${S.email ? `<p class="ob-done-note">We've emailed a copy to <b>${esc(S.email)}</b></p>` : ''}</div>`;
+      <div class="onboarding-done-actions"><a class="btn btn-outline" href="${PATHS.href.home}">Back to ${esc(SITE.name)}</a></div>
+      ${S.email ? `<p class="onboarding-done-note">We've emailed a copy to <b>${esc(S.email)}</b></p>` : ''}</div>`;
   }
 
   /* ---------- progress: one line + three segments that fill as you answer ---------- */
@@ -486,8 +486,8 @@
     if (n === 3) return [S.d.display, S.d.photo && 'photo'].filter(Boolean).join(' · ');
     return '';
   }
-  const progress = () => `<div class="ob-head"><div class="ob-progress"><span><b>Step ${S.step} of ${LAST}</b> · ${STEPS[S.step - 1][0]}</span><span>About ${MINUTES[S.step - 1]} min left</span></div>
-    <ol class="ob-seg">${STEPS.map(([t], k) => { const n = k + 1, st = n < S.step ? 'is-done' : n === S.step ? 'is-now' : '', tag = n < S.step ? 'button' : 'span';
+  const progress = () => `<div class="onboarding-header"><div class="onboarding-progress"><span><b>Step ${S.step} of ${LAST}</b> · ${STEPS[S.step - 1][0]}</span><span>About ${MINUTES[S.step - 1]} min left</span></div>
+    <ol class="onboarding-step-bar">${STEPS.map(([t], k) => { const n = k + 1, st = n < S.step ? 'is-done' : n === S.step ? 'is-now' : '', tag = n < S.step ? 'button' : 'span';
       return `<li class="${st}"><${tag} ${n < S.step ? `type="button" data-goto="${n}" title="Edit ${t}"` : ''}><i><b style="width:${Math.round(A.fill[k] * 100)}%" data-w="${Math.round(fillOf(n) * 100)}%"></b></i><small>${n < S.step && fillOf(n) === 1 ? ico('check') : ''}${t}</small>${n < S.step && stepSummary(n) ? `<em>${esc(stepSummary(n))}</em>` : ''}</${tag}></li>`; }).join('')}</ol></div>`;
 
   /* ---------- live profile preview (right column) ---------- */
@@ -508,7 +508,7 @@
     const main = [has('call') && action('phone', 'Call', 'Direct call'), has('wa') && action('wa', 'WhatsApp', 'Chat instantly')].filter(Boolean);
     const alts = [has('sms') && alt('is-sms', ico('msg'), 'SMS'), has('email') && alt('is-email', '<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>', 'Email'),
       alt('is-chat', '<svg class="icon" viewBox="0 0 24 24"><path d="M12 4c4.97 0 9 3.36 9 7.5S16.97 19 12 19c-1.1 0-2.15-.16-3.12-.46L4 20l1.4-3.6C4.5 15.1 3 13.4 3 11.5 3 7.36 7.03 4 12 4z"/></svg>', 'Chat')].filter(Boolean);
-    return `<div class="agent-card ob-agent-card" aria-hidden="true">
+    return `<div class="agent-card onboarding-agent-card" aria-hidden="true">
         <div class="agent-cover"><svg viewBox="0 0 400 46" preserveAspectRatio="none"><path d="M0 46 L0 30 C90 2 170 4 250 22 C320 38 370 30 400 16 L400 46Z" fill="#fff"/></svg></div>
         <div class="agent-top">
           <div class="agent-avatar ${d.photo ? 'has-photo' : ''}" style="--hue:${hue}">${d.photo ? `<img src="${d.photo}" alt="">` : esc(initials(shown) || '?')}<span class="agent-online"></span></div>
@@ -530,11 +530,11 @@
   function preview() {
     const docs = docsFor(S).filter(x => x.req), ok = docs.filter(settled).length;
     const status = S.status === 'submitted' ? `${ico('shield')}In review — your “Verified” badge appears once you're approved`
-      : `${ico('shield')}Documents checked · ${ok}/${docs.length || '—'}<span class="ob-mini"><span style="width:${docs.length ? Math.round(ok / docs.length * 100) : 0}%"></span></span>`;
-    return `<div class="ob-preview"><div class="ob-preview-h">${ico('eye')}Live preview<span>Updates as you type</span></div>
+      : `${ico('shield')}Documents checked · ${ok}/${docs.length || '—'}<span class="onboarding-mini-progress"><span style="width:${docs.length ? Math.round(ok / docs.length * 100) : 0}%"></span></span>`;
+    return `<div class="onboarding-preview"><div class="onboarding-preview-header">${ico('eye')}Live preview<span>Updates as you type</span></div>
       ${card()}
-      <div class="ob-card-status ${S.status === 'submitted' ? 'is-review' : ''}">${status}</div>
-      <ul class="ob-why"><li>${ico('shield')}<span><b>Verified once</b>One verification covers every category you list in.</span></li>
+      <div class="onboarding-card-status ${S.status === 'submitted' ? 'is-review' : ''}">${status}</div>
+      <ul class="onboarding-why"><li>${ico('shield')}<span><b>Verified once</b>One verification covers every category you list in.</span></li>
         <li>${ico('bolt')}<span><b>Leads in minutes</b>Customers call or WhatsApp you directly.</span></li>
         <li>${ico('tag')}<span><b>Deal directly</b>You agree prices and payments with the customer.</span></li></ul></div>`;
   }
@@ -612,41 +612,41 @@
   const root = document.getElementById('ob');
   // signed out: an empty step 1 sits behind the sign-in modal (never a previous visitor's draft); any click opens sign-in
   function render() {
-    const acc = document.querySelector('.ob-top [data-auth-slot]'); if (acc && UPUI.accountButton) acc.outerHTML = UPUI.accountButton();
+    const acc = document.querySelector('.onboarding-top [data-auth-slot]'); if (acc && UPUI.accountButton) acc.outerHTML = UPUI.accountButton();
     if (fromAccount()) return draw(false);
     const keep = S, keepErr = errors;
     S = fresh(); errors = {};
     try { draw(true); } finally { S = keep; errors = keepErr; }
   }
   function draw(locked) {
-    const scroller = root.querySelector('.ob-scroll'), keep = !A.dir && scroller ? scroller.scrollTop : 0, winY = scrollY;
-    const before = new Set([...root.querySelectorAll('.ob-step [data-sec]')].map(x => x.dataset.sec));
+    const scroller = root.querySelector('.onboarding-scroll'), keep = !A.dir && scroller ? scroller.scrollTop : 0, winY = scrollY;
+    const before = new Set([...root.querySelectorAll('.onboarding-step [data-sec]')].map(x => x.dataset.sec));
     if (A.dir) A.entering = true;
     A.revealed = '';
     const flow = S.status === 'draft', done = !flow;
     const body = S.status === 'submitted' ? stepSubmitted() : [stepBusiness, stepVerify, stepProfile][S.step - 1]();
     const pv = preview();
     const wasMode = root.firstElementChild && root.firstElementChild.dataset.mode;
-    paint(`<div class="ob-grid ${done ? 'is-done' : ''} ${locked ? 'is-locked' : ''}" data-mode="${S.status}"><main class="ob-main">
+    paint(`<div class="onboarding-grid ${done ? 'is-done' : ''} ${locked ? 'is-locked' : ''}" data-mode="${S.status}"><main class="onboarding-main">
       ${flow ? progress() : ''}
-      <div class="ob-panel ${done ? 'is-done' : ''}"><div class="ob-scroll"><div class="ob-step ${A.dir ? 'is-in-' + A.dir : ''}">${body}</div></div>
-        ${done ? '' : `<div class="ob-nav">${S.step > 1 ? `<button type="button" class="btn btn-ghost" data-act="back">${ico('chevL')}Back</button>` : '<span></span>'}
-          <span class="ob-save ${A.saved ? 'is-on' : ''}">${ico('check')}Draft saved</span>
-          ${locked ? `<button type="button" class="btn btn-primary ob-next" data-act="signin">Continue with your mobile${ico('chevR')}</button>` : `<button type="button" class="btn btn-primary ob-next" data-act="next">${S.step === LAST ? 'Review and send' : 'Continue'}${ico('chevR')}</button>`}</div>`}</div>
+      <div class="onboarding-panel ${done ? 'is-done' : ''}"><div class="onboarding-scroll"><div class="onboarding-step ${A.dir ? 'is-in-' + A.dir : ''}">${body}</div></div>
+        ${done ? '' : `<div class="onboarding-nav">${S.step > 1 ? `<button type="button" class="btn btn-ghost" data-act="back">${ico('chevL')}Back</button>` : '<span></span>'}
+          <span class="onboarding-save ${A.saved ? 'is-on' : ''}">${ico('check')}Draft saved</span>
+          ${locked ? `<button type="button" class="btn btn-primary onboarding-next" data-act="signin">Continue with your mobile${ico('chevR')}</button>` : `<button type="button" class="btn btn-primary onboarding-next" data-act="next">${S.step === LAST ? 'Review and send' : 'Continue'}${ico('chevR')}</button>`}</div>`}</div>
     </main>
-      <aside class="ob-aside ${previewOpen ? 'is-open' : ''}"><button type="button" class="ob-preview-toggle" data-act="preview">${ico('eye')}<span>${previewOpen ? 'Hide profile preview' : 'Preview your profile'}</span>${ico('chev')}</button>${pv}</aside></div>`, !!A.dir || (wasMode && wasMode !== S.status));
+      <aside class="onboarding-aside ${previewOpen ? 'is-open' : ''}"><button type="button" class="onboarding-preview-toggle" data-act="preview">${ico('eye')}<span>${previewOpen ? 'Hide profile preview' : 'Preview your profile'}</span>${ico('chev')}</button>${pv}</aside></div>`, !!A.dir || (wasMode && wasMode !== S.status));
     // motion: keep the reading position, fill the bar, spring the control just picked, bring a new part into view
-    const sc = root.querySelector('.ob-scroll');
+    const sc = root.querySelector('.onboarding-scroll');
     if (sc && keep) sc.scrollTop = keep;
     if (!A.dir) scrollTo(0, winY);
-    const bars = [...root.querySelectorAll('.ob-seg [data-w]')];
+    const bars = [...root.querySelectorAll('.onboarding-step-bar [data-w]')];
     requestAnimationFrame(() => requestAnimationFrame(() => bars.forEach(b => { b.style.width = b.dataset.w; })));
     A.fill = STEPS.map((_, k) => fillOf(k + 1));
     if (A.pop) { const p = root.querySelector(A.pop); if (p) p.classList.add('is-pop'); }
     // a question that just opened (after an answer, same step): bring it into view inside the card (or the page on phones)
-    const opened = !A.dir && before.size ? [...root.querySelectorAll('.ob-step [data-sec]')].find(x => !before.has(x.dataset.sec)) : null;
+    const opened = !A.dir && before.size ? [...root.querySelectorAll('.onboarding-step [data-sec]')].find(x => !before.has(x.dataset.sec)) : null;
     if (opened) setTimeout(() => {
-      const box = root.querySelector('.ob-scroll'), inner = box && getComputedStyle(box).overflowY === 'auto';
+      const box = root.querySelector('.onboarding-scroll'), inner = box && getComputedStyle(box).overflowY === 'auto';
       const behavior = calm.matches ? 'auto' : 'smooth';
       if (inner) {
         const r = opened.getBoundingClientRect(), b = box.getBoundingClientRect();
@@ -655,24 +655,24 @@
         if (over > 0 || r.top < b.top) box.scrollBy({ top: Math.min(over > 0 ? over : r.top - b.top - gap, r.top - b.top - gap), behavior });
       } else opened.scrollIntoView({ block: 'nearest', behavior });
     }, 140);
-    if (A.preview && A.preview !== pv && !A.dir) { const c = root.querySelector('.ob-preview .agent-card'); if (c) c.classList.add('is-bump'); }
+    if (A.preview && A.preview !== pv && !A.dir) { const c = root.querySelector('.onboarding-preview .agent-card'); if (c) c.classList.add('is-bump'); }
     fitBio();
     A.preview = pv; A.pop = ''; A.dir = ''; A.entering = false; A.saved = false;
   }
   // after a change in the current step: save, show "Saved", redraw
   function commit(pop) { A.pop = pop || ''; A.saved = true; save(); render(); }
   // the About box grows with its text (field-sizing where supported, by hand elsewhere)
-  function fitBio() { const b = document.getElementById('ob-bio'); if (!b || CSS.supports('field-sizing', 'content')) return; b.style.height = 'auto'; b.style.height = b.scrollHeight + 'px'; }
-  function flashSaved() { const s = root.querySelector('.ob-save'); if (!s) return; s.classList.remove('is-on'); void s.offsetWidth; s.classList.add('is-on'); }
+  function fitBio() { const b = document.getElementById('onboarding-bio'); if (!b || CSS.supports('field-sizing', 'content')) return; b.style.height = 'auto'; b.style.height = b.scrollHeight + 'px'; }
+  function flashSaved() { const s = root.querySelector('.onboarding-save'); if (!s) return; s.classList.remove('is-on'); void s.offsetWidth; s.classList.add('is-on'); }
   function refreshPreview() {
-    const p = root.querySelector('.ob-preview'); if (!p) return;
+    const p = root.querySelector('.onboarding-preview'); if (!p) return;
     const pv = preview(); if (pv === A.preview) return;
     const t = document.createElement('div'); t.innerHTML = pv; morph(p, t.firstElementChild); A.preview = pv;
-    root.querySelectorAll('.ob-seg [data-w]').forEach((b, k) => { b.style.width = Math.round(fillOf(k + 1) * 100) + '%'; });
+    root.querySelectorAll('.onboarding-step-bar [data-w]').forEach((b, k) => { b.style.width = Math.round(fillOf(k + 1) * 100) + '%'; });
   }
 
   function go(step) {
-    A.dir = step > S.step ? 'fwd' : 'back';
+    A.dir = step > S.step ? 'forward' : 'back';
     S.step = step; errors = {}; save(); render();
     window.scrollTo({ top: 0, behavior: calm.matches ? 'auto' : 'smooth' });
   }
@@ -689,10 +689,10 @@
 
   // "Write it for me": the draft types itself in
   function typeAbout(textValue) {
-    const ta = document.getElementById('ob-bio'); if (!ta) return;
-    const box = ta.closest('.ob-about'), count = root.querySelector('[data-bio-count]');
+    const ta = document.getElementById('onboarding-bio'); if (!ta) return;
+    const box = ta.closest('.onboarding-about'), count = root.querySelector('[data-bio-count]');
     const show = v => { ta.value = v; S.d.bio = v; fitBio(); if (count) { count.textContent = v.length < 60 ? `${v.length}/60 min` : `${v.length}/600`; count.classList.toggle('is-ok', v.trim().length >= 60); } };
-    delete errors.bio; box.classList.remove('has-error'); const m = box.querySelector('.ob-err'); if (m) m.remove();
+    delete errors.bio; box.classList.remove('has-error'); const m = box.querySelector('.onboarding-error'); if (m) m.remove();
     if (calm.matches) { show(textValue); save(); refreshPreview(); return; }
     box.classList.add('is-typing');
     let i = 0; const stepBy = Math.max(2, Math.ceil(textValue.length / 45));
@@ -711,7 +711,7 @@
       c.width = c.height = size;
       const w = img.width * k, h = img.height * k;
       c.getContext('2d').drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
-      S.d.photo = c.toDataURL('image/jpeg', .82); URL.revokeObjectURL(url); commit('.ob-avatar-up');
+      S.d.photo = c.toDataURL('image/jpeg', .82); URL.revokeObjectURL(url); commit('.onboarding-avatar-upload');
     };
     img.src = url;
   }
@@ -746,14 +746,14 @@
   root.addEventListener('input', e => {
     const k = e.target.dataset.k; if (!k) return;
     S.d[k] = e.target.value;
-    if (errors[k]) { delete errors[k]; const f = e.target.closest('.ob-field'); if (f) { f.classList.remove('has-error'); const m = f.querySelector('.ob-err'); if (m) m.remove(); } }
+    if (errors[k]) { delete errors[k]; const f = e.target.closest('.onboarding-field'); if (f) { f.classList.remove('has-error'); const m = f.querySelector('.onboarding-error'); if (m) m.remove(); } }
     save(); flashSaved(); refreshPreview();
     if (k === 'bio') fitBio();
     if (k === 'bio') { const c = root.querySelector('[data-bio-count]'), v = e.target.value; if (c) { c.textContent = v.length < 60 ? `${v.length}/60 min` : `${v.length}/600`; c.classList.toggle('is-ok', v.trim().length >= 60); } }
-    if (k === 'display') { const ini = root.querySelector('.ob-avatar-ini'); if (ini) ini.textContent = initials(e.target.value || S.name) || '?'; }
+    if (k === 'display') { const ini = root.querySelector('.onboarding-avatar-initials'); if (ini) ini.textContent = initials(e.target.value || S.name) || '?'; }
   });
   // leaving a document field: refresh its "From document / Edited" tag
-  root.addEventListener('focusout', e => { if (e.target.closest && e.target.closest('.ob-xf')) render(); });
+  root.addEventListener('focusout', e => { if (e.target.closest && e.target.closest('.onboarding-extracted-field')) render(); });
   root.addEventListener('change', e => {
     const t = e.target;
     if (t.matches('[data-city]')) { A.otherCity = t.value === '__other'; S.d.city = A.otherCity ? '' : t.value; delete errors.city; commit(); if (A.otherCity) { const c = root.querySelector('[data-cityin]'); if (c) c.focus(); } return; }
@@ -767,25 +767,25 @@
     if (t.matches('[data-doc]') && t.files[0]) setDoc(t.dataset.doc, t.files[0]);
     if (t.matches('[data-photo]') && t.files[0]) setPhoto(t.files[0]);
   });
-  root.addEventListener('toggle', e => { if (e.target.matches('.ob-more')) A.optOpen = e.target.open; }, true);
+  root.addEventListener('toggle', e => { if (e.target.matches('.onboarding-more')) A.optOpen = e.target.open; }, true);
   // drag a file onto a document
-  root.addEventListener('dragover', e => { const d = e.target.closest('.ob-doc, .ob-avatar-up, .ob-main-up, .ob-need'); if (!d) return; e.preventDefault(); d.classList.add('is-drag'); });
-  root.addEventListener('dragleave', e => { const d = e.target.closest('.ob-doc, .ob-avatar-up, .ob-main-up, .ob-need'); if (d && !d.contains(e.relatedTarget)) d.classList.remove('is-drag'); });
+  root.addEventListener('dragover', e => { const d = e.target.closest('.onboarding-document, .onboarding-avatar-upload, .onboarding-main-upload, .onboarding-need'); if (!d) return; e.preventDefault(); d.classList.add('is-drag'); });
+  root.addEventListener('dragleave', e => { const d = e.target.closest('.onboarding-document, .onboarding-avatar-upload, .onboarding-main-upload, .onboarding-need'); if (d && !d.contains(e.relatedTarget)) d.classList.remove('is-drag'); });
   root.addEventListener('drop', e => {
-    const d = e.target.closest('.ob-doc, .ob-avatar-up, .ob-main-up, .ob-need'); if (!d) return; e.preventDefault(); const f = e.dataTransfer.files[0]; if (!f) return;
-    if (d.matches('.ob-avatar-up')) setPhoto(f); else setDoc(d.dataset.docid, f);
+    const d = e.target.closest('.onboarding-document, .onboarding-avatar-upload, .onboarding-main-upload, .onboarding-need'); if (!d) return; e.preventDefault(); const f = e.dataTransfer.files[0]; if (!f) return;
+    if (d.matches('.onboarding-avatar-upload')) setPhoto(f); else setDoc(d.dataset.docid, f);
   });
   root.addEventListener('keydown', e => {
     if (e.target.matches('[data-langinput]')) {
       if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addLang(e.target.value); }
-      else if (e.key === 'Backspace' && !e.target.value && (S.d.langs || []).length) { S.d.langs = S.d.langs.slice(0, -1); commit(); const i = document.getElementById('ob-lang'); if (i) i.focus(); }
+      else if (e.key === 'Backspace' && !e.target.value && (S.d.langs || []).length) { S.d.langs = S.d.langs.slice(0, -1); commit(); const i = document.getElementById('onboarding-lang'); if (i) i.focus(); }
       return;
     }
     // Enter in a field: continue
     if (e.key === 'Enter' && !e.defaultPrevented && e.target.tagName === 'INPUT' && !e.target.matches('[type=checkbox]') && S.status === 'draft') { e.preventDefault(); next(); }
   });
   root.addEventListener('animationend', e => { if (e.target.classList) e.target.classList.remove('is-pop', 'is-bump', 'is-shake'); });
-  function signIn() { auth.open({ intent: 'provider', onDone: () => { A.dir = 'fwd'; render(); } }); }
+  function signIn() { auth.open({ intent: 'provider', onDone: () => { A.dir = 'forward'; render(); } }); }
   // signed out: the form behind the modal only reopens sign-in
   root.addEventListener('click', e => { if (!auth.user()) { e.preventDefault(); e.stopPropagation(); signIn(); } }, true);
   root.addEventListener('click', e => {

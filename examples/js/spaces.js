@@ -16,7 +16,7 @@ function paint() {
     ui.chip({ label: 'Phone booth', count: 0, disabled: true }), '<span class="spacer"></span>',
     ui.button({ label: 'Book a tour', icon: 'cal', size: 'sm', href: 'index.html#tour' })].join('');
   $('results').innerHTML = list.length
-    ? `<div class="ex-grid">${list.slice((page - 1) * PER, page * PER).map(s => ui.card({ href: '#' + s.id, attrs: { 'data-space': s.id }, image: s.image, title: s.title, location: s.location, spec: s.spec, price: money(s.price), unit: s.unit, badges: s.badge ? [{ label: s.badge, tone: 'featured' }] : [] })).join('')}</div>${pages > 1 ? ui.pager(page, pages) : ''}`
+    ? `<div class="example-grid">${list.slice((page - 1) * PER, page * PER).map(s => ui.card({ href: '#' + s.id, attrs: { 'data-space': s.id }, image: s.image, title: s.title, location: s.location, spec: s.spec, price: money(s.price), unit: s.unit, badges: s.badge ? [{ label: s.badge, tone: 'featured' }] : [] })).join('')}</div>${pages > 1 ? ui.pager(page, pages) : ''}`
     : ui.empty({ icon: 'search', title: 'No workspaces match', text: 'Try another type.' });
 }
 document.addEventListener('click', e => {

@@ -17,7 +17,7 @@
   // phone extras (opts.acts, search page only): star rating beside the price + Call · WhatsApp · Viewing row; hidden above 700px by the page css
   function cardActs(l) {
     const O = offerOf(l.v, l.cat);
-    return `<div class="card-acts"><button class="btn btn-outline" type="button" data-call="${l.id}">${ico('phone')}${t('Call')}</button><button class="btn btn-whatsapp" type="button" data-wa="${l.id}">${ico('wa')}${t('WhatsApp')}</button><button class="btn btn-primary" type="button" data-req="${l.id}">${ico(O.lease ? 'cal' : 'msg')}${t(O.lease ? 'Viewing' : 'Enquire')}</button></div>`;
+    return `<div class="card-actions"><button class="btn btn-outline" type="button" data-call="${l.id}">${ico('phone')}${t('Call')}</button><button class="btn btn-whatsapp" type="button" data-wa="${l.id}">${ico('wa')}${t('WhatsApp')}</button><button class="btn btn-primary" type="button" data-req="${l.id}">${ico(O.lease ? 'cal' : 'msg')}${t(O.lease ? 'Viewing' : 'Enquire')}</button></div>`;
   }
   // a listing rendered through the generic card (components/ui.js)
   function card(l, S, opts) {

@@ -396,33 +396,33 @@ function paint() {
     return `<div class="${m ? "" : "is-text"}">${ico(i)}<b>${esc(m ? m[1] : tx)}</b>${m ? `<small>${esc(m[2])}</small>` : ""}</div>`;
   };
   const mHero = `
-    <div class="m-hero">
-      <div class="m-hero-track">
+    <div class="mobile-hero">
+      <div class="mobile-hero-track">
         ${(imgs.length ? imgs : [0]).map((_, i) => `<div data-lb="${i}">${UPUI.photo(l, i)}</div>`).join("")}
       </div>
-      <div class="m-hero-top">
-        <button class="m-round" data-mback aria-label="Back">${ico("chevL")}</button>
+      <div class="mobile-hero-top">
+        <button class="mobile-round-button" data-mback aria-label="Back">${ico("chevL")}</button>
         <span></span>
-        <button class="m-round" aria-label="Share" onclick="navigator.clipboard&&navigator.clipboard.writeText(location.href);UPUI.toast('Link copied')">${ico("share")}</button>
-        <button class="m-round ${UPUI.favs.has(l.id) ? "is-active" : ""}" data-fav="${l.id}" aria-label="Save">${ico("heart")}</button>
+        <button class="mobile-round-button" aria-label="Share" onclick="navigator.clipboard&&navigator.clipboard.writeText(location.href);UPUI.toast('Link copied')">${ico("share")}</button>
+        <button class="mobile-round-button ${UPUI.favs.has(l.id) ? "is-active" : ""}" data-fav="${l.id}" aria-label="Save">${ico("heart")}</button>
       </div>
-      ${A.tour ? `<button class="m-hero-tour" data-lb="0">${ico("video")}Video tour</button>` : ""}
-      ${imgs.length ? `<button class="m-hero-count" data-lb="0"><span id="mHeroI">1</span> / ${imgs.length}</button>` : ""}
+      ${A.tour ? `<button class="mobile-hero-tour" data-lb="0">${ico("video")}Video tour</button>` : ""}
+      ${imgs.length ? `<button class="mobile-hero-count" data-lb="0"><span id="mHeroI">1</span> / ${imgs.length}</button>` : ""}
     </div>
-    <div class="m-summary">
-      <div class="m-badges">
+    <div class="mobile-summary">
+      <div class="mobile-badges">
         ${A.verified ? `<span class="is-verified">${ico("shield")}Verified</span>` : ""}
         ${l.featured ? `<span class="is-featured">${ico("star")}Featured</span>` : ""}
         <span>${esc(O.label)}</span>
       </div>
-      <div class="m-price"><b>${esc(pt.n)}</b><span>${esc(pt.u)}</span>${perToggle}</div>
-      <div class="m-title" role="heading" aria-level="1">${esc(l.title)}</div>
-      <div class="m-loc">
+      <div class="mobile-price"><b>${esc(pt.n)}</b><span>${esc(pt.u)}</span>${perToggle}</div>
+      <div class="mobile-title" role="heading" aria-level="1">${esc(l.title)}</div>
+      <div class="mobile-location">
         <span>${ico("pin")}${esc(where)}${O.locAll ? "" : ", Dubai"}</span>
-        <span class="m-rating">${ico("star")}<b>${l.rating}</b> (${l.reviews})</span>
+        <span class="mobile-rating">${ico("star")}<b>${l.rating}</b> (${l.reviews})</span>
       </div>
-      ${keyFacts.length ? `<div class="m-keys">${keyFacts.slice(0, 3).map(([i, tx]) => keyCell(i, tx)).join("")}</div>` : ""}
-      ${A.verified ? `<div class="m-verified">${ico("shield")}<span><b>Verified by UpNow</b>${l.permit ? esc(O.permit) + " " + esc(l.permit) + " checked · " : ""}provider ID and ${imgs.length ? "photos" : "licence"} checked</span></div>` : ""}
+      ${keyFacts.length ? `<div class="mobile-key-facts">${keyFacts.slice(0, 3).map(([i, tx]) => keyCell(i, tx)).join("")}</div>` : ""}
+      ${A.verified ? `<div class="mobile-verified">${ico("shield")}<span><b>Verified by UpNow</b>${l.permit ? esc(O.permit) + " " + esc(l.permit) + " checked · " : ""}provider ID and ${imgs.length ? "photos" : "licence"} checked</span></div>` : ""}
     </div>`;
   document.getElementById("main").innerHTML = `
     ${mHero}
@@ -593,7 +593,7 @@ function paint() {
           </div>
         </section>
 
-        <section class="section m-contact">
+        <section class="section mobile-contact">
           <h2>${LEASE ? "Listed by" : "Your provider"}</h2>
           ${DM.agentCard(l)}
           <div class="safety-note">
@@ -695,8 +695,8 @@ function paint() {
     </div>`;
   // sticky action bar (≤1100px): price (tablet) · call · WhatsApp · request
   document.getElementById("mbar").innerHTML =
-    `<div class="mbar-price"><b>${esc(pt.n)}</b><small>${esc(pt.u)}</small>${perToggle}</div><button class="btn btn-outline mbar-call" data-call="${l.id}" aria-label="${t("Call")}">${ico("phone")}<span>${t("Call")}</span></button><button class="btn btn-whatsapp" data-wa="${l.id}">${ico("wa")}${t("WhatsApp")}</button><button class="btn btn-primary mbar-req" data-email="${l.id}">${ico("cal")}<span class="is-long">${esc(act)}</span><span class="is-short">${esc(actShort)}</span></button>`;
-  const tr = document.querySelector(".m-hero-track"),
+    `<div class="mobile-bar-price"><b>${esc(pt.n)}</b><small>${esc(pt.u)}</small>${perToggle}</div><button class="btn btn-outline mobile-bar-call" data-call="${l.id}" aria-label="${t("Call")}">${ico("phone")}<span>${t("Call")}</span></button><button class="btn btn-whatsapp" data-wa="${l.id}">${ico("wa")}${t("WhatsApp")}</button><button class="btn btn-primary mobile-bar-request" data-email="${l.id}">${ico("cal")}<span class="is-long">${esc(act)}</span><span class="is-short">${esc(actShort)}</span></button>`;
+  const tr = document.querySelector(".mobile-hero-track"),
     hi = document.getElementById("mHeroI");
   if (tr && hi)
     tr.addEventListener("scroll", () => {
@@ -730,10 +730,10 @@ function openTour(i) {
   const im = (x, k) => `<img id="tour${k}" src="${x}" alt="${esc(l.title)} — photo ${k + 1} of ${l.img.length}">`;
   lb.innerHTML = `<div class="tour">
     <div class="tour-head">
-      <button class="m-round" data-lbc aria-label="Close photo tour">${ico("x")}</button>
+      <button class="mobile-round-button" data-lbc aria-label="Close photo tour">${ico("x")}</button>
       <b>Photo tour</b>
-      <button class="m-round" aria-label="Share" onclick="navigator.clipboard&&navigator.clipboard.writeText(location.href);UPUI.toast('Link copied')">${ico("share")}</button>
-      <button class="m-round ${UPUI.favs.has(l.id) ? "is-active" : ""}" data-fav="${l.id}" aria-label="Save">${ico("heart")}</button>
+      <button class="mobile-round-button" aria-label="Share" onclick="navigator.clipboard&&navigator.clipboard.writeText(location.href);UPUI.toast('Link copied')">${ico("share")}</button>
+      <button class="mobile-round-button ${UPUI.favs.has(l.id) ? "is-active" : ""}" data-fav="${l.id}" aria-label="Save">${ico("heart")}</button>
     </div>
     <p class="tour-sub">${esc(l.title)} · ${l.img.length} photo${l.img.length > 1 ? "s" : ""}${A.tour ? " · video tour on request" : ""}</p>
     <div class="tour-photos">${l.img.slice(0, big).map(im).join("")}</div>

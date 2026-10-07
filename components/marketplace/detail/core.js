@@ -17,13 +17,13 @@
     chk: items => `<ul class="checklist">${items.map(([y, t]) => `<li class="${y ? 'is-yes' : 'is-no'}">${ico(y ? 'check' : 'x')}${esc(t)}</li>`).join('')}</ul>`,
     tl: items => `<ol class="timeline">${items.map(([t, b, s]) => `<li><time>${esc(t)}</time><div><b>${esc(b)}</b>${s ? `<span>${esc(s)}</span>` : ''}</div></li>`).join('')}</ol>`,
     table: (heads, rows, numFrom = 99) => `<div class="table-wrap"><table class="detail-table"><thead><tr>${heads.map((h, i) => `<th style="${i >= numFrom ? 'text-align:right' : ''}">${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr class="${r.cls || ''}">${(r.c || r).map((c, i) => `<td class="${i >= numFrom ? 'numeric' : ''}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`,
-    box: (title, icon, rows) => `<div class="detail-box"><h4>${ico(icon)}${esc(title)}</h4>${rows.filter(Boolean).map(([k, v]) => `<div class="kv-row"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`,
+    box: (title, icon, rows) => `<div class="detail-box"><h4>${ico(icon)}${esc(title)}</h4>${rows.filter(Boolean).map(([k, v]) => `<div class="key-value-row"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`,
     note: (t, i = 'shield') => `<div class="detail-note">${ico(i)}<span>${t}</span></div>`,
     yes: '<span class="cell-yes">' + ico('check') + '</span>', no: '<span class="cell-no">—</span>',
     opts: (key, st, items) => `<div class="option-list">${items.map(o => `<button class="option ${st[key] === o.id ? 'is-active' : ''}" data-bk="set" data-k="${key}" data-v="${o.id}"><span class="radio"></span><div><b>${esc(o.t)}${o.tag ? `<span class="tag">${esc(o.tag)}</span>` : ''}</b><small>${esc(o.s || '')}</small></div><em>${o.p || ''}</em></button>`).join('')}</div>`,
     /* booking widget atoms */
     lab: t => `<label class="booking-label">${esc(t)}</label>`,
-    seg: (key, st, items) => `<div class="booking-seg">${items.map(([v, t]) => `<button class="${st[key] === v ? 'is-active' : ''}" data-bk="set" data-k="${key}" data-v="${v}">${esc(t)}</button>`).join('')}</div>`,
+    seg: (key, st, items) => `<div class="booking-switch">${items.map(([v, t]) => `<button class="${st[key] === v ? 'is-active' : ''}" data-bk="set" data-k="${key}" data-v="${v}">${esc(t)}</button>`).join('')}</div>`,
     days: (key, st, n = 6, from = 1) => `<div class="booking-days">${Array.from({ length: n }, (_, i) => { const d = dayN(from + i); return `<button class="${st[key] === from + i ? 'is-active' : ''}" data-bk="set" data-k="${key}" data-v="${from + i}"><small>${from + i === 1 ? 'Tmrw' : DW[d.getDay()]}</small>${d.getDate()}<small>${MN[d.getMonth()]}</small></button>`; }).join('')}</div>`,
     chips: (key, st, items, multi) => `<div class="booking-chips">${items.map(x => { const [v, t, dis] = Array.isArray(x) ? x : [x, x]; const on = multi ? (st[key] || []).includes(v) : st[key] === v; return `<button class="${on ? 'is-active' : ''}" ${dis ? 'disabled' : ''} data-bk="${multi ? 'tg' : 'set'}" data-k="${key}" data-v="${esc(v)}">${esc(t)}</button>`; }).join('')}</div>`,
     step: (key, st, t, s, min, max) => `<div class="booking-stepper"><div><b>${esc(t)}</b>${s ? `<small>${esc(s)}</small>` : ''}</div><div><button data-bk="dec" data-k="${key}" data-min="${min}" ${st[key] <= min ? 'disabled' : ''}>−</button><em>${st[key]}</em><button data-bk="inc" data-k="${key}" data-max="${max}" ${st[key] >= max ? 'disabled' : ''}>+</button></div></div>`,
@@ -165,19 +165,20 @@
       <a class="btn btn-primary contact-submit" style="" id="smsGo" href="sms:${l.provider.phone}?&body=${encodeURIComponent(txt)}">${ico('msg')}Open Messages</a></div>`, 'contact-modal');
     const t = document.getElementById('smsTxt'), g = document.getElementById('smsGo');
     t.oninput = () => g.href = `sms:${l.provider.phone}?&body=${encodeURIComponent(t.value)}`;
-    g.onclick = () => { toast('Opening Messages…'); setTimeout(closeModal, 300); };
+    g.onclick = () => { if (UPUI.logLead) UPUI.logLead('sms', l, { msg: t.value.split('\n')[0] }); toast('Opening Messages…'); setTimeout(closeModal, 300); };
   }
   function chat(id) {
     const l = UPUI.byId(id), fn = l.provider.name.split(' ')[0], O = offerOf(l.v, l.cat);
     const Q = O.lease ? ['Is it still available?', 'Can I view this week?', 'Is the price negotiable?', 'How many cheques?'] : ['Is it available this weekend?', 'What’s the final price?', 'Can I bring a group?', 'What’s included?'];
     openModal(`<div class="contact-header"><div class="avatar">${esc(initials(l.provider.name))}<em>${ico('shield')}</em></div><div class="contact-title"><b>${esc(l.provider.name)}</b><span class="presence"><i></i>Online · replies in ~${l.provider.reply} min</span></div><button class="close-btn" aria-label="Close" data-close>${ico('x')}</button></div>
-      <div class="chat-body"><div class="chat-thread" id="chTh"><div class="msg-theirs">Hi! I’m ${esc(fn)}. Ask me anything about <b>${esc(l.title)}</b>.</div></div>
+      <div class="chat-body"><div class="chat-thread" id="chTh"><div class="message-theirs">Hi! I’m ${esc(fn)}. Ask me anything about <b>${esc(l.title)}</b>.</div></div>
       <div class="chat-quick-replies">${Q.map(q => `<button data-q="${esc(q)}">${esc(q)}</button>`).join('')}</div>
       <form class="chat-input" id="chF"><input id="chI" placeholder="Write a message…" autocomplete="off"><button class="btn btn-primary">${ico('arrow')}</button></form>
       <p class="contact-tip">Chats are saved in <b>My enquiries</b>. Don’t share card details.</p></div>`, 'contact-modal');
     const th = document.getElementById('chTh');
-    const send = m => { if (!m.trim()) return; th.insertAdjacentHTML('beforeend', `<div class="msg-mine">${esc(m)}</div><div class="msg-typing" id="chTy">${esc(fn)} is typing…</div>`); th.scrollTop = 1e5;
-      UPUI.toast('Message sent'); setTimeout(() => { const ty = document.getElementById('chTy'); if (ty) ty.outerHTML = `<div class="msg-theirs">Thanks! Yes, it’s available. Shall I share a few times${O.lease ? ' for a viewing' : ''}?</div>`; th.scrollTop = 1e5; }, 1400); };
+    let logged = false; // the first message starts an enquiry in My enquiries
+    const send = m => { if (!m.trim()) return; if (!logged && UPUI.logLead) { UPUI.logLead('chat', l, { msg: m }); logged = true; } th.insertAdjacentHTML('beforeend', `<div class="message-mine">${esc(m)}</div><div class="message-typing" id="chTy">${esc(fn)} is typing…</div>`); th.scrollTop = 1e5;
+      UPUI.toast('Message sent'); setTimeout(() => { const ty = document.getElementById('chTy'); if (ty) ty.outerHTML = `<div class="message-theirs">Thanks! Yes, it’s available. Shall I share a few times${O.lease ? ' for a viewing' : ''}?</div>`; th.scrollTop = 1e5; }, 1400); };
     document.querySelectorAll('.chat-quick-replies button').forEach(b => b.onclick = () => send(b.dataset.q));
     document.getElementById('chF').onsubmit = e => { e.preventDefault(); const i = document.getElementById('chI'); send(i.value); i.value = ''; };
   }

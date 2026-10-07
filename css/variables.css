@@ -15,7 +15,7 @@
   --color-text-muted: #5f6b63;
   --color-border: #e4e9e5;
   --color-border-strong: #d3dad5;
-  --color-bg: #f6f8f6;
+  --color-bg: #fefffe;
   --color-surface: #fff;
   --color-whatsapp: #14853f;
   --color-amber: #94600f;
@@ -25,8 +25,8 @@
   --color-text-disabled: #c3cbc6;
   --color-rating-star: #e0a526;
   --color-rating-star-strong: #f2a71b;
-  --radius: 14px;
-  --radius-sm: 10px;
+  --radius: 12px;
+  --radius-sm: 8px;
   --shadow: 0 1px 2px rgba(15, 40, 28, 0.06), 0 4px 16px rgba(15, 40, 28, 0.06);
   --shadow-lg: 0 12px 40px rgba(15, 40, 28, 0.16);
   --font-serif: Roboto Serif, Plus Jakarta Sans, serif;

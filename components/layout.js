@@ -13,17 +13,17 @@
   const tabOn = name => ({ search: /search\.html/, home: /(index\.html|\/)$/ })[name].test(location.pathname);
   function meTab() {
     const u = U.auth && U.auth.user();
-    return u ? `<button type="button" data-me-tab data-account-tab><span class="m-tabs-av">${esc(U.auth.initialsOf(u))}</span>${esc(t('Me'))}</button>`
+    return u ? `<button type="button" data-me-tab data-account-tab><span class="mobile-tabs-avatar">${esc(U.auth.initialsOf(u))}</span>${esc(t('Me'))}</button>`
       : `<button type="button" data-me-tab data-open="signin">${ico('user')}${esc(t('Log in'))}</button>`;
   }
-  const mTabs = () => `<nav class="m-tabs" aria-label="Main">
+  const mTabs = () => `<nav class="mobile-tabs" aria-label="Main">
       <a href="${SITE.homeHref || HREF.home}" class="${tabOn('home') ? 'is-active' : ''}">${ico('home')}${esc(t('Explore'))}</a>
       <a href="${HREF.search}" class="${tabOn('search') ? 'is-active' : ''}">${ico('search')}${esc(t('Search'))}</a>
       <button type="button" data-open="saved">${ico('heart')}${esc(t('Saved'))}<em id="mtFav" hidden></em></button>
       <button type="button" data-open="enq">${ico('msg')}${esc(t('Enquiries'))}<em id="mtLead" hidden></em></button>
       ${meTab()}</nav>`;
   // sign-in / sign-out changes the last tab
-  document.addEventListener('upnow:auth', () => { const m = document.querySelector('.m-tabs [data-me-tab]'); if (m) m.outerHTML = meTab(); });
+  document.addEventListener('upnow:auth', () => { const m = document.querySelector('.mobile-tabs [data-me-tab]'); if (m) m.outerHTML = meTab(); });
   // "Me" opens the header account menu (a bottom sheet on phones)
   document.addEventListener('click', e => {
     if (!e.target.closest('[data-account-tab]')) return;

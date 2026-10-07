@@ -149,7 +149,7 @@ function openConcierge() {
 
 /* save search (alert) button beside the sort */
 const alertKey = () => toQuery({ ...S, page: 1, sort: "rec", view: "grid" });
-const alerts = () => JSON.parse(localStorage.getItem("upnow.alerts") || "[]");
+const alerts = () => UPUI.store.get("alerts") || []; // per account (see js/core/utils.js)
 function paintSave() {
   const el = document.getElementById("saveS");
   const on = alerts().includes(alertKey());
@@ -162,7 +162,7 @@ document.getElementById("saveS").addEventListener("click", () => {
   let a = alerts();
   const on = a.includes(k);
   a = on ? a.filter((x) => x !== k) : [...a, k];
-  localStorage.setItem("upnow.alerts", JSON.stringify(a));
+  UPUI.store.set("alerts", a);
   UPUI.toast(on ? "Search alert removed" : "Saved — we'll WhatsApp you new matches");
   paintSave();
 });
@@ -203,7 +203,7 @@ function paintDrawer() {
       : "";
   const extra = O.optional;
   const nSet = extra.filter((d) => !d.required && !empty(S.f[d.id])).length;
-  drawer.innerHTML = `<div class="filter-drawer-header"><div style="flex:1"><h3>${t("Filters")}${nSet ? ` <span class="filter-drawer-count">${nSet}</span>` : ""}</h3><div style="color:var(--color-text-muted);font-size:12.5px;margin-top:2px">${esc(O.label)} · priced ${esc(O.basis)}</div></div><button class="close-btn" aria-label="Close" data-dclose>${ico("x")}</button><button class="text-link m-reset" data-dreset>Reset</button></div>
+  drawer.innerHTML = `<div class="filter-drawer-header"><div style="flex:1"><h3>${t("Filters")}${nSet ? ` <span class="filter-drawer-count">${nSet}</span>` : ""}</h3><div style="color:var(--color-text-muted);font-size:12.5px;margin-top:2px">${esc(O.label)} · priced ${esc(O.basis)}</div></div><button class="close-btn" aria-label="Close" data-dclose>${ico("x")}</button><button class="text-link mobile-reset" data-dreset>Reset</button></div>
     <div class="filter-drawer-body">
       ${sec("", extra.filter((d) => d.type !== "toggle"))}
       ${sec("Only show", extra.filter((d) => d.type === "toggle"))}
@@ -262,9 +262,9 @@ drawer.addEventListener("change", (e) => {
 function row(l) {
   const pt = UPUI.priceText(l, S);
   return `<a class="row-item" href="${PATHS.href.listing}?id=${l.id}" data-id="${l.id}">${UPUI.photo(l, 0)}
-    <span>${S.v === "all" || !S.o ? `<small class="row-cat">${esc(offerOf(l.v, l.cat).label)}</small>` : ""}<b>${esc(l.title)}</b><small>${ico("pin")} ${esc(UPUI.locText(l))}</small><small class="row-spec">${UPUI.specOf(l).map(esc).join(" · ")}</small></span>
+    <span>${S.v === "all" || !S.o ? `<small class="row-category">${esc(offerOf(l.v, l.cat).label)}</small>` : ""}<b>${esc(l.title)}</b><small>${ico("pin")} ${esc(UPUI.locText(l))}</small><small class="row-spec">${UPUI.specOf(l).map(esc).join(" · ")}</small></span>
     <span class="row-price">${pt.n}<span>${esc(pt.u)}</span></span>
-    <span class="row-acts"><button class="btn btn-outline" data-call="${l.id}" aria-label="${t("Call")}" title="${t("Call")}">${ico("phone")}</button><button class="btn btn-whatsapp" data-wa="${l.id}" aria-label="${t("WhatsApp")}" title="${t("WhatsApp")}">${ico("wa")}</button></span></a>`;
+    <span class="row-actions"><button class="btn btn-outline" data-call="${l.id}" aria-label="${t("Call")}" title="${t("Call")}">${ico("phone")}</button><button class="btn btn-whatsapp" data-wa="${l.id}" aria-label="${t("WhatsApp")}" title="${t("WhatsApp")}">${ico("wa")}</button></span></a>`;
 }
 
 /* map */
@@ -414,7 +414,7 @@ function paint() {
       });
     const nf = act.length + S.loc.length;
     const mrelax = relax.length
-      ? `<div class="m-relax"><p>You're one change away</p>${relax
+      ? `<div class="mobile-relax-filters"><p>You're one change away</p>${relax
           .slice(0, 4)
           .map(([tx, k]) => {
             const m = tx.match(/^(.*) \((\d+)\)$/);
@@ -422,8 +422,8 @@ function paint() {
             return `<button type="button" data-rm="${k}"><span>${esc(m ? m[1] : tx)}</span>${n ? `<em>+${n}</em>` : ""}</button>`;
           })
           .join("")}</div>`
-      : `<div class="m-relax"><button type="button" data-rm="*"><span>Clear all filters</span></button></div>`;
-    body = `<div class="results-empty"><div class="m-empty-ico">${ico("search")}</div><h3 class="m-empty-h">${nf > 1 ? `No results match all ${nf} filters` : "No exact matches"}</h3>${mrelax}${O ? `<button type="button" class="btn btn-outline m-empty-alert" data-alert>${ico("bell")}Alert me when one lists</button>` : ""}${ico("search")}<h3>No exact matches</h3><p>Try widening your search — these would show results:</p><div class="option-chips">${
+      : `<div class="mobile-relax-filters"><button type="button" data-rm="*"><span>Clear all filters</span></button></div>`;
+    body = `<div class="results-empty"><div class="mobile-empty-icon">${ico("search")}</div><h3 class="mobile-empty-header">${nf > 1 ? `No results match all ${nf} filters` : "No exact matches"}</h3>${mrelax}${O ? `<button type="button" class="btn btn-outline mobile-empty-alert" data-alert>${ico("bell")}Alert me when one lists</button>` : ""}${ico("search")}<h3>No exact matches</h3><p>Try widening your search — these would show results:</p><div class="option-chips">${
       relax
         .slice(0, 4)
         .map(
@@ -438,7 +438,7 @@ function paint() {
   } else {
     const cards = list.map((l) => UPUI.card(l, S, { acts: 1 }));
     // phone only (hidden above 700px): kept inside the first item so the concierge position doesn't move
-    if (offer(S)) cards[0] += `<button type="button" class="m-alert" data-alert>${ico("bell")}<span><b>Be first to new matches</b><small>We'll WhatsApp you when one lists</small></span><em>Alert me</em></button>`;
+    if (offer(S)) cards[0] += `<button type="button" class="mobile-alert" data-alert>${ico("bell")}<span><b>Be first to new matches</b><small>We'll WhatsApp you when one lists</small></span><em>Alert me</em></button>`;
     body = `<div class="compact-grid">${withConcierge(cards)}</div>`;
   }
   const pager =
@@ -485,7 +485,7 @@ function paintPhone(O, all) {
   let chips = "";
   if (O) {
     chips =
-      `<button type="button" class="chip m-filters-chip ${nSet ? "is-set" : ""}" data-mf>${ico("sliders")}${t("Filters")}${nSet ? ` · ${nSet}` : ""}</button>` +
+      `<button type="button" class="chip mobile-filters-chip ${nSet ? "is-set" : ""}" data-mf>${ico("sliders")}${t("Filters")}${nSet ? ` · ${nSet}` : ""}</button>` +
       O.fields
         .filter((f) => f !== "loc")
         .map((f) => O.def(f))
@@ -504,30 +504,30 @@ function paintPhone(O, all) {
       .map((v) => `<button type="button" class="chip" data-mvert="${v}">${ico(VERTICALS[v].icon)}${esc(t(VERTICALS[v].label))}</button>`)
       .join("");
   }
-  msearch.innerHTML = `<div class="m-search-row"><a class="m-back" href="${PATHS.href.home}" aria-label="Back">${ico("chevL")}</a>
-      <button type="button" class="m-summary" data-msum><b>${esc(l1)}</b><small>${esc(l2)}</small></button>
-      <button type="button" class="m-filter-btn ${nSet ? "is-set" : ""}" data-mf aria-label="${t("Filters")}">${ico("sliders")}${nSet ? `<em>${nSet}</em>` : ""}</button></div>
-    <div class="m-chips no-scrollbar">${chips}</div>`;
+  msearch.innerHTML = `<div class="mobile-search-row"><a class="mobile-back" href="${PATHS.href.home}" aria-label="Back">${ico("chevL")}</a>
+      <button type="button" class="mobile-summary" data-msum><b>${esc(l1)}</b><small>${esc(l2)}</small></button>
+      <button type="button" class="mobile-filter-button ${nSet ? "is-set" : ""}" data-mf aria-label="${t("Filters")}">${ico("sliders")}${nSet ? `<em>${nSet}</em>` : ""}</button></div>
+    <div class="mobile-chips no-scrollbar">${chips}</div>`;
   document.getElementById("mcount").innerHTML = `${all.length.toLocaleString()} ${all.length === 1 ? "result" : "results"}`;
   document.getElementById("msheet").innerHTML = `<button type="button" class="close-btn" aria-label="Close" data-msclose>${ico("x")}</button><b>${t("Search")}</b><span></span>`;
   const map = S.view === "map";
   if (!map) lastView = S.view;
   mmap.innerHTML = map ? `${ico("list")}${t("List")}` : `${ico("map")}${t("Map")}`;
   mmap.hidden = !all.length;
-  document.body.classList.toggle("m-map", map);
+  document.body.classList.toggle("mobile-map", map);
   if (map && PHONE.matches) document.body.style.setProperty("--m-top-h", msearch.offsetTop + msearch.offsetHeight + "px");
 }
 function openSheet(field) {
-  ssearch.classList.add("is-m-open");
-  document.body.classList.add("m-lock");
+  ssearch.classList.add("is-mobile-open");
+  document.body.classList.add("mobile-lock");
   if (field) {
     const b = ssearch.querySelector(`[data-b="open"][data-val="${field}"]`);
     if (b) b.click();
   }
 }
 function closeSheet() {
-  ssearch.classList.remove("is-m-open");
-  document.body.classList.remove("m-lock");
+  ssearch.classList.remove("is-mobile-open");
+  document.body.classList.remove("mobile-lock");
 }
 document.getElementById("msheet").addEventListener("click", (e) => {
   if (e.target.closest("[data-msclose]")) closeSheet();

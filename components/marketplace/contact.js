@@ -73,7 +73,7 @@
       const rec = logLead('email', l, { name: fd.name, phone: fd.phone, email: fd.email, msg: fd.msg, pref: 'Email', ...(fd.day ? { req: { title: O.action, when: fd.day + ' · ' + fd.time, mode: fd.mode || '' } } : {}) });
       const when = rec.req ? rec.req.when : '', mode = rec.req ? rec.req.mode : '';
       openModal(`<div class="contact-success"><button class="close-btn" aria-label="Close" data-close>${ico('x')}</button><div class="success-icon">${ico('check')}</div><h3>${esc(O.action)} sent to ${esc(fn)}</h3><p>${when ? `You asked for <b>${esc(when)}</b>${mode ? ' · ' + esc(mode) : ''}. ` : ''}${esc(fn)} usually replies within ~${l.provider.reply} min to confirm it or suggest another time — we’ll let you know on WhatsApp.</p>
-        <div class="cm-steps"><div class="is-active"><i>${ico('check')}</i><span>Sent</span></div><div><i>2</i><span>${esc(fn)} replies</span></div><div><i>3</i><span>${LEASE_CAT(l) ? 'Viewing' : 'Confirm'}</span></div></div>
+        <div class="contact-steps"><div class="is-active"><i>${ico('check')}</i><span>Sent</span></div><div><i>2</i><span>${esc(fn)} replies</span></div><div><i>3</i><span>${LEASE_CAT(l) ? 'Viewing' : 'Confirm'}</span></div></div>
         <div class="contact-row"><button class="btn btn-outline" data-open="enq" data-enq="${rec.id}">${ico('msg')}Track in My enquiries</button><button class="btn btn-whatsapp" data-wa="${l.id}">${ico('wa')}Also WhatsApp</button></div><small>Reference ${rec.id}</small></div>`, 'contact-modal');
     };
   }
@@ -119,5 +119,5 @@
   // closing the request summary without sending forgets it
   document.addEventListener('upnow:modal-closed', () => { U.pendingReq = null; });
 
-  Object.assign(U, { call, whatsapp, request });
+  Object.assign(U, { call, whatsapp, request, logLead });
 })();

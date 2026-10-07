@@ -52,7 +52,7 @@
     /* tabs: [[id, label, count?]] — style lives on .tabs (inside a .provider-card or any padded box) */
     tabs: (items, active) => `<div class="tabs">${items.map(([id, l, n]) => `<button class="${id === active ? 'is-active' : ''}" data-tab="${esc(id)}">${esc(l)}${n != null ? `<em>${esc(n)}</em>` : ''}</button>`).join('')}</div>`,
     /* stats row: [[value, label]] */
-    stats: items => `<div class="kpis">${items.map(([b, s]) => `<div><b>${esc(b)}</b><span>${esc(s)}</span></div>`).join('')}</div>`,
+    stats: items => `<div class="key-figures">${items.map(([b, s]) => `<div><b>${esc(b)}</b><span>${esc(s)}</span></div>`).join('')}</div>`,
     /* pager: current page, page count; buttons carry data-pg */
     pager: (page, pages) => `<div class="pager"><button data-pg="${page - 1}" ${page === 1 ? 'disabled' : ''} aria-label="Previous page">${ico('chevL')}</button>${Array.from({ length: pages }, (_, i) => `<button data-pg="${i + 1}" class="${i + 1 === page ? 'is-active' : ''}">${i + 1}</button>`).join('')}<button data-pg="${page + 1}" ${page === pages ? 'disabled' : ''} aria-label="Next page">${ico('chevR')}</button></div>`,
     /* empty state (inside drawers, lists, results) */

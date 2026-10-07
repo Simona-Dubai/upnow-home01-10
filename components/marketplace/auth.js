@@ -62,7 +62,7 @@
   /* ---------- modal state ----------
      Two linked screens, as on Bayut / Dubizzle (no tabs): "Log in" (mobile → code) with "New here? Create an account",
      and "Create account" (name, mobile, email → code) with "Already have an account? Log in". What was typed carries
-     across. Safety nets: a new number on Log in goes on to "Finish signing up"; a known number on Create account just
+     across. Safety nets: Log in never asks for a name (an unseen number just logs in); a known number on Create account just
      logs in. Google / Apple fill name and email; providers then add and verify a mobile. No modal title. */
   let A = null; // { pane: login|signup|code|finish, from, intent, next, onDone, iso, phone, email, first, last, via, useEmail, codeFor, err, sent, phoneVerified }
   function open(opts = {}) {
@@ -80,15 +80,15 @@
 
   function paint() {
     const c = byIso(A.iso), r = rules(A.iso);
-    const err = k => A.err[k] ? `<span class="auth-err">${ico('x')}${esc(A.err[k])}</span>` : '';
-    const field = (k, label, attrs = '', hint = '') => `<div class="field ${A.err[k] ? 'has-error' : ''}"><label for="au-${k}">${label}</label><input id="au-${k}" data-au-k="${k}" value="${esc(A[k])}" ${attrs}>${hint ? `<small class="auth-small">${hint}</small>` : ''}</div>`;
+    const err = k => A.err[k] ? `<span class="auth-error">${ico('x')}${esc(A.err[k])}</span>` : '';
+    const field = (k, label, attrs = '', hint = '') => `<div class="field ${A.err[k] ? 'has-error' : ''}"><label for="auth-field-${k}">${label}</label><input id="auth-field-${k}" data-au-k="${k}" value="${esc(A[k])}" ${attrs}>${hint ? `<small class="auth-small">${hint}</small>` : ''}</div>`;
     // one row: [flag +code ▾ | number] — the country list opens from the flag
-    const phoneBox = () => `<div class="field auth-tel-f ${A.err.phone ? 'has-error' : ''}"><label for="au-phone">Mobile number</label>
-        <div class="auth-tel"><label class="auth-tel-cc" title="${esc(c.name)}"><span>${c.flag} ${c.dial}</span>${ico('chev')}<select data-au-cc aria-label="Country">${COUNTRIES.map(x => `<option value="${x.iso}" ${x.iso === A.iso ? 'selected' : ''}>${x.flag} ${esc(x.name)} (${x.dial})</option>`).join('')}</select></label>
-        <input id="au-phone" data-au-k="phone" value="${esc(A.phone)}" placeholder="${esc(r.phone.example)}" inputmode="tel" autocomplete="tel-national"></div></div>${err('phone')}`;
+    const phoneBox = () => `<div class="field auth-phone-field ${A.err.phone ? 'has-error' : ''}"><label for="auth-field-phone">Mobile number</label>
+        <div class="auth-phone-input"><label class="auth-phone-country" title="${esc(c.name)}"><span>${c.flag} ${c.dial}</span>${ico('chev')}<select data-au-cc aria-label="Country">${COUNTRIES.map(x => `<option value="${x.iso}" ${x.iso === A.iso ? 'selected' : ''}>${x.flag} ${esc(x.name)} (${x.dial})</option>`).join('')}</select></label>
+        <input id="auth-field-phone" data-au-k="phone" value="${esc(A.phone)}" placeholder="${esc(r.phone.example)}" inputmode="tel" autocomplete="tel-national"></div></div>${err('phone')}`;
     // one compact row: Google · Apple
     const socials = () => `<div class="or-divider"><span>or continue with</span></div>
-      <div class="auth-alts is-row">${[['google', 'Google'], ['apple', 'Apple']].map(([k, t]) => `<button type="button" class="auth-alt" data-au="${k}" aria-label="Continue with ${t}">${SVG[k]}<span>${t}</span></button>`).join('')}</div>`;
+      <div class="auth-alternatives is-row">${[['google', 'Google'], ['apple', 'Apple']].map(([k, t]) => `<button type="button" class="auth-alt" data-au="${k}" aria-label="Continue with ${t}">${SVG[k]}<span>${t}</span></button>`).join('')}</div>`;
     const terms = `<p class="auth-fine">By continuing you agree to ${esc(SITE.name)}'s <a class="text-link" href="#" onclick="return false">Terms</a> and <a class="text-link" href="#" onclick="return false">Privacy Policy</a>.</p>`;
     let body = '';
     if (A.pane === 'login') body = `
@@ -174,6 +174,9 @@
       if (A.from === 'signup') toast('This number already has an account, so we’ve logged you in');
       return finish(known, true);
     }
+    // Log in means they're coming back: never ask for a name here (only Create account does). The prototype has no
+    // server, so a number this browser hasn't seen logs in as a sample returning customer (name, and history on the dashboard).
+    if (A.from === 'login' && !provider()) return finish({ first: 'Sara', last: 'Ahmed', email: byEmail ? A.email.trim() : 'sara.ahmed@gmail.com', iso: A.iso, dial: byIso(A.iso).dial, phone: byEmail ? '' : digits(A.phone), via: byEmail ? 'email' : 'phone', since: Date.now() - 400 * 864e5 }, true);
     if ((!askName() || (A.first.trim() && A.last.trim())) && (!emailRequired() || emailOk(A.email)) && (A.phoneVerified || !provider())) return complete();
     A.pane = 'finish'; A.err = {}; paint();
   }
@@ -204,6 +207,8 @@
     u.name = (u.first + ' ' + u.last).trim();
     const all = accounts(); all[keyOf(u)] = u; if (u.email) all[u.email.toLowerCase()] = u; store.set('accounts', all);
     store.set('user', u);
+    // Log in: what was done signed out joins the account. Create account: a brand-new account starts empty.
+    store.set('session', returning ? 'login' : 'signup'); if (store.adopt) returning ? store.adopt() : store.clearGuest();
     const opts = A; clearInterval(A.timer); A = null; closeModal();
     toast(returning ? `Welcome back${u.first ? ', ' + u.first : ''}` : `You’re in — welcome to ${SITE.name}${u.first ? ', ' + u.first : ''}`);
     document.dispatchEvent(new CustomEvent('upnow:auth', { detail: u }));
@@ -249,7 +254,7 @@
   document.addEventListener('input', e => {
     if (!A) return;
     const i = e.target.closest('[data-au-k]');
-    if (i) { A[i.dataset.auK] = i.value; if (A.err[i.dataset.auK]) { delete A.err[i.dataset.auK]; const m = i.closest('.auth-body').querySelector('.auth-err'); if (m) m.remove(); i.closest('.has-error') && i.closest('.has-error').classList.remove('has-error'); } if (i.dataset.auK === 'phone') A.phoneVerified = false; return; }
+    if (i) { A[i.dataset.auK] = i.value; if (A.err[i.dataset.auK]) { delete A.err[i.dataset.auK]; const m = i.closest('.auth-body').querySelector('.auth-error'); if (m) m.remove(); i.closest('.has-error') && i.closest('.has-error').classList.remove('has-error'); } if (i.dataset.auK === 'phone') A.phoneVerified = false; return; }
     const o = e.target.closest('[data-otp]'); if (!o) return;
     const boxes = [...document.querySelectorAll('.auth-modal [data-otp]')];
     const v = o.value.replace(/\D/g, '');
@@ -290,7 +295,7 @@
     // this account's provider application (js/pages/join.js), if any
     const app = (() => { try { const d = JSON.parse(localStorage.getItem('upnow.join') || 'null'); return d && (!d.owner || d.owner === (u.email || u.dial + u.phone)) ? d : null; } catch (e) { return null; } })();
     const st = app && (app.status || (app.done ? 'submitted' : 'draft')), applied = st === 'submitted', approved = st === 'approved', draft = st === 'draft' && app.role;
-    return `<div class="account-menu" data-auth-slot><button class="account-btn" type="button" data-account aria-label="Account menu"><span class="account-av">${esc(initialsOf(u))}</span><span class="account-name">${esc(u.first || 'Account')}</span>${ico('chev')}</button>
+    return `<div class="account-menu" data-auth-slot><button class="account-btn" type="button" data-account aria-label="Account menu"><span class="account-menu-avatar">${esc(initialsOf(u))}</span><span class="account-name">${esc(u.first || 'Account')}</span>${ico('chev')}</button>
       <div class="account-drop"><div class="account-who"><b>${esc(u.name || u.email || 'Your account')}</b><small>${u.phone ? esc(u.dial + ' ' + fmt(u.iso || 'AE', u.phone)) : esc(u.email)}</small></div>
         <a href="${HREF.account}">${ico('home')}My account</a>
         <a href="${HREF.join}">${ico('brief')}${applied || approved ? 'Provider application · in review' : draft ? 'Finish your provider application' : 'Become a provider'}</a>

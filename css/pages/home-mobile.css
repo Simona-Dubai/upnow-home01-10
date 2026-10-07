@@ -150,7 +150,7 @@ body.mobile-shell {
   scrollbar-width: none;
 }
 
-.h-scroll {
+.horizontal-scroll {
   display: flex;
   gap: 12px;
   overflow-x: auto;
@@ -158,15 +158,15 @@ body.mobile-shell {
   scroll-snap-type: x mandatory;
 }
 
-.h-scroll::-webkit-scrollbar {
+.horizontal-scroll::-webkit-scrollbar {
   display: none;
 }
 
-.h-scroll {
+.horizontal-scroll {
   scrollbar-width: none;
 }
 
-.h-scroll > * {
+.horizontal-scroll > * {
   scroll-snap-align: start;
   flex: none;
 }
@@ -482,11 +482,11 @@ body.mobile-shell {
   transform: scale(0.94);
 }
 
-.m-section {
+.mobile-section {
   margin-top: 24px;
 }
 
-.m-section-header {
+.mobile-section-header {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -494,18 +494,18 @@ body.mobile-shell {
   margin-bottom: 12px;
 }
 
-.m-section-header h2 {
+.mobile-section-header h2 {
   font-size: 18px;
   letter-spacing: -0.02em;
 }
 
-.m-section-header p {
+.mobile-section-header p {
   margin: 2px 0 0;
   font-size: 12px;
   color: var(--color-text-muted);
 }
 
-.m-section-header button {
+.mobile-section-header button {
   color: var(--color-primary);
   font-weight: 800;
   font-size: 13px;
@@ -738,42 +738,42 @@ body.mobile-shell {
   font-weight: 700;
 }
 
-.m-field {
+.mobile-field {
   padding: 0 16px;
 }
 
-.m-field .option-chips {
+.mobile-field .option-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-.m-field .chip {
+.mobile-field .chip {
   height: 36px;
 }
 
-.m-field .range-inputs {
+.mobile-field .range-inputs {
   display: flex;
   gap: 8px;
   align-items: center;
   margin-bottom: 8px;
 }
 
-.m-field .range-inputs label {
+.mobile-field .range-inputs label {
   flex: 1;
   border: 1.5px solid var(--color-border-strong);
   border-radius: 10px;
   padding: 5px 10px;
 }
 
-.m-field .range-inputs label span {
+.mobile-field .range-inputs label span {
   display: block;
   font-size: 11px;
   font-weight: 700;
   color: var(--color-text-muted);
 }
 
-.m-field .range-inputs input {
+.mobile-field .range-inputs input {
   border: 0;
   outline: 0;
   width: 100%;
@@ -781,14 +781,14 @@ body.mobile-shell {
   font-weight: 700;
 }
 
-.m-field .range-inputs em,
-.m-field .range-inputs b {
+.mobile-field .range-inputs em,
+.mobile-field .range-inputs b {
   font-style: normal;
   font-size: 12px;
   color: var(--color-text-muted);
 }
 
-.m-field .segmented {
+.mobile-field .segmented {
   display: flex;
   background: var(--color-bg);
   border-radius: 12px;
@@ -796,7 +796,7 @@ body.mobile-shell {
   gap: 3px;
 }
 
-.m-field .segmented button {
+.mobile-field .segmented button {
   flex: 1;
   height: 36px;
   border-radius: 9px;
@@ -805,13 +805,13 @@ body.mobile-shell {
   color: var(--color-text-secondary);
 }
 
-.m-field .segmented button.is-active {
+.mobile-field .segmented button.is-active {
   background: #fff;
   color: var(--color-primary-dark);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.m-field .toggle {
+.mobile-field .toggle {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -820,11 +820,11 @@ body.mobile-shell {
   font-size: 14px;
 }
 
-.m-field .toggle input {
+.mobile-field .toggle input {
   display: none;
 }
 
-.m-field .toggle i {
+.mobile-field .toggle i {
   width: 46px;
   height: 28px;
   border-radius: 99px;
@@ -834,7 +834,7 @@ body.mobile-shell {
   flex: none;
 }
 
-.m-field .toggle i::after {
+.mobile-field .toggle i::after {
   content: "";
   position: absolute;
   top: 3px;
@@ -847,11 +847,11 @@ body.mobile-shell {
   transition: 0.2s;
 }
 
-.m-field .toggle input:checked + i {
+.mobile-field .toggle input:checked + i {
   background: var(--color-primary);
 }
 
-.m-field .toggle input:checked + i::after {
+.mobile-field .toggle input:checked + i::after {
   left: 21px;
 }
 
@@ -1002,7 +1002,7 @@ body.mobile-shell {
   align-items: center;
 }
 
-.m-card {
+.mobile-card {
   margin: 0 16px 14px;
   border-radius: 18px;
   overflow: hidden;
@@ -1010,24 +1010,24 @@ body.mobile-shell {
   background: #fff;
 }
 
-.m-card .gallery {
+.mobile-card .gallery {
   height: 200px;
   position: relative;
   background: var(--color-primary-tint-light);
 }
 
-.m-card .gallery .track {
+.mobile-card .gallery .track {
   display: flex;
   height: 100%;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
 }
 
-.m-card .gallery .track::-webkit-scrollbar {
+.mobile-card .gallery .track::-webkit-scrollbar {
   display: none;
 }
 
-.m-card .gallery img {
+.mobile-card .gallery img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -1035,11 +1035,11 @@ body.mobile-shell {
   scroll-snap-align: start;
 }
 
-.m-card .gallery .tile {
+.mobile-card .gallery .tile {
   flex: none;
 }
 
-.m-card .photo-dots {
+.mobile-card .photo-dots {
   position: absolute;
   bottom: 8px;
   left: 50%;
@@ -1048,39 +1048,39 @@ body.mobile-shell {
   gap: 4px;
 }
 
-.m-card .photo-dots i {
+.mobile-card .photo-dots i {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.6);
 }
 
-.m-card .photo-dots i:first-child {
+.mobile-card .photo-dots i:first-child {
   background: #fff;
 }
 
-.m-card .fav-btn {
+.mobile-card .fav-btn {
   top: 10px;
   right: 10px;
 }
 
-.m-card .content {
+.mobile-card .content {
   padding: 12px 14px 4px;
 }
 
-.m-card .price {
+.mobile-card .price {
   font-size: 19px;
   font-weight: 800;
   letter-spacing: -0.02em;
 }
 
-.m-card .price span {
+.mobile-card .price span {
   font-size: 12.5px;
   color: var(--color-text-muted);
   font-weight: 500;
 }
 
-.m-card .title {
+.mobile-card .title {
   font-size: 14px;
   font-weight: 700;
   margin-top: 2px;
@@ -1089,7 +1089,7 @@ body.mobile-shell {
   text-overflow: ellipsis;
 }
 
-.m-card .location {
+.mobile-card .location {
   font-size: 12.5px;
   color: var(--color-text-muted);
   display: flex;
@@ -1098,12 +1098,12 @@ body.mobile-shell {
   margin-top: 2px;
 }
 
-.m-card .location .icon {
+.mobile-card .location .icon {
   width: 13px;
   height: 13px;
 }
 
-.m-card .specs {
+.mobile-card .specs {
   display: flex;
   gap: 12px;
   margin-top: 8px;
@@ -1112,19 +1112,19 @@ body.mobile-shell {
   color: var(--color-text-secondary);
 }
 
-.m-card .specs span {
+.mobile-card .specs span {
   display: flex;
   gap: 4px;
   align-items: center;
 }
 
-.m-card .specs .icon {
+.mobile-card .specs .icon {
   width: 15px;
   height: 15px;
   color: var(--color-text-muted);
 }
 
-.m-card .agent-row {
+.mobile-card .agent-row {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1133,7 +1133,7 @@ body.mobile-shell {
   margin-top: 10px;
 }
 
-.m-card .agent-row .avatar {
+.mobile-card .agent-row .avatar {
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -1145,7 +1145,7 @@ body.mobile-shell {
   background: linear-gradient(135deg, oklch(0.62 0.09 var(--hue)), oklch(0.38 0.07 var(--hue)));
 }
 
-.m-card .agent-row span {
+.mobile-card .agent-row span {
   flex: 1;
   min-width: 0;
   font-size: 12px;
@@ -1156,17 +1156,17 @@ body.mobile-shell {
 }
 
 /* the avatar is a span too — keep it a fixed circle */
-.m-card .agent-row span.avatar {
+.mobile-card .agent-row span.avatar {
   flex: none;
   color: #fff;
   overflow: visible;
 }
 
-.m-card .agent-row span b {
+.mobile-card .agent-row span b {
   color: var(--color-text-secondary);
 }
 
-.m-card .agent-row button {
+.mobile-card .agent-row button {
   width: 38px;
   height: 38px;
   border-radius: 12px;
@@ -1175,19 +1175,19 @@ body.mobile-shell {
   border: 1px solid var(--color-border-strong);
 }
 
-.m-card .agent-row button.is-whatsapp {
+.mobile-card .agent-row button.is-whatsapp {
   background: var(--color-whatsapp);
   border-color: var(--color-whatsapp);
   color: #fff;
 }
 
-.m-card .agent-row button.is-call {
+.mobile-card .agent-row button.is-call {
   background: var(--color-primary-tint-light);
   border-color: var(--color-primary-tint);
   color: var(--color-primary-dark);
 }
 
-.map-fab {
+.map-floating-button {
   position: absolute;
   bottom: 96px;
   left: 50%;
@@ -1205,20 +1205,20 @@ body.mobile-shell {
   z-index: 30;
 }
 
-.m-map {
+.mobile-map {
   position: absolute;
   inset: 0;
   background: #e5ede7;
 }
 
-.m-map svg {
+.mobile-map svg {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
 }
 
-.m-map .map-pin {
+.mobile-map .map-pin {
   position: absolute;
   transform: translate(-50%, -100%);
   background: #fff;
@@ -1230,13 +1230,13 @@ body.mobile-shell {
   white-space: nowrap;
 }
 
-.m-map .map-pin.is-active {
+.mobile-map .map-pin.is-active {
   background: var(--color-primary-darkest);
   color: #fff;
   z-index: 2;
 }
 
-.m-map .card-rail {
+.mobile-map .card-rail {
   position: absolute;
   left: 0;
   right: 0;
@@ -1394,72 +1394,72 @@ body.mobile-shell {
   color: var(--color-primary-light);
 }
 
-.m-detail-section {
+.mobile-detail-section {
   padding: 22px 0 0;
   border-top: 1px solid var(--color-border);
   margin-top: 22px;
 }
 
-.m-detail-section h2 {
+.mobile-detail-section h2 {
   font-size: 17px;
   letter-spacing: -0.01em;
   margin-bottom: 12px;
 }
 
-.m-detail-section .spec-grid,
-.m-detail-section .checklist {
+.mobile-detail-section .spec-grid,
+.mobile-detail-section .checklist {
   grid-template-columns: 1fr 1fr;
 }
 
-.m-detail-section .calendar-pair,
-.m-detail-section .detail-columns {
+.mobile-detail-section .calendar-pair,
+.mobile-detail-section .detail-columns {
   grid-template-columns: 1fr;
 }
 
-.m-detail-section .calendar-pair > .calendar-month:nth-child(2) {
+.mobile-detail-section .calendar-pair > .calendar-month:nth-child(2) {
   display: none;
 }
 
-.m-detail-section [data-live=grid] {
+.mobile-detail-section [data-live=grid] {
   overflow-x: auto;
   margin: 0 -16px;
   padding: 0 16px;
 }
 
-.m-detail-section .slot-grid {
+.mobile-detail-section .slot-grid {
   min-width: 620px;
 }
 
-.m-detail-section .timeline li {
+.mobile-detail-section .timeline li {
   grid-template-columns: 52px 1fr;
 }
 
-.m-detail-section .timeline li::before {
+.mobile-detail-section .timeline li::before {
   left: 61px;
 }
 
-.m-detail-section .timeline li:not(:last-child)::after {
+.mobile-detail-section .timeline li:not(:last-child)::after {
   left: 65px;
 }
 
-.m-detail-section .bed-cards {
+.mobile-detail-section .bed-cards {
   grid-template-columns: repeat(2, 1fr);
 }
 
-.m-detail-section .detail-table {
+.mobile-detail-section .detail-table {
   font-size: 12.5px;
 }
 
-.m-detail-section .detail-table td,
-.m-detail-section .detail-table th {
+.mobile-detail-section .detail-table td,
+.mobile-detail-section .detail-table th {
   padding: 9px 10px;
 }
 
-.m-detail-section .agent-card {
+.mobile-detail-section .agent-card {
   box-shadow: none;
 }
 
-.m-about {
+.mobile-about {
   font-size: 13.5px;
   color: var(--color-text-secondary);
   line-height: 1.65;
@@ -1643,13 +1643,13 @@ body.mobile-shell {
 }
 
 /* provider (mobile) */
-.m-provider-cover {
+.mobile-provider-cover {
   height: 170px;
   background: linear-gradient(115deg, #0b3d2a, #25946a 55%, #136142);
   position: relative;
 }
 
-.m-provider-cover svg {
+.mobile-provider-cover svg {
   position: absolute;
   bottom: -1px;
   left: 0;
@@ -1657,13 +1657,13 @@ body.mobile-shell {
   height: 44px;
 }
 
-.m-provider {
+.mobile-provider {
   padding: 0 16px;
   margin-top: -62px;
   position: relative;
 }
 
-.m-provider .avatar {
+.mobile-provider .avatar {
   width: 104px;
   height: 104px;
   border-radius: 50%;
@@ -1678,11 +1678,11 @@ body.mobile-shell {
   position: relative;
 }
 
-.m-provider .avatar.is-business {
+.mobile-provider .avatar.is-business {
   border-radius: 28px;
 }
 
-.m-provider .avatar i {
+.mobile-provider .avatar i {
   position: absolute;
   right: 8px;
   bottom: 8px;
@@ -1693,7 +1693,7 @@ body.mobile-shell {
   border: 3px solid #fff;
 }
 
-.m-provider .name {
+.mobile-provider .name {
   font-size: 24px;
   font-weight: 800;
   letter-spacing: -0.02em;
@@ -1703,20 +1703,20 @@ body.mobile-shell {
   margin-top: 10px;
 }
 
-.m-provider .name .icon {
+.mobile-provider .name .icon {
   width: 22px;
   height: 22px;
   fill: var(--color-primary-light);
   stroke: #fff;
 }
 
-.m-provider .org {
+.mobile-provider .org {
   font-size: 13px;
   color: var(--color-text-muted);
   margin-top: 2px;
 }
 
-.m-provider .badge {
+.mobile-provider .badge {
   display: flex;
   gap: 6px;
   overflow-x: auto;
@@ -1724,11 +1724,11 @@ body.mobile-shell {
   padding: 0 16px;
 }
 
-.m-provider .badge::-webkit-scrollbar {
+.mobile-provider .badge::-webkit-scrollbar {
   display: none;
 }
 
-.m-provider .badge span {
+.mobile-provider .badge span {
   flex: none;
   display: inline-flex;
   gap: 5px;
@@ -1741,13 +1741,13 @@ body.mobile-shell {
   background: #fff;
 }
 
-.m-provider .badge .icon {
+.mobile-provider .badge .icon {
   width: 13px;
   height: 13px;
   color: var(--color-primary-light);
 }
 
-.m-provider .badge span.is-gold {
+.mobile-provider .badge span.is-gold {
   background: #fff8e6;
   border-color: #f3dfa8;
   color: var(--color-warning-text);
@@ -1814,20 +1814,20 @@ body.mobile-shell {
   border-color: var(--color-primary);
 }
 
-.m-empty {
+.mobile-empty {
   text-align: center;
   padding: 80px 30px;
   color: var(--color-text-muted);
 }
 
-.m-empty .icon {
+.mobile-empty .icon {
   width: 34px;
   height: 34px;
   color: var(--color-primary-light);
   margin-bottom: 8px;
 }
 
-.m-empty b {
+.mobile-empty b {
   display: block;
   color: var(--color-text);
   font-size: 16px;

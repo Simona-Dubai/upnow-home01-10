@@ -567,7 +567,7 @@ body {
     position: static;
   }
 
-  .kpis {
+  .key-figures {
     grid-template-columns: repeat(3, 1fr);
   }
 
@@ -603,24 +603,24 @@ body {
 }
 
 /* listings: one row of boxed fields (Bayut-style) — category · location · type · beds & baths · price */
-.pf-row {
+.profile-row {
   display: flex;
   gap: 8px;
   margin: 0 0 14px;
 }
 
-.pf-box {
+.profile-box {
   position: relative;
   flex: 1 0 auto;
   min-width: 118px;
 }
 
-.pf-box.is-cat {
+.profile-box.is-category {
   flex: 0 0 auto;
   min-width: 118px;
 }
 
-.pf-field {
+.profile-field {
   width: 100%;
   height: 44px;
   display: flex;
@@ -637,13 +637,13 @@ body {
   text-align: left;
 }
 
-.pf-field span {
+.profile-field span {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.pf-field .icon {
+.profile-field .icon {
   width: 15px;
   height: 15px;
   color: var(--color-text-secondary);
@@ -651,26 +651,26 @@ body {
   transition: 0.15s;
 }
 
-.pf-field:hover {
+.profile-field:hover {
   border-color: var(--color-primary-lighter);
 }
 
-.pf-field[aria-expanded=true] {
+.profile-field[aria-expanded=true] {
   border-color: var(--color-primary-light);
 }
 
-.pf-field[aria-expanded=true] .icon {
+.profile-field[aria-expanded=true] .icon {
   transform: rotate(180deg);
 }
 
-.pf-field.is-set {
+.profile-field.is-set {
   color: var(--color-text);
   font-weight: 700;
   border-color: var(--color-primary-light);
   background: var(--color-primary-tint-light);
 }
 
-.pf-loc {
+.profile-location {
   flex: 1 1 150px;
   min-width: 150px;
   max-width: 360px;
@@ -684,11 +684,11 @@ body {
   background: #fff;
 }
 
-.pf-loc:focus-within {
+.profile-location:focus-within {
   border-color: var(--color-primary-light);
 }
 
-.pf-loc input {
+.profile-location input {
   flex: 1;
   min-width: 0;
   border: 0;
@@ -699,11 +699,11 @@ body {
   color: var(--color-text);
 }
 
-.pf-loc input::placeholder {
+.profile-location input::placeholder {
   color: var(--color-text-muted);
 }
 
-.pf-loc .icon {
+.profile-location .icon {
   width: 17px;
   height: 17px;
   color: var(--color-text-secondary);
@@ -715,21 +715,21 @@ body {
   z-index: 30;
 }
 
-.pf-pop {
+.profile-popover {
   max-height: 380px;
   overflow: auto;
 }
 
-.pf-gap {
+.profile-gap {
   height: 14px;
 }
 
-.pf-list {
+.profile-list {
   display: flex;
   flex-direction: column;
 }
 
-.pf-list button {
+.profile-list button {
   display: flex;
   justify-content: space-between;
   gap: 14px;
@@ -739,16 +739,16 @@ body {
   text-align: left;
 }
 
-.pf-list button:hover {
+.profile-list button:hover {
   background: var(--color-bg);
 }
 
-.pf-list button.is-active {
+.profile-list button.is-active {
   background: var(--color-primary-tint-light);
   color: var(--color-primary-dark);
 }
 
-.pf-list em {
+.profile-list em {
   font-style: normal;
   color: var(--color-text-muted);
   font-weight: 500;
@@ -765,23 +765,23 @@ body {
   margin-bottom: 10px;
 }
 
-.pf-count {
+.profile-count {
   white-space: nowrap;
   font-size: 13px;
   color: var(--color-text-muted);
 }
 
-.pf-count b {
+.profile-count b {
   color: var(--color-text);
 }
 
-.pf-select {
+.profile-select {
   position: relative;
   display: inline-flex;
   align-items: center;
 }
 
-.pf-select select {
+.profile-select select {
   appearance: none;
   height: 34px;
   border: 1px solid transparent;
@@ -794,11 +794,11 @@ body {
   color: var(--color-text);
 }
 
-.pf-select select:hover {
+.profile-select select:hover {
   border-color: var(--color-primary-lighter);
 }
 
-.pf-select .icon {
+.profile-select .icon {
   position: absolute;
   right: 11px;
   width: 14px;
@@ -807,7 +807,7 @@ body {
   color: var(--color-text-muted);
 }
 
-.pf-more {
+.profile-more {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -815,12 +815,12 @@ body {
   margin-top: 20px;
 }
 
-.pf-more span {
+.profile-more span {
   font-size: 12.5px;
   color: var(--color-text-muted);
 }
 
-.pf-empty {
+.profile-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -832,28 +832,28 @@ body {
   border-radius: 14px;
 }
 
-.pf-empty .icon {
+.profile-empty .icon {
   width: 26px;
   height: 26px;
   color: var(--color-primary-light);
 }
 
-.pf-empty b {
+.profile-empty b {
   color: var(--color-text);
 }
 
 @media (max-width: 700px) {
-  .pf-row {
+  .profile-row {
     flex-wrap: wrap;
   }
 
-  .pf-loc {
+  .profile-location {
     flex: 1 1 100%;
     order: -1;
   }
 
-  .pf-box,
-  .pf-box.is-cat {
+  .profile-box,
+  .profile-box.is-category {
     flex: 1 1 calc(50% - 4px);
   }
 }
@@ -948,7 +948,7 @@ body {
   padding: 0 8px;
 }
 
-.ag-toolbar {
+.agency-toolbar {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -956,11 +956,11 @@ body {
   margin: 0 0 16px;
 }
 
-.ag-toolbar .is-sort {
+.agency-toolbar .is-sort {
   margin-left: auto;
 }
 
-.ag-search {
+.agency-search {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -973,13 +973,13 @@ body {
   max-width: 320px;
 }
 
-.ag-search .icon {
+.agency-search .icon {
   width: 15px;
   height: 15px;
   color: var(--color-text-muted);
 }
 
-.ag-search input {
+.agency-search input {
   border: 0;
   outline: 0;
   flex: 1;
@@ -1005,14 +1005,14 @@ body {
    Phone (≤700px) and tablet (701–1100px). Desktop only sees the display: none / contents lines below.
    ========================================================================== */
 /* phone / tablet-only pieces rendered by provider.js / agency.js / profile-listings.js */
-.m-facts,
-.m-stats,
-.m-contact,
-.pf-card-acts {
+.mobile-facts,
+.mobile-stats,
+.mobile-contact,
+.profile-card-actions {
   display: none;
 }
 
-.pf-card {
+.profile-card {
   display: contents;
 }
 
@@ -1040,11 +1040,11 @@ body {
     flex-wrap: wrap;
   }
 
-  .kpis b {
+  .key-figures b {
     font-size: 21px;
   }
 
-  .kpis div {
+  .key-figures div {
     padding: 14px 16px;
   }
 
@@ -1077,7 +1077,7 @@ body {
   }
 
   /* sticky contact bar once the header buttons scroll away (the sidebar contact box is far down) */
-  .m-contact {
+  .mobile-contact {
     position: fixed;
     left: 0;
     right: 0;
@@ -1096,35 +1096,35 @@ body {
     transition: transform 0.25s, visibility 0.25s;
   }
 
-  .m-contact.is-shown {
+  .mobile-contact.is-shown {
     transform: none;
     visibility: visible;
   }
 
-  .m-contact .btn {
+  .mobile-contact .btn {
     height: 46px;
   }
 
-  .m-contact .btn-outline {
+  .mobile-contact .btn-outline {
     flex: none;
     width: 46px;
     padding: 0;
     justify-content: center;
   }
 
-  .m-contact .btn-whatsapp {
+  .mobile-contact .btn-whatsapp {
     flex: 0 1 420px;
     min-width: 0;
     justify-content: center;
   }
 
-  .m-contact .btn-whatsapp span {
+  .mobile-contact .btn-whatsapp span {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  body:has(.m-contact) .site-footer {
+  body:has(.mobile-contact) .site-footer {
     padding-bottom: 72px;
   }
 }
@@ -1200,7 +1200,7 @@ body {
     margin-top: 6px;
   }
 
-  .provider-meta .m-hide {
+  .provider-meta .mobile-hide {
     display: none;
   }
 
@@ -1219,7 +1219,7 @@ body {
   }
 
   /* languages · areas · years */
-  .m-facts {
+  .mobile-facts {
     display: flex;
     flex-wrap: wrap;
     gap: 4px 12px;
@@ -1228,14 +1228,14 @@ body {
     color: var(--color-text-secondary);
   }
 
-  .m-facts span {
+  .mobile-facts span {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     min-width: 0;
   }
 
-  .m-facts .icon {
+  .mobile-facts .icon {
     width: 14px;
     height: 14px;
     flex: none;
@@ -1243,7 +1243,7 @@ body {
   }
 
   /* 4-up stats strip */
-  .m-stats {
+  .mobile-stats {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     margin-top: 14px;
@@ -1252,17 +1252,17 @@ body {
     background: var(--color-bg);
   }
 
-  .m-stats div {
+  .mobile-stats div {
     padding: 10px 4px;
     text-align: center;
     min-width: 0;
   }
 
-  .m-stats div + div {
+  .mobile-stats div + div {
     border-left: 1px solid var(--color-border);
   }
 
-  .m-stats b {
+  .mobile-stats b {
     display: block;
     font-size: 16px;
     line-height: 1.2;
@@ -1270,14 +1270,14 @@ body {
     white-space: nowrap;
   }
 
-  .m-stats b i {
+  .mobile-stats b i {
     font-style: normal;
     color: var(--color-rating-star-strong);
     font-size: 13px;
     margin-left: 1px;
   }
 
-  .m-stats span {
+  .mobile-stats span {
     display: block;
     font-size: 10.5px;
     color: var(--color-text-muted);
@@ -1286,7 +1286,7 @@ body {
     text-overflow: ellipsis;
   }
 
-  .kpis {
+  .key-figures {
     display: none;
   }
 
@@ -1393,16 +1393,16 @@ body {
     justify-content: flex-end;
   }
 
-  .tabs-tools .pf-count {
+  .tabs-tools .profile-count {
     margin-right: auto;
   }
 
-  .pf-select select {
+  .profile-select select {
     height: 40px;
   }
 
   /* filters: one row that scrolls sideways; dropdowns open as a sheet above the tab bar */
-  .pf-row {
+  .profile-row {
     flex-wrap: nowrap;
     overflow-x: auto;
     scrollbar-width: none;
@@ -1410,11 +1410,11 @@ body {
     padding: 0 14px;
   }
 
-  .pf-row::-webkit-scrollbar {
+  .profile-row::-webkit-scrollbar {
     display: none;
   }
 
-  .pf-loc {
+  .profile-location {
     flex: 0 0 200px;
     order: 0;
     min-width: 0;
@@ -1422,19 +1422,19 @@ body {
     border-radius: 99px;
   }
 
-  .pf-box,
-  .pf-box.is-cat {
+  .profile-box,
+  .profile-box.is-category {
     flex: 0 0 auto;
     min-width: 0;
   }
 
-  .pf-field {
+  .profile-field {
     height: 42px;
     border-radius: 99px;
     max-width: 200px;
   }
 
-  .provider-layout .filter-pill .popover.pf-pop {
+  .provider-layout .filter-pill .popover.profile-popover {
     position: fixed;
     left: 8px;
     right: 8px;
@@ -1453,7 +1453,7 @@ body {
     gap: 14px;
   }
 
-  .provider-layout .pf-card {
+  .provider-layout .profile-card {
     display: flex;
     flex-direction: column;
     background: #fff;
@@ -1462,66 +1462,66 @@ body {
     overflow: hidden;
   }
 
-  .provider-layout .pf-card .card {
+  .provider-layout .profile-card .card {
     border: 0;
     border-radius: 0;
     box-shadow: none;
   }
 
-  .provider-layout .pf-card .card .photo {
+  .provider-layout .profile-card .card .photo {
     aspect-ratio: auto;
     height: 220px;
   }
 
-  .provider-layout .pf-card .card .content {
+  .provider-layout .profile-card .card .content {
     padding: 12px 14px 10px;
     gap: 3px;
   }
 
-  .provider-layout .pf-card .card .title {
+  .provider-layout .profile-card .card .title {
     font-size: 14px;
   }
 
-  .provider-layout .pf-card .card .location {
+  .provider-layout .profile-card .card .location {
     font-size: 12px;
   }
 
-  .provider-layout .pf-card .card .spec {
+  .provider-layout .profile-card .card .spec {
     display: flex;
     font-size: 12.5px;
   }
 
-  .provider-layout .pf-card .card .price {
+  .provider-layout .profile-card .card .price {
     font-size: 19px;
   }
 
-  .provider-layout .pf-card .card .price span {
+  .provider-layout .profile-card .card .price span {
     font-size: 12.5px;
   }
 
-  .provider-layout .pf-card .card .badge {
+  .provider-layout .profile-card .card .badge {
     font-size: 11px;
     padding: 3px 8px;
   }
 
-  .provider-layout .pf-card .card .fav-btn {
+  .provider-layout .profile-card .card .fav-btn {
     width: 36px;
     height: 36px;
   }
 
-  .pf-card-acts {
+  .profile-card-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
     padding: 0 14px 14px;
   }
 
-  .pf-card-acts .btn {
+  .profile-card-actions .btn {
     height: 42px;
     justify-content: center;
   }
 
-  .pf-more .btn {
+  .profile-more .btn {
     width: 100%;
     height: 44px;
     justify-content: center;
@@ -1570,7 +1570,7 @@ body {
     height: 180px;
   }
 
-  .ag-toolbar {
+  .agency-toolbar {
     flex-wrap: nowrap;
     overflow-x: auto;
     scrollbar-width: none;
@@ -1578,16 +1578,16 @@ body {
     padding: 0 14px;
   }
 
-  .ag-toolbar::-webkit-scrollbar {
+  .agency-toolbar::-webkit-scrollbar {
     display: none;
   }
 
-  .ag-search {
+  .agency-search {
     flex: 0 0 210px;
     height: 40px;
   }
 
-  .ag-toolbar .is-sort {
+  .agency-toolbar .is-sort {
     margin-left: 0;
   }
 
@@ -1600,7 +1600,7 @@ body {
   }
 
   /* sticky contact bar: always on, above the tab bar */
-  .m-contact {
+  .mobile-contact {
     padding: 10px 16px;
     gap: 8px;
     transform: none;
@@ -1608,11 +1608,11 @@ body {
     transition: none;
   }
 
-  .m-contact .btn-whatsapp {
+  .mobile-contact .btn-whatsapp {
     flex: 1 1 auto;
   }
 
-  body:has(.m-contact) .site-footer {
+  body:has(.mobile-contact) .site-footer {
     padding-bottom: 68px;
   }
 }

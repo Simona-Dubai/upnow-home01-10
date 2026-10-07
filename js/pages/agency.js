@@ -91,12 +91,12 @@ function agentTiles() {
     <a class="text-link" href="${DM.provHref(a.name)}">View profile</a></div>`,
         )
         .join("")
-    : `<div class="pf-empty" style="grid-column:1/-1">${ico("user")}<b>No agents match</b><button class="btn btn-outline btn-sm" data-ag-reset>Clear</button></div>`;
+    : `<div class="profile-empty" style="grid-column:1/-1">${ico("user")}<b>No agents match</b><button class="btn btn-outline btn-sm" data-ag-reset>Clear</button></div>`;
 }
 const agentsHTML =
-  () => `<div class="ag-toolbar"><label class="ag-search">${ico("search")}<input data-ag="q" placeholder="Search agents by name" value="${esc(ag.q)}" aria-label="Search agents by name"></label>
-    ${langs.length > 1 ? `<label class="pf-select"><select data-ag="lang" aria-label="Language"><option value="">Any language</option>${langs.map((x) => `<option ${ag.lang === x ? "selected" : ""}>${esc(x)}</option>`).join("")}</select>${ico("chev")}</label>` : ""}
-    <label class="pf-select is-sort"><select data-ag="sort" aria-label="Sort agents">${[
+  () => `<div class="agency-toolbar"><label class="agency-search">${ico("search")}<input data-ag="q" placeholder="Search agents by name" value="${esc(ag.q)}" aria-label="Search agents by name"></label>
+    ${langs.length > 1 ? `<label class="profile-select"><select data-ag="lang" aria-label="Language"><option value="">Any language</option>${langs.map((x) => `<option ${ag.lang === x ? "selected" : ""}>${esc(x)}</option>`).join("")}</select>${ico("chev")}</label>` : ""}
+    <label class="profile-select is-sort"><select data-ag="sort" aria-label="Sort agents">${[
       ["listings", "Most listings"],
       ["rating", "Top rated"],
       ["reply", "Fastest reply"],
@@ -140,7 +140,7 @@ function paint() {
     <div class="provider-header">
       <div class="provider-avatar is-business" style="--hue:${(org.length * 47) % 360}">${initials(org)}</div>
       <div><div class="provider-name">${esc(org)}<svg class="icon" viewBox="0 0 24 24">${UPUI.ICONS.badge}</svg></div>
-        <div class="provider-meta"><span>${ico("brief")}${esc(kind)}</span><span class="rating m-hide">${ico("star")}<b>${rating.toFixed(1)}</b>&nbsp;(${reviews.toLocaleString()} reviews)</span><span>${ico("pin")}${esc(office)}, Dubai</span><span>${ico("cal")}On UpNow since ${since}</span></div>
+        <div class="provider-meta"><span>${ico("brief")}${esc(kind)}</span><span class="rating mobile-hide">${ico("star")}<b>${rating.toFixed(1)}</b>&nbsp;(${reviews.toLocaleString()} reviews)</span><span>${ico("pin")}${esc(office)}, Dubai</span><span>${ico("cal")}On UpNow since ${since}</span></div>
         ${PROFILE.statsStrip([
           [`${rating.toFixed(1)}<i>★</i>`, `${reviews.toLocaleString()} reviews`],
           [agents.length, SP ? "Agents" : "Team"],
@@ -150,7 +150,7 @@ function paint() {
       <div class="provider-actions"><button class="btn btn-outline" onclick="navigator.clipboard&&navigator.clipboard.writeText(location.href);UPUI.toast('Agency link copied')">${ico("share")}Share</button><button class="btn btn-outline" onclick="UPUI.toast('Following ${esc(org)} — you’ll get new listings')">${ico("bell")}Follow</button></div>
     </div>
     <div class="provider-layout"><div>
-      <div class="kpis"><div><b>${agents.length}</b><span>${SP ? "Agents" : "Team members"}</span></div><div><b>${L.length}</b><span>Active ${SP ? "listings" : "offers"}</span></div><div><b>${areas.length}</b><span>Areas covered</span></div><div><b>~${reply} min</b><span>Typical reply</span></div></div>
+      <div class="key-figures"><div><b>${agents.length}</b><span>${SP ? "Agents" : "Team members"}</span></div><div><b>${L.length}</b><span>Active ${SP ? "listings" : "offers"}</span></div><div><b>${areas.length}</b><span>Areas covered</span></div><div><b>~${reply} min</b><span>Typical reply</span></div></div>
       <div class="provider-card is-fill"><div class="tabs">${T.map(([k, t, n]) => `<button class="${tab === k ? "is-active" : ""}" data-tab="${k}">${t}<em>${n.toLocaleString()}</em></button>`).join("")}${tab === "listings" ? PROFILE.listingsTools() : ""}</div>
         ${{ listings: listingsHTML, agents: agentsHTML, areas: areasHTML }[tab]()}</div>
     </div>

@@ -34,40 +34,40 @@
   const boxLabel = (ids, defs, i) => ids.includes('baths') ? 'Beds & Baths' : ids[0] === 'price' ? 'Price (AED)' : i === 0 && /type$/i.test(defs[0].label) ? 'Any type' : defs[0].label;
 
   function box(id, text, set, body, cls = '') {
-    return `<div class="filter-pill pf-box ${cls}"><button class="pf-field ${set ? 'is-set' : ''}" data-pfp="${id}" aria-expanded="${open === id}"><span>${esc(text)}</span>${ico('chev')}</button>
-      ${open === id ? `<div class="popover pf-pop">${body}<div class="popover-footer"><button class="btn btn-primary btn-sm" data-pfp-close>Done</button></div></div>` : ''}</div>`;
+    return `<div class="filter-pill profile-box ${cls}"><button class="profile-field ${set ? 'is-set' : ''}" data-pfp="${id}" aria-expanded="${open === id}"><span>${esc(text)}</span>${ico('chev')}</button>
+      ${open === id ? `<div class="popover profile-popover">${body}<div class="popover-footer"><button class="btn btn-primary btn-sm" data-pfp-close>Done</button></div></div>` : ''}</div>`;
   }
 
   function barHTML(pool, S) {
     const cats = catsOf(pool), O = offerOfS(S), count = f => pool.filter(f).length;
     const out = [];
     if (cats.length > 1) out.push(box('type', O ? O.label : 'All', !!O,
-      `<div class="pf-list">${[['', 'All', pool.length], ...cats.map(c => [c, UP.offerOf(S.v, c).label, count(l => l.cat === c)])].map(([k, t, n]) => `<button class="${(S.o || '') === k ? 'is-active' : ''}" data-pfo="${k}">${esc(t)}<em>${n}</em></button>`).join('')}</div>`, 'is-cat'));
-    out.push(`<label class="pf-loc"><input data-pf-q placeholder="Enter location" value="${esc(S.q)}" aria-label="Location, building or keyword">${ico('pin')}</label>`);
+      `<div class="profile-list">${[['', 'All', pool.length], ...cats.map(c => [c, UP.offerOf(S.v, c).label, count(l => l.cat === c)])].map(([k, t, n]) => `<button class="${(S.o || '') === k ? 'is-active' : ''}" data-pfo="${k}">${esc(t)}<em>${n}</em></button>`).join('')}</div>`, 'is-category'));
+    out.push(`<label class="profile-location"><input data-pf-q placeholder="Enter location" value="${esc(S.q)}" aria-label="Location, building or keyword">${ico('pin')}</label>`);
     if (O) fieldsOf(O).forEach((ids, i) => {
       const defs = ids.map(id => O.def(id)), set = ids.some(id => userSet(S, id));
       const sum = ids.map((id, k) => userSet(S, id) ? valueLabel(defs[k], S.f[id]) : '').filter(Boolean).join(' · ');
-      out.push(box(ids.join('+'), sum || boxLabel(ids, defs, i), set, defs.map(d => `<div class="popover-header">${esc(d.label)}</div>${UPF.controlHTML(d, S, { pool })}`).join('<div class="pf-gap"></div>')));
+      out.push(box(ids.join('+'), sum || boxLabel(ids, defs, i), set, defs.map(d => `<div class="popover-header">${esc(d.label)}</div>${UPF.controlHTML(d, S, { pool })}`).join('<div class="profile-gap"></div>')));
     });
-    return `<div class="pf-row">${out.join('')}</div>`;
+    return `<div class="profile-row">${out.join('')}</div>`;
   }
 
   /* count (only when filtered — the tab already shows the total) · grid / list · sort; sits at the end of the tabs row */
   function toolsHTML(pool, S) {
     const n = UPUI.results(S, pool).length;
-    return `${filtered(S, pool) ? `<span class="pf-count"><b>${n}</b> of ${pool.length} · <button class="text-link" data-pf-reset>Clear</button></span>` : ''}<span class="view-toggle" role="group" aria-label="View">${[['grid', 'grid4', 'Grid view'], ['list', 'list', 'List view']].map(([k, i, t]) => `<button class="${(S.view === 'list' ? 'list' : 'grid') === k ? 'is-active' : ''}" data-pf-view="${k}" aria-label="${t}" title="${t}">${ico(i)}</button>`).join('')}</span><label class="pf-select"><select data-pf-sort aria-label="Sort">${SORTS.map(([k, t]) => `<option value="${k}" ${S.sort === k ? 'selected' : ''}>${t}</option>`).join('')}</select>${ico('chev')}</label>`;
+    return `${filtered(S, pool) ? `<span class="profile-count"><b>${n}</b> of ${pool.length} · <button class="text-link" data-pf-reset>Clear</button></span>` : ''}<span class="view-toggle" role="group" aria-label="View">${[['grid', 'grid4', 'Grid view'], ['list', 'list', 'List view']].map(([k, i, t]) => `<button class="${(S.view === 'list' ? 'list' : 'grid') === k ? 'is-active' : ''}" data-pf-view="${k}" aria-label="${t}" title="${t}">${ico(i)}</button>`).join('')}</span><label class="profile-select"><select data-pf-sort aria-label="Sort">${SORTS.map(([k, t]) => `<option value="${k}" ${S.sort === k ? 'selected' : ''}>${t}</option>`).join('')}</select>${ico('chev')}</label>`;
   }
-  /* Call · WhatsApp under each card — shown on phones only (.pf-card is display: contents on wider screens) */
-  const cardActs = l => `<div class="pf-card-acts"><button class="btn btn-outline btn-sm" data-call="${l.id}">${ico('phone')}Call</button><button class="btn btn-whatsapp btn-sm" data-wa="${l.id}">${ico('wa')}WhatsApp</button></div>`;
+  /* Call · WhatsApp under each card — shown on phones only (.profile-card is display: contents on wider screens) */
+  const cardActs = l => `<div class="profile-card-actions"><button class="btn btn-outline btn-sm" data-call="${l.id}">${ico('phone')}Call</button><button class="btn btn-whatsapp btn-sm" data-wa="${l.id}">${ico('wa')}WhatsApp</button></div>`;
   function resultsHTML(pool, S) {
     const res = UPUI.results(S, pool);
     const shown = res.slice(0, S.limit), SS = S.o ? S : null;
     const items = S.view === 'list'
       ? `<div class="row-list">${shown.map(l => { const pt = UPUI.priceText(l, SS); return `<a class="row-item" href="${PATHS.href.listing}?id=${l.id}">${UPUI.photo(l, 0)}<span><b>${esc(l.title)}</b><small>${ico('pin')} ${esc(UPUI.locText(l))}</small><small class="row-spec">${UPUI.specOf(l).map(esc).join(' · ')}</small></span><span class="row-price">${pt.n}<span>${esc(pt.u)}</span></span></a>`; }).join('')}</div>`
-      : `<div class="compact-grid">${shown.map(l => `<div class="pf-card">${card(l, SS)}${cardActs(l)}</div>`).join('')}</div>`;
+      : `<div class="compact-grid">${shown.map(l => `<div class="profile-card">${card(l, SS)}${cardActs(l)}</div>`).join('')}</div>`;
     return (res.length ? `${items}
-        ${res.length > S.limit ? `<div class="pf-more"><span>Showing ${S.limit} of ${res.length}</span><button class="btn btn-outline" data-pf-more>Show ${Math.min(PAGE, res.length - S.limit)} more</button></div>` : ''}`
-      : `<div class="pf-empty">${ico('search')}<b>No listings match these filters</b><button class="btn btn-outline btn-sm" data-pf-reset>Clear filters</button></div>`);
+        ${res.length > S.limit ? `<div class="profile-more"><span>Showing ${S.limit} of ${res.length}</span><button class="btn btn-outline" data-pf-more>Show ${Math.min(PAGE, res.length - S.limit)} more</button></div>` : ''}`
+      : `<div class="profile-empty">${ico('search')}<b>No listings match these filters</b><button class="btn btn-outline btn-sm" data-pf-reset>Clear filters</button></div>`);
   }
 
   /* placeholders; mount() fills them after the page is painted. listingsTools() goes at the end of the page's tabs row. */
@@ -133,13 +133,13 @@
 
   /* phone / tablet only (hidden on desktop by CSS) */
   // stats strip in the header card: [[valueHTML, label]] × 4
-  const statsStrip = items => `<div class="m-stats">${items.map(([v, k]) => `<div><b>${v}</b><span>${esc(k)}</span></div>`).join('')}</div>`;
+  const statsStrip = items => `<div class="mobile-stats">${items.map(([v, k]) => `<div><b>${v}</b><span>${esc(k)}</span></div>`).join('')}</div>`;
   // sticky contact bar: square Call + "WhatsApp <name>", using the page's data-call / data-wa handlers
-  const contactBar = (id, who) => `<div class="m-contact" role="region" aria-label="Contact"><button class="btn btn-outline" data-call="${id}" aria-label="Call ${esc(who)}">${ico('phone')}</button><button class="btn btn-whatsapp" data-wa="${id}">${ico('wa')}<span>WhatsApp ${esc(who)}</span></button></div>`;
+  const contactBar = (id, who) => `<div class="mobile-contact" role="region" aria-label="Contact"><button class="btn btn-outline" data-call="${id}" aria-label="Call ${esc(who)}">${ico('phone')}</button><button class="btn btn-whatsapp" data-wa="${id}">${ico('wa')}<span>WhatsApp ${esc(who)}</span></button></div>`;
   // on tablet the bar shows once the header buttons have scrolled away (phones always show it)
   let barIO = null;
   function watchContactBar() {
-    const bar = document.querySelector('.m-contact'), hd = document.querySelector('.provider-actions');
+    const bar = document.querySelector('.mobile-contact'), hd = document.querySelector('.provider-actions');
     if (barIO) barIO.disconnect();
     if (!bar || !hd || !window.IntersectionObserver) { if (bar) bar.classList.add('is-shown'); return; }
     barIO = new IntersectionObserver(([e]) => bar.classList.toggle('is-shown', !e.isIntersecting && e.boundingClientRect.top < 0));

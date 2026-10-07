@@ -12,13 +12,13 @@
 }
 
 /* page styles for the two example pages, written with the same tokens */
-.ex-hero {
+.example-hero {
   background: linear-gradient(120deg, var(--color-primary-darkest), var(--color-primary));
   color: #fff;
   padding: 72px 0 64px;
 }
 
-.ex-hero .kicker {
+.example-hero .kicker {
   display: inline-block;
   font-size: 12px;
   font-weight: 800;
@@ -28,122 +28,122 @@
   margin-bottom: 14px;
 }
 
-.ex-hero h1 {
+.example-hero h1 {
   font-family: var(--font-serif);
   font-size: 54px;
   line-height: 1.05;
   max-width: 640px;
 }
 
-.ex-hero p {
+.example-hero p {
   color: var(--color-primary-tint);
   max-width: 520px;
   font-size: 16px;
   margin: 16px 0 26px;
 }
 
-.ex-hero .actions {
+.example-hero .actions {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
 }
 
-.ex-section {
+.example-section {
   padding: 48px 0 0;
 }
 
-.ex-section > h2 {
+.example-section > h2 {
   font-size: 26px;
   margin-bottom: 6px;
 }
 
-.ex-section > p {
+.example-section > p {
   color: var(--color-text-muted);
   margin: 0 0 20px;
 }
 
-.ex-features {
+.example-features {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
 }
 
-.ex-features div {
+.example-features div {
   background: #fff;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   padding: 18px;
 }
 
-.ex-features .icon {
+.example-features .icon {
   width: 22px;
   height: 22px;
   color: var(--color-primary-light);
   margin-bottom: 10px;
 }
 
-.ex-features b {
+.example-features b {
   display: block;
   margin-bottom: 4px;
 }
 
-.ex-features span {
+.example-features span {
   color: var(--color-text-muted);
   font-size: 13px;
 }
 
-.ex-panel {
+.example-panel {
   background: #fff;
   border: 1px solid var(--color-border);
   border-radius: 18px;
   padding: 22px;
 }
 
-.ex-plans {
+.example-plans {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 }
 
-.ex-plans div {
+.example-plans div {
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   padding: 18px;
 }
 
-.ex-plans b {
+.example-plans b {
   display: block;
   font-size: 15px;
 }
 
-.ex-plans strong {
+.example-plans strong {
   display: block;
   font-size: 24px;
   margin: 8px 0 4px;
   color: var(--color-primary-dark);
 }
 
-.ex-plans span {
+.example-plans span {
   color: var(--color-text-muted);
   font-size: 13px;
 }
 
-.ex-faq details {
+.example-faq details {
   border-top: 1px solid var(--color-border);
   padding: 14px 0;
 }
 
-.ex-faq summary {
+.example-faq summary {
   font-weight: 700;
   cursor: pointer;
 }
 
-.ex-faq p {
+.example-faq p {
   color: var(--color-text-secondary);
   margin: 8px 0 0;
 }
 
-.ex-toolbar {
+.example-toolbar {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
@@ -151,42 +151,42 @@
   margin: 20px 0 16px;
 }
 
-.ex-toolbar .spacer {
+.example-toolbar .spacer {
   flex: 1;
 }
 
-.ex-grid {
+.example-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
 }
 
-.ex-page-title {
+.example-page-title {
   padding: 36px 0 0;
 }
 
-.ex-page-title h1 {
+.example-page-title h1 {
   font-family: var(--font-serif);
   font-size: 38px;
   color: var(--color-primary-darkest);
 }
 
 @media (max-width: 900px) {
-  .ex-features,
-  .ex-plans,
-  .ex-grid {
+  .example-features,
+  .example-plans,
+  .example-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .ex-hero h1 {
+  .example-hero h1 {
     font-size: 40px;
   }
 }
 
 @media (max-width: 640px) {
-  .ex-features,
-  .ex-plans,
-  .ex-grid {
+  .example-features,
+  .example-plans,
+  .example-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 }
