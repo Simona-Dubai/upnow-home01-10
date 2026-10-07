@@ -288,7 +288,8 @@
     refreshHeader(); document.dispatchEvent(new CustomEvent('upnow:auth', { detail: u }));
   }
 
-  /* ---------- header account button (used by components/layout.js) ---------- */
+  /* ---------- header account button (used by components/layout.js) ----------
+     The menu goes to the account's sections; the header's heart and message icons already open the quick drawers. */
   U.accountButton = () => {
     const u = user();
     if (!u) return `<button class="btn btn-outline btn-sm" data-open="signin" data-auth-slot>${ico('user')}${U.t ? U.t('Log in') : 'Log in'}</button>`;
@@ -298,9 +299,12 @@
     return `<div class="account-menu" data-auth-slot><button class="account-btn" type="button" data-account aria-label="Account menu"><span class="account-menu-avatar">${esc(initialsOf(u))}</span><span class="account-name">${esc(u.first || 'Account')}</span>${ico('chev')}</button>
       <div class="account-drop"><div class="account-who"><b>${esc(u.name || u.email || 'Your account')}</b><small>${u.phone ? esc(u.dial + ' ' + fmt(u.iso || 'AE', u.phone)) : esc(u.email)}</small></div>
         <a href="${HREF.account}">${ico('home')}My account</a>
+        <a href="${HREF.account}#enquiries">${ico('list')}My enquiries</a>
+        <a href="${HREF.account}#messages">${ico('msg')}Messages</a>
+        <a href="${HREF.account}#saved">${ico('heart')}Saved</a>
+        <a href="${HREF.account}#profile">${ico('user')}Profile &amp; privacy</a>
+        <span class="account-drop-divider"></span>
         <a href="${HREF.join}">${ico('brief')}${applied || approved ? 'Provider application · in review' : draft ? 'Finish your provider application' : 'Become a provider'}</a>
-        <button type="button" data-open="enq">${ico('msg')}My enquiries</button>
-        <button type="button" data-open="saved">${ico('heart')}Saved</button>
         <button type="button" data-auth-out>${ico('x')}Sign out</button></div></div>`;
   };
 

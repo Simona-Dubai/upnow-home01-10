@@ -1,11 +1,9 @@
 # UpNow — frontend boilerplate
 
 Plain HTML, CSS and JavaScript — no framework, no build step. Open any page straight from disk or serve the folder.
-The UpNow marketplace site lives on top of a reusable layer (design system + components) that a new website can use as-is
-with its own content: see [`examples/`](examples/index.html).
+The UpNow marketplace site lives on top of a reusable layer (design system + components).
 
 - **Component library:** [`components.html`](components.html) — every reusable component rendered live, with the code to use it.
-- **Example site:** [`examples/index.html`](examples/index.html) and [`examples/spaces.html`](examples/spaces.html) — a different brand and colour theme built from the same components.
 
 ## Run it
 
@@ -24,7 +22,6 @@ There is nothing to install or compile.
 index.html                  Home page (desktop site; becomes the mobile app at ≤ 700px)
 components.html             Component library
 pages/                      Other pages: search, listing, provider (agent), agency, join (provider signup)
-examples/                   Example site reusing the components with its own content and theme
 
 css/
   main.css                  Link this on every page — imports the files below in order
@@ -126,7 +123,7 @@ Keep class names unique across pages. If a style only makes sense on one page, p
 
 ## Create a page
 
-1. Copy `examples/spaces.html` (generic) or `pages/search.html` (marketplace) into `pages/`.
+1. Copy an existing page such as `pages/search.html` into `pages/`.
 2. Link `../css/main.css`, plus a `../css/pages/<page>.css` for page-only layout.
 3. Load the scripts in the order above, then your controller `../js/pages/<page>.js`.
 4. Add the page to `PATHS.href` in `js/core/paths.js` if other pages link to it, and link with `PATHS.href.<name>`.
@@ -136,9 +133,9 @@ All links and images go through `PATHS`, so pages work from `/`, `/pages/` or an
 
 ## Change the theme
 
-- **Colours:** override the tokens after `main.css`, as `examples/theme.css` does — e.g. set the `--color-primary*` tokens to another hue. Every component follows.
+- **Colours:** change the `--color-primary*` tokens in `css/variables.css`. Every component follows.
 - **Fonts:** replace the files in `assets/fonts/`, update `css/fonts.css`, and set `--font-sans` / `--font-serif` in `css/variables.css`.
-- **Brand, navigation, footer, currencies, languages:** edit `data/site.js` (or write your own `SITE`, like `examples/content.js`).
+- **Brand, navigation, footer, currencies, languages:** edit `data/site.js`.
 - **Logo:** `SITE.logoMark` / `SITE.name` for the header mark; `assets/logos/` for the image and tab icon.
 - **Icons:** add a path to `components/icons.js`; export it to `assets/icons/` if you need the file.
 

@@ -27,8 +27,10 @@
   // "Me" opens the header account menu (a bottom sheet on phones)
   document.addEventListener('click', e => {
     if (!e.target.closest('[data-account-tab]')) return;
-    const m = document.querySelector('.site-header .account-menu'); if (!m) return;
-    e.stopImmediatePropagation(); m.classList.toggle("is-open");
+    // the phone home screen hides the site header, so "Me" goes straight to the account there
+    const m = [...document.querySelectorAll('.site-header .account-menu')].find(x => x.getClientRects().length);
+    e.stopImmediatePropagation();
+    if (m) m.classList.toggle("is-open"); else location.href = PATHS.href.account;
   }, true);
 
   function header(active, { nav = true, tabs = true } = {}) {

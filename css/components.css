@@ -867,13 +867,6 @@ body {
   color: var(--color-text);
 }
 
-.fine-print {
-  font-size: 11.5px;
-  color: var(--color-text-muted);
-  margin: 12px 0 0;
-  text-align: center;
-}
-
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -4166,84 +4159,7 @@ h1,
   animation: auth-in .35s cubic-bezier(.2, .8, .2, 1) both;
 }
 
-.auth-welcome {
-  margin: 0 0 14px;
-  font-size: 20px;
-}
-
-.auth-intro {
-  margin: 0 0 16px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: var(--color-primary-tint-light);
-}
-
-.auth-intro b {
-  display: block;
-  color: var(--color-primary-dark);
-}
-
-.auth-intro span {
-  font-size: 13px;
-  color: var(--color-text-secondary);
-}
-
-/* country + number as one stacked control (Airbnb style) */
-.auth-phone {
-  border: 1.5px solid var(--color-border-strong);
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.auth-phone > label {
-  display: block;
-  padding: 8px 12px;
-}
-
-.auth-phone > label + label {
-  border-top: 1px solid var(--color-border-strong);
-}
-
-.auth-phone label > span {
-  display: block;
-  font-size: 11.5px;
-  font-weight: 700;
-  color: var(--color-text-muted);
-}
-
-.auth-phone select,
-.auth-phone input {
-  width: 100%;
-  border: 0;
-  outline: 0;
-  background: none;
-  font: inherit;
-  font-size: 15px;
-  padding: 2px 0;
-  color: var(--color-text);
-}
-
-.auth-phone select {
-  appearance: none;
-  cursor: pointer;
-}
-
-.auth-number div {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.auth-number b {
-  font-size: 15px;
-}
-
-.auth-phone:focus-within {
-  border-color: var(--color-primary-light);
-}
-
-.auth-phone.has-error,
-.auth-otp.has-error input {
+.auth-otp.has-error input  {
   border-color: var(--color-danger);
 }
 
@@ -4415,11 +4331,6 @@ h1,
   text-align: center;
 }
 
-.auth-summary {
-  margin: 0 0 16px;
-  color: var(--color-text-secondary);
-}
-
 .auth-otp {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -4442,16 +4353,6 @@ h1,
 .auth-otp input:focus {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--color-primary-tint-light);
-}
-
-.auth-resend {
-  margin: 14px 0 4px;
-  font-size: 13px;
-  color: var(--color-text-muted);
-}
-
-.auth-alt-link {
-  font-size: 13px;
 }
 
 .auth-known {
@@ -4574,6 +4475,13 @@ h1,
   width: 16px;
   height: 16px;
   color: var(--color-text-muted);
+}
+
+.account-drop-divider {
+  display: block;
+  height: 1px;
+  margin: 6px 4px;
+  background: var(--color-border);
 }
 
 @media (max-width: 640px) {
@@ -4850,7 +4758,6 @@ select.is-menu-open {
     min-width: 0;
   }
 
-
   .auth-body {
     padding: 0 18px 18px;
   }
@@ -4870,7 +4777,6 @@ select.is-menu-open {
   font-size: 14px;
   font-weight: 800;
 }
-
 
 .auth-art.is-xs {
   width: 120px;
@@ -4954,8 +4860,6 @@ select.is-menu-open {
   border-color: var(--color-text-secondary);
   background: var(--color-bg);
 }
-
-
 
 @media (max-width: 640px) {
   .modal.auth-modal {

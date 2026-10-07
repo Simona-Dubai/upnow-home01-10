@@ -26,9 +26,7 @@
   // sub-categories that need a licensed company even inside an open vertical
   const COMPANY_CATS = ['venue', 'court', 'yacht', 'nursery', 'school', 'higher', 'camp'];
   // property an individual lists must be theirs (title deed) or they must hold the owner's power of attorney
-  const PROPERTY_CATS = ['residential', 'commercial', 'industrial', 'land', 'mixed', 'holiday'];
   const companyOnly = s => COMPANY_ONLY.includes(s.v) || (s.cats || []).some(c => COMPANY_CATS.includes(c));
-  const listsProperty = s => s.v === 'spaces' && (s.cats || []).some(c => PROPERTY_CATS.includes(c));
   const offerLabel = id => (VERTICALS[S.v].offers.find(o => o.id === id) || {}).label;
   const JOIN_ORDER = ['spaces', 'services', 'experiences', 'programs', 'memberships', 'health', 'insurance'];
   const verticalsInOrder = () => [...JOIN_ORDER.filter(v => UP.VORDER.includes(v)), ...UP.VORDER.filter(v => !JOIN_ORDER.includes(v))];

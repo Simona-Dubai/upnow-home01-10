@@ -1,6 +1,5 @@
 /* UpNow site content and settings: brand, header, footer, currencies, languages and translations.
-   Everything brand-specific the shared components show comes from here. To build a different website, write your own
-   SITE object (see examples/site.js) and leave the components untouched.
+   Everything brand-specific the shared components show comes from here.
    Load after data/listings.js — the navigation and footer read the marketplace categories. */
 (function () {
   const { VERTICALS, areaName } = UP;

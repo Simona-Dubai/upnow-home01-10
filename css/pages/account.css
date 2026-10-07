@@ -64,7 +64,7 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: var(--color-primary-dark);
+  background: var(--color-primary);
   color: #fff;
   font-weight: 800;
   font-size: 15px;
@@ -75,7 +75,7 @@
   height: 32px;
   font-size: 12px;
   background: var(--color-primary-tint-light);
-  color: var(--color-primary-dark);
+  color: var(--color-primary);
 }
 
 .account-avatar.is-xl {
@@ -124,7 +124,7 @@
 
 .account-nav a.is-active {
   background: var(--color-primary-tint-light);
-  color: var(--color-primary-dark);
+  color: var(--color-primary);
   font-weight: 700;
 }
 
@@ -150,41 +150,6 @@
 .account-nav em.is-hot {
   background: var(--color-warning-bg);
   color: var(--color-warning-text);
-}
-
-.account-list-cta {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  border-radius: var(--radius);
-  border: 1px dashed var(--color-border-strong);
-  font-size: 13px;
-  color: var(--color-text-secondary);
-}
-
-.account-list-cta > .icon:first-child {
-  width: 20px;
-  height: 20px;
-  color: var(--color-primary);
-}
-
-.account-list-cta span {
-  flex: 1;
-}
-
-.account-list-cta b {
-  display: block;
-  color: var(--color-text);
-}
-
-.account-list-cta small {
-  font-size: 12px;
-}
-
-.account-list-cta:hover {
-  border-color: var(--color-primary-lighter);
-  background: #fff;
 }
 
 /* ---------- section ---------- */
@@ -354,13 +319,13 @@
 }
 
 .account-tabs button.is-active {
-  color: var(--color-primary-dark);
+  color: var(--color-primary);
   border-color: var(--color-primary);
 }
 
 .account-tabs button.is-active em {
   background: var(--color-primary-tint-light);
-  color: var(--color-primary-dark);
+  color: var(--color-primary);
 }
 
 .account-thumbnail {
@@ -391,147 +356,12 @@
   color: var(--color-text-muted);
 }
 
-.account-dark {
-  background: var(--color-text);
-  color: #fff;
-}
-
 /* ---------- overview ---------- */
-.account-resume {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px 18px;
-  border-radius: 18px;
-  background: var(--color-primary-darkest);
-  color: #fff;
-}
-
-.account-resume > .icon {
-  width: 22px;
-  height: 22px;
-  color: #9fd3b8;
-}
-
-.account-resume span:not(.btn) {
-  flex: 1;
-  min-width: 0;
-}
-
-.account-resume b {
-  display: block;
-}
-
-.account-resume small {
-  color: #bfdccc;
-  font-size: 12.5px;
-}
-
-.account-resume small b {
-  display: inline;
-  color: #fff;
-}
-
-.account-resume .btn {
-  background: #fff;
-  color: var(--color-primary-darkest);
-}
-
-.account-needs {
-  display: grid;
-  gap: 8px;
-}
-
-.account-need {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 13px 16px;
-  border-radius: 12px;
-  background: var(--color-warning-bg);
-  color: var(--color-warning-text);
-}
-
-.account-need > .icon {
-  width: 18px;
-  height: 18px;
-  flex: none;
-}
-
-.account-need span {
-  flex: 1;
-  min-width: 0;
-}
-
-.account-need b {
-  display: block;
-  font-size: 13.5px;
-}
-
-.account-need small {
-  display: block;
-  font-size: 12px;
-  opacity: 0.85;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.account-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
 
 .account-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
-}
-
-.account-cross-sell {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.account-cross-sell a {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  background: #fff;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  font-size: 13px;
-}
-
-.account-cross-sell a > .icon:first-child {
-  width: 38px;
-  height: 38px;
-  padding: 9px;
-  flex: none;
-  border-radius: 10px;
-  background: var(--color-primary-tint-light);
-  color: var(--color-primary);
-}
-
-.account-cross-sell span {
-  flex: 1;
-  min-width: 0;
-}
-
-.account-cross-sell b {
-  display: block;
-}
-
-.account-cross-sell small {
-  color: var(--color-text-muted);
-  font-size: 12px;
-}
-
-.account-cross-sell a:hover {
-  border-color: var(--color-primary-lighter);
 }
 
 .account-table-wrap {
@@ -605,11 +435,6 @@
   margin-top: 5px;
   font-size: 12px;
   color: var(--color-text-muted);
-}
-
-.account-go {
-  text-align: right;
-  white-space: nowrap;
 }
 
 /* ---------- one enquiry ---------- */
@@ -763,48 +588,11 @@
   padding: 0 0 2px;
 }
 
-.account-asked {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 8px;
-  padding: 5px 10px;
-  border-radius: 8px;
-  background: var(--color-primary-tint-light);
-  font-size: 12.5px;
-  color: var(--color-primary-dark);
-}
-
-.account-asked .icon {
-  width: 14px;
-  height: 14px;
-}
-
-.account-asked b {
-  display: inline;
-  padding: 0;
-  font-size: inherit;
-}
-
 .account-timeline-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 12px;
-}
-
-.account-timeline-note {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 10px;
-  font-size: 12px;
-  color: var(--color-text-muted);
-}
-
-.account-timeline-note .icon {
-  width: 14px;
-  height: 14px;
 }
 
 .account-stars {
@@ -824,59 +612,6 @@
   grid-template-columns: 1fr 1fr;
   gap: 8px;
   margin-top: 14px;
-}
-
-.account-log {
-  list-style: none;
-  margin: 4px 0 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.account-log li {
-  max-width: 88%;
-  padding: 9px 12px;
-  border: 1px solid var(--color-border);
-  border-radius: 14px 14px 14px 4px;
-  font-size: 13px;
-}
-
-.account-log li.is-out {
-  align-self: flex-end;
-  background: var(--color-primary-tint-light);
-  border-color: transparent;
-  border-radius: 14px 14px 4px 14px;
-}
-
-.account-log small {
-  display: block;
-  margin-top: 3px;
-  font-size: 10.5px;
-  color: var(--color-text-muted);
-}
-
-.account-check {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  padding: 6px 0;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.account-check input {
-  width: 18px;
-  height: 18px;
-  flex: none;
-  margin-top: 1px;
-  accent-color: var(--color-primary);
-}
-
-.account-check input:checked + span {
-  color: var(--color-text-muted);
-  text-decoration: line-through;
 }
 
 .account-report {
@@ -946,15 +681,6 @@
   flex: none;
   margin-top: 2px;
   color: var(--color-primary);
-}
-
-.account-message {
-  margin: 10px 0 0;
-  padding: 9px 12px;
-  border-radius: 12px;
-  background: var(--color-bg);
-  font-size: 12.5px;
-  color: var(--color-text-secondary);
 }
 
 /* ---------- dialogs (outcome, close, compare, small forms) ---------- */
@@ -1093,10 +819,6 @@
   padding: 12px 14px;
 }
 
-.account-why {
-  margin: 10px 0 0;
-}
-
 .account-rate {
   margin-top: 16px;
   padding: 14px;
@@ -1131,48 +853,6 @@
 
 .account-rate [data-rate].is-on .icon {
   fill: var(--color-rating-star);
-}
-
-.account-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
-}
-
-.account-tags .chip,
-.account-match .chip {
-  height: 32px;
-  font-size: 12.5px;
-}
-
-.account-match {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 12px;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.account-match span {
-  flex: 1;
-}
-
-.account-move-list label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 11px 2px;
-  border-bottom: 1px solid var(--color-border);
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.account-move-list input {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--color-primary);
 }
 
 /* compare */
@@ -1238,67 +918,6 @@
 }
 
 /* ---------- saved ---------- */
-.account-lists {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 18px;
-  overflow-x: auto;
-  padding-bottom: 2px;
-}
-
-.account-lists button {
-  flex: none;
-  min-width: 150px;
-  padding: 12px 14px;
-  border: 1.5px solid var(--color-border);
-  border-radius: 12px;
-  background: #fff;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.account-lists b {
-  display: block;
-  font-size: 13.5px;
-}
-
-.account-lists small {
-  font-size: 12px;
-  color: var(--color-text-muted);
-}
-
-.account-lists button.is-active {
-  border-color: var(--color-primary);
-  background: var(--color-primary-tint-light);
-}
-
-.account-lists button.is-new {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  border-style: dashed;
-  color: var(--color-primary);
-  font-weight: 700;
-}
-
-.account-lists button.is-new .icon {
-  width: 16px;
-  height: 16px;
-}
-
-.account-list-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 12px;
-}
-
-.account-list-header h2 {
-  flex: 1;
-  font-size: 18px;
-}
 
 .account-grid.is-saved {
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1340,7 +959,7 @@
 
 /* saved listing with a viewing booked — links to its enquiry */
 .account-dropzone.is-view {
-  background: var(--color-primary-dark);
+  background: var(--color-primary);
   text-decoration: none;
 }
 
@@ -1400,15 +1019,6 @@
 .account-saved-bar button:hover,
 .account-compare-pick:hover {
   background: var(--color-bg);
-}
-
-.account-note {
-  margin-top: 6px;
-  padding: 8px 10px;
-  border-radius: 10px;
-  background: #fffbea;
-  font-size: 12.5px;
-  color: var(--color-text-secondary);
 }
 
 .account-gone {
@@ -1704,94 +1314,6 @@
 }
 
 /* ---------- profile ---------- */
-.account-profile-card {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  padding: 22px;
-  margin-bottom: 16px;
-}
-
-.account-profile-card > div {
-  flex: 1;
-  min-width: 0;
-}
-
-.account-profile-card h2 {
-  margin: 0;
-  font-family: var(--font-serif);
-  font-size: 26px;
-  color: var(--color-primary-darkest);
-}
-
-.account-profile-card small {
-  font-size: 12.5px;
-  color: var(--color-text-muted);
-}
-
-.account-columns {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-  align-items: start;
-}
-
-.account-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 12px 0;
-  border: 0;
-  border-bottom: 1px solid var(--color-border);
-  background: none;
-  font: inherit;
-  text-align: left;
-  color: inherit;
-  cursor: pointer;
-}
-
-div.account-row {
-  cursor: default;
-}
-
-.account-box .account-row:last-child {
-  border-bottom: 0;
-}
-
-.account-row > .icon:first-child {
-  width: 18px;
-  height: 18px;
-  flex: none;
-  color: var(--color-text-muted);
-}
-
-.account-row > span:not(.status-pill) {
-  flex: 1;
-  min-width: 0;
-}
-
-.account-row b {
-  display: block;
-  font-size: 13.5px;
-}
-
-.account-row small {
-  display: block;
-  font-size: 12px;
-  color: var(--color-text-muted);
-}
-
-.account-row > .icon:last-child:not(:first-child) {
-  width: 15px;
-  height: 15px;
-  color: var(--color-text-muted);
-}
-
-.account-row.is-danger,
-.account-row.is-danger > .icon:first-child {
-  color: var(--color-danger);
-}
 
 .account-box .toggle {
   padding: 12px 0 2px;
@@ -1858,8 +1380,7 @@ div.account-row {
     position: static;
   }
 
-  .account-user,
-  .account-list-cta {
+  .account-user {
     display: none;
   }
 
@@ -1900,7 +1421,6 @@ div.account-row {
   .account-table-wrap {
     display: none;
   }
-
 }
 
 /* ---------- phone ---------- */
@@ -1930,12 +1450,6 @@ div.account-row {
 
   .account-header h1 {
     font-size: 26px;
-  }
-
-  .account-actions,
-  .account-cross-sell,
-  .account-columns {
-    grid-template-columns: minmax(0, 1fr);
   }
 
   .account-grid.is-saved {
@@ -1979,14 +1493,6 @@ div.account-row {
     flex: 1;
   }
 
-  .account-profile-card {
-    flex-wrap: wrap;
-  }
-
-  .account-profile-card .btn {
-    width: 100%;
-  }
-
   /* dialogs become bottom sheets */
   .scrim:has(.account-modal-wrap) {
     align-items: flex-end;
@@ -2020,7 +1526,7 @@ div.account-row {
   place-items: center;
   border-radius: 50%;
   background: var(--color-primary-tint-light);
-  color: var(--color-primary-dark);
+  color: var(--color-primary);
   font-size: 12px;
   font-weight: 800;
 }
@@ -2107,7 +1613,7 @@ div.account-row {
 }
 
 .lead-view-switch button.is-on {
-  background: var(--color-primary-dark);
+  background: var(--color-primary);
   color: #fff;
 }
 
@@ -2248,7 +1754,7 @@ div.account-row {
   padding: 0 9px;
   border-radius: 99px;
   background: var(--color-primary-tint-light);
-  color: var(--color-primary-dark);
+  color: var(--color-primary);
   font-size: 11.5px;
   font-weight: 700;
   white-space: nowrap;
@@ -2317,7 +1823,7 @@ div.account-row {
 
 .lead-stepper span.is-done {
   background: var(--color-primary-tint-light);
-  color: var(--color-primary-dark);
+  color: var(--color-primary);
 }
 
 .lead-stepper span.is-on {
@@ -2424,7 +1930,7 @@ div.account-row {
 
 /* sidebar: solid active item, red message badge, "Explore marketplace" at the bottom */
 .account-nav a.is-active {
-  background: var(--color-primary-dark);
+  background: var(--color-primary);
   color: #fff;
 }
 
@@ -2452,7 +1958,7 @@ div.account-row {
   border-radius: 12px;
   font-weight: 700;
   font-size: 14px;
-  color: var(--color-primary-dark);
+  color: var(--color-primary);
 }
 
 .account-explore:hover {
@@ -2465,124 +1971,8 @@ div.account-row {
 }
 
 /* ---------- Home: Book again or discover ---------- */
-.account-discover {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.account-discover a {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px 18px;
-  background: #fff;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  color: var(--color-text);
-}
-
-.account-discover a:hover {
-  border-color: var(--color-primary-lighter);
-}
-
-.account-discover i {
-  width: 44px;
-  height: 44px;
-  flex: none;
-  display: grid;
-  place-items: center;
-  border-radius: 12px;
-}
-
-.account-discover i .icon {
-  width: 19px;
-  height: 19px;
-}
-
-.account-discover b {
-  font-size: 15px;
-}
-
-.account-discover .is-green i {
-  background: var(--color-primary-tint-light);
-  color: var(--color-primary);
-}
-
-.account-discover .is-blue i {
-  background: #e7f0f8;
-  color: #256aa5;
-}
-
-.account-discover .is-amber i {
-  background: #fbf1e2;
-  color: #b7791f;
-}
-
-.account-discover .is-red i {
-  background: #fbeaea;
-  color: #c2413b;
-}
 
 /* ---------- Home: Explore more on UpNow ---------- */
-.account-more {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-width: 720px;
-}
-
-.account-more a {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px 20px;
-  background: #fff;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  color: var(--color-text);
-}
-
-.account-more a:hover {
-  border-color: var(--color-primary-lighter);
-}
-
-.account-more i {
-  width: 44px;
-  height: 44px;
-  flex: none;
-  display: grid;
-  place-items: center;
-  border-radius: 12px;
-  background: var(--color-primary-tint-light);
-  color: var(--color-primary);
-}
-
-.account-more i .icon {
-  width: 18px;
-  height: 18px;
-}
-
-.account-more span {
-  flex: 1;
-  min-width: 0;
-}
-
-.account-more b {
-  display: block;
-  font-size: 15.5px;
-}
-
-.account-more small {
-  font-size: 13px;
-  color: var(--color-text-muted);
-}
-
-.account-more a > .icon:last-child {
-  width: 18px;
-  height: 18px;
-  color: var(--color-text);
-}
 
 /* ---------- Messages ---------- */
 .message-wrap {
@@ -2841,7 +2231,7 @@ div.account-row {
   place-items: center;
   border: 0;
   border-radius: 50%;
-  background: var(--color-primary-dark);
+  background: var(--color-primary);
   color: #fff;
   cursor: pointer;
 }
@@ -2890,113 +2280,8 @@ div.account-row {
   color: var(--color-text-secondary);
 }
 
-.document-alert label,
-.document-dropzone {
+.document-alert label {
   cursor: pointer;
-}
-
-.document-dropzone {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 18px;
-  padding: 18px 20px;
-  border: 1.5px dashed var(--color-primary);
-  border-radius: var(--radius);
-  background: #fff;
-}
-
-.document-dropzone:hover {
-  background: var(--color-primary-tint-light);
-}
-
-.document-dropzone > .icon {
-  width: 40px;
-  height: 40px;
-  padding: 10px;
-  flex: none;
-  border-radius: 10px;
-  background: var(--color-primary-tint-light);
-  color: var(--color-primary);
-}
-
-.document-dropzone > span:nth-child(2) {
-  flex: 1;
-  min-width: 0;
-}
-
-.document-dropzone b {
-  display: block;
-  font-size: 14.5px;
-}
-
-.document-dropzone small {
-  font-size: 12.5px;
-  color: var(--color-text-muted);
-}
-
-.document-list {
-  padding: 6px 20px;
-}
-
-.document-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.document-row:last-child {
-  border-bottom: 0;
-}
-
-.document-row i {
-  width: 40px;
-  height: 40px;
-  flex: none;
-  display: grid;
-  place-items: center;
-  border-radius: 10px;
-  background: var(--color-primary-tint-light);
-  color: var(--color-primary);
-}
-
-.document-row-text {
-  flex: 1;
-  min-width: 0;
-}
-
-.document-row b {
-  display: block;
-  font-size: 14.5px;
-}
-
-.document-row small {
-  font-size: 12.5px;
-  color: var(--color-text-muted);
-  overflow-wrap: anywhere;
-}
-
-.document-download {
-  width: 34px;
-  height: 34px;
-  flex: none;
-  display: grid;
-  place-items: center;
-  border: 0;
-  border-radius: 8px;
-  background: none;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-}
-
-.document-download:hover {
-  background: var(--color-bg);
-}
-
-a.document-download .icon {
-  transform: rotate(180deg);
 }
 
 .document-health {
@@ -3057,10 +2342,6 @@ a.document-download .icon {
     display: none;
   }
 
-  .account-discover {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .message-wrap {
     grid-template-columns: 280px minmax(0, 1fr);
   }
@@ -3094,24 +2375,6 @@ a.document-download .icon {
 
 /* ---------- phone ---------- */
 @media (max-width: 700px) {
-  .account-discover {
-    gap: 10px;
-  }
-
-  .account-discover a {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 14px;
-  }
-
-  .account-discover b {
-    font-size: 14px;
-  }
-
-  .account-more a {
-    padding: 14px 16px;
-  }
 
   .message-wrap {
     margin: 0 -16px;
@@ -3128,52 +2391,22 @@ a.document-download .icon {
     max-width: 86%;
   }
 
-  .document-alert,
-  .document-dropzone {
+  .document-alert {
     flex-wrap: wrap;
   }
 
-  .document-alert > span,
-  .document-dropzone > span:nth-child(2) {
+  .document-alert > span {
     flex-basis: calc(100% - 54px);
   }
 
-  .document-alert .btn,
-  .document-dropzone .btn {
+  .document-alert .btn {
     width: 100%;
-  }
-
-  .document-list {
-    padding: 4px 14px;
-  }
-
-  .document-row {
-    flex-wrap: wrap;
-    gap: 10px 12px;
-  }
-
-  .document-row-text {
-    flex-basis: calc(100% - 52px);
-  }
-
-  .document-row .status-pill {
-    margin-left: 52px;
-  }
-
-  .document-row .status-pill + .document-download,
-  .document-row .document-download:last-child {
-    margin-left: auto;
   }
 }
 
 .status-pill.is-danger {
   background: #fbeaea;
   color: var(--color-danger);
-}
-
-/* no money on the customer account: listing cards show the place, not the price */
-.account-dashboard .card .price {
-  display: none;
 }
 
 /* =====================================================================
@@ -3226,8 +2459,7 @@ a.document-download .icon {
 
 .dashboard-stat i,
 .dashboard-action-link i,
-.dashboard-search > i,
-.dashboard-more i {
+.dashboard-search > i {
   width: 42px;
   height: 42px;
   flex: none;
@@ -3240,8 +2472,7 @@ a.document-download .icon {
 
 .dashboard-stat i .icon,
 .dashboard-action-link i .icon,
-.dashboard-search > i .icon,
-.dashboard-more i .icon {
+.dashboard-search > i .icon {
   width: 18px;
   height: 18px;
 }
@@ -3272,15 +2503,6 @@ a.document-download .icon {
 .dashboard-stat small {
   font-size: 12.5px;
   color: var(--color-text-muted);
-}
-
-/* two-column rows: wide box + narrow box */
-.dashboard-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-  gap: 14px;
-  align-items: start;
-  margin-bottom: 14px;
 }
 
 .dashboard-panel {
@@ -3336,22 +2558,6 @@ a.document-download .icon {
 .dashboard-panel-header a .icon {
   width: 14px;
   height: 14px;
-}
-
-.dashboard-none {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 0 6px;
-  font-size: 13.5px;
-  color: var(--color-text-muted);
-}
-
-.dashboard-none .icon {
-  width: 18px;
-  height: 18px;
-  flex: none;
-  color: var(--color-primary);
 }
 
 /* needs you: the question on the left, the answer buttons on the right */
@@ -3410,48 +2616,10 @@ a.document-download .icon {
   text-overflow: ellipsis;
 }
 
-.dashboard-action-body,
-.dashboard-next-body {
+.dashboard-action-body {
   display: flex;
   gap: 8px;
   flex: none;
-}
-
-/* next viewing */
-.dashboard-next {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 10px 0 14px;
-  color: var(--color-text);
-}
-
-.dashboard-next > span:last-child {
-  flex: 1;
-  min-width: 0;
-}
-
-.dashboard-next small {
-  display: block;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--color-primary);
-}
-
-.dashboard-next b {
-  display: block;
-  font-size: 15px;
-}
-
-.dashboard-next em {
-  display: block;
-  font-style: normal;
-  font-size: 12.5px;
-  color: var(--color-text-muted);
-}
-
-.dashboard-next-body .btn {
-  flex: 1;
 }
 
 /* enquiries and messages */
@@ -3565,70 +2733,10 @@ a.document-download .icon {
   color: var(--color-text-muted);
 }
 
-/* discovery: tiles and the contextual list side by side */
-.dashboard-row.is-end {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  margin-top: 30px;
-}
-
-.dashboard-row.is-end .account-discover {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.dashboard-more {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.dashboard-more a {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 13px 16px;
-  background: #fff;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  color: var(--color-text);
-}
-
-.dashboard-more a:hover {
-  border-color: var(--color-primary-lighter);
-}
-
-.dashboard-more span {
-  flex: 1;
-  min-width: 0;
-}
-
-.dashboard-more b {
-  display: block;
-  font-size: 14.5px;
-}
-
-.dashboard-more small {
-  font-size: 12.5px;
-  color: var(--color-text-muted);
-}
-
-.dashboard-more a > .icon:last-child {
-  width: 16px;
-  height: 16px;
-}
-
 /* ---------- tablet ---------- */
 @media (max-width: 1100px) {
   .dashboard-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .dashboard-row,
-  .dashboard-row.is-end {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .dashboard-row.is-end .account-discover {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -3676,43 +2784,6 @@ a.document-download .icon {
   }
 
   .dashboard-enquiry .status-pill {
-    display: none;
-  }
-
-  .dashboard-row.is-end .account-discover {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-/* date tile (Next viewing) */
-.account-date {
-  width: 54px;
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 7px 0;
-  border-radius: 12px;
-  background: var(--color-primary-tint-light);
-  color: var(--color-primary-dark);
-  line-height: 1.1;
-}
-
-.account-date b {
-  font-size: 21px;
-  font-weight: 800;
-}
-
-.account-date small {
-  font-size: 10.5px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-@media (min-width: 701px) and (max-width: 1100px) {
-  /* three per row on tablets — no lone fourth card */
-  .dashboard-saved > :nth-child(4) {
     display: none;
   }
 }
@@ -3898,10 +2969,6 @@ a.document-download .icon {
   padding: 14px 16px;
 }
 
-.dashboard-side .dashboard-next {
-  padding-top: 8px;
-}
-
 /* one discovery section: category tiles, then suggestions for you */
 .dashboard-discover {
   margin-top: 34px;
@@ -3970,10 +3037,6 @@ a.document-download .icon {
   color: var(--color-text-muted);
 }
 
-.dashboard-discover .account-discover {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
 @media (max-width: 1100px) {
   .dashboard-grid {
     grid-template-columns: minmax(0, 1fr);
@@ -3993,10 +3056,6 @@ a.document-download .icon {
 @media (max-width: 700px) {
   .dashboard-side {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .dashboard-discover .account-discover {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .dashboard-header p {
@@ -4105,7 +3164,7 @@ a.document-download .icon {
   place-items: center;
   border-radius: 50%;
   background: var(--color-primary-tint-light);
-  color: var(--color-primary-dark);
+  color: var(--color-primary);
   font-weight: 800;
   font-size: 13px;
 }
@@ -4187,7 +3246,7 @@ a.document-download .icon {
 
 .empty-state-chips a:hover {
   border-color: var(--color-primary);
-  color: var(--color-primary-dark);
+  color: var(--color-primary);
 }
 
 .empty-state-chips .icon {
@@ -4266,39 +3325,6 @@ a.document-download .icon {
   margin-top: 26px;
 }
 
-.dashboard-discover .account-discover.dashboard-verticals {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.dashboard-verticals a {
-  flex-direction: column;
-  justify-content: center;
-  gap: 8px;
-  padding: 14px 6px 12px;
-  border-radius: var(--radius);
-  text-align: center;
-  transition: border-color .15s, background .15s;
-}
-
-.dashboard-verticals a:hover {
-  background: var(--color-primary-tint-light);
-}
-
-.dashboard-verticals i {
-  width: 42px;
-  height: 42px;
-}
-
-.dashboard-verticals b {
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1.25;
-  white-space: nowrap;
-}
-
 .dashboard-suggestions-header {
   margin: 20px 0 0;
   padding-top: 16px;
@@ -4320,34 +3346,513 @@ a.document-download .icon {
   background: #fff;
 }
 
-@media (max-width: 1100px) {
-  .dashboard-discover .account-discover.dashboard-verticals {
-    gap: 8px;
+/* New-customer home: keep the first-login state useful without making it oversized. */
+.account-dashboard .empty-state:has(.empty-state-actions) {
+  min-height: 0;
+}
+@media (min-width: 1101px) {
+  .account-dashboard .empty-state:has(.empty-state-actions) {
+    padding-top: 24px;
+    padding-bottom: 24px;
+  }
+}
+@media (max-width: 700px) {
+  .account-dashboard .empty-state:has(.empty-state-actions) {
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+}
+
+/* =====================================================================
+   Phone polish — less scrolling, lighter actions, no sideways board
+   ===================================================================== */
+@media (max-width: 700px) {
+  /* empty states: smaller art, tighter steps, start chips in one sideways row */
+  .empty-state {
+    gap: 4px 0;
   }
 
-  .dashboard-verticals b {
-    font-size: 12px;
+  .empty-state-illustration {
+    max-width: 190px;
+  }
+
+  .empty-state-subtitle {
+    margin: 4px 0 16px;
+  }
+
+  .empty-state-steps {
+    gap: 12px;
+  }
+
+  .empty-state-mock {
+    width: 180px;
+    margin-top: 8px;
+  }
+
+  .empty-state-actions {
+    margin-top: 18px;
+  }
+
+  .empty-state-start {
+    margin-top: 12px;
+    padding-top: 16px;
+  }
+
+  .empty-state-start > b {
+    margin-bottom: 10px;
+  }
+
+  .empty-state-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 0 -18px;
+    padding: 0 18px 2px;
+  }
+
+  .empty-state-chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .empty-state-chips a {
+    flex: none;
+  }
+
+  /* my enquiries: the three stages stacked, so every card is fully visible */
+  .lead-board.is-3 {
+    grid-template-columns: minmax(0, 1fr);
+    overflow: visible;
+    scroll-snap-type: none;
+    padding-bottom: 0;
+  }
+
+  .lead-board.is-3 .lead-column {
+    min-height: 0;
+  }
+
+  /* needs you: compact answer buttons under the question, not full-width bars */
+  .dashboard-action-body {
+    flex-basis: 100%;
+  }
+
+  .dashboard-action-body .btn {
+    flex: none;
+    height: 36px;
+    padding: 0 18px;
+    font-size: 13px;
+  }
+}
+
+/* =====================================================================
+   Saved listings — grid or list (the search page's compact rows)
+   ===================================================================== */
+.account-saved-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+/* the sidebar takes a column, so four cards fit where search shows six */
+.account-grid.is-saved {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.account-saved-row {
+  display: flex;
+  align-items: center;
+  background: #fff;
+}
+
+.account-saved-row + .account-saved-row {
+  border-top: 1px solid var(--color-border);
+}
+
+.account-saved-row .row-item {
+  flex: 1;
+  min-width: 0;
+}
+
+.account-saved-row .row-category em {
+  font-style: normal;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.account-saved-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  padding: 0 14px 0 4px;
+}
+
+.account-saved-row-actions .btn {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  justify-content: center;
+}
+
+.account-saved-row-actions .btn .icon {
+  width: 16px;
+  height: 16px;
+}
+
+.account-saved-row-actions .icon-btn .icon {
+  fill: var(--color-danger);
+  stroke: var(--color-danger);
+}
+
+@media (max-width: 1280px) {
+  .account-grid.is-saved {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 860px) {
-  /* tablets and phones: one row that scrolls, never squeezed labels */
-  .dashboard-discover .account-discover.dashboard-verticals {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x proximity;
-    scrollbar-width: none;
-    padding: 2px 0 4px;
+  .account-grid.is-saved {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .account-grid.is-saved {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .dashboard-discover .account-discover.dashboard-verticals::-webkit-scrollbar {
-    display: none;
+  /* phone rows: photo, text and price on top; contact, compare and remove underneath */
+  .account-saved-list {
+    margin: 0 -16px;
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
   }
 
-  .dashboard-verticals a {
-    flex: 0 0 96px;
-    scroll-snap-align: start;
-    align-items: center;
-    padding: 12px 6px 10px;
+  .account-saved-row {
+    flex-wrap: wrap;
+  }
+
+  .account-saved-row .row-item {
+    flex-basis: 100%;
+    grid-template-columns: 88px minmax(0, 1fr) auto;
+    gap: 12px;
+  }
+
+  .account-saved-row .row-item img,
+  .account-saved-row .row-item .tile {
+    width: 88px;
+    height: 66px;
+  }
+
+  .account-saved-row-actions {
+    width: 100%;
+    padding: 0 14px 12px 110px;
+  }
+
+  .account-saved-row-actions .account-compare-pick {
+    margin-right: auto;
+  }
+
+  .account-saved-row .row-price span {
+    display: inline;
+    margin-left: 3px;
+  }
+}
+
+/* Home → Explore: the seven verticals as the empty state's start chips (one slim row) */
+.dashboard-vertical-chips {
+  margin-top: 12px;
+}
+
+@media (max-width: 700px) {
+  .dashboard-discover .dashboard-vertical-chips {
+    margin: 10px -16px 0;
+    padding: 0 16px 2px;
+  }
+}
+
+/* =====================================================================
+   Profile & privacy — account · preferences, family · addresses,
+   privacy & data across the bottom; every row is one .account-setting
+   ===================================================================== */
+.account-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.account-profile-grid .account-box {
+  padding: 20px 22px;
+}
+
+.account-profile-grid h3 {
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.account-box-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.account-box-header h3 {
+  margin: 0;
+}
+
+.account-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  background: none;
+  font-weight: 700;
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.account-add .icon {
+  width: 15px;
+  height: 15px;
+}
+
+.account-box-note {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+.account-box-empty {
+  margin: 10px 0 0;
+  padding: 18px;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: 12px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+/* name, member since and Edit at the top of the account card */
+.account-avatar.is-lg {
+  width: 52px;
+  height: 52px;
+  font-size: 18px;
+}
+
+.account-details-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 16px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.account-details-header > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.account-details-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.account-details-header small {
+  display: block;
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+/* one setting per row */
+.account-setting {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 64px;
+  padding: 10px 0;
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  background: none;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+}
+
+.account-setting:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.account-box-note + .account-setting {
+  margin-top: 4px;
+}
+
+.account-setting > i {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--color-primary-tint-light);
+  color: var(--color-primary);
+}
+
+.account-setting > i .icon {
+  width: 17px;
+  height: 17px;
+}
+
+.account-setting > .lead-avatar {
+  width: 36px;
+  height: 36px;
+}
+
+.account-setting > span:not(.status-pill):not(.toggle):not(.lead-avatar) {
+  flex: 1;
+  min-width: 0;
+}
+
+.account-setting b {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.account-setting small {
+  display: block;
+  margin-top: 1px;
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+.account-setting .status-pill,
+.account-setting .btn,
+.account-setting .account-select,
+.account-setting .toggle {
+  flex: none;
+}
+
+.account-setting .text-link {
+  flex: none;
+  border: 0;
+  background: none;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.account-setting .account-select select {
+  min-width: 84px;
+}
+
+.account-setting .icon-btn {
+  width: 32px;
+  height: 32px;
+  flex: none;
+}
+
+.account-setting .icon-btn .icon {
+  width: 14px;
+  height: 14px;
+}
+
+.account-setting.is-link {
+  cursor: pointer;
+}
+
+.account-setting.is-link > .icon:last-child {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  color: var(--color-text-muted);
+}
+
+.account-setting.is-link:hover b {
+  color: var(--color-primary);
+}
+
+label.account-setting {
+  cursor: pointer;
+}
+
+/* states: missing, needs attention, later, danger */
+.account-setting.is-todo > i,
+.account-setting.is-later > i {
+  background: #f1f4f2;
+  color: var(--color-text-muted);
+}
+
+.account-setting.is-warn > i {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+}
+
+.account-setting.is-warn small {
+  color: var(--color-warning-text);
+}
+
+.account-setting.is-danger > i {
+  background: #fbeaea;
+  color: var(--color-danger);
+}
+
+.account-setting.is-danger b {
+  color: var(--color-danger);
+}
+
+/* privacy & data across the full width: what we share on the left, your data on the right */
+.account-privacy {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 32px;
+}
+
+.account-privacy-note {
+  display: flex;
+  gap: 10px;
+  margin: 10px 0 6px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--color-primary-tint-light);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+.account-privacy-note .icon {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  margin-top: 2px;
+  color: var(--color-primary);
+}
+
+@media (max-width: 860px) {
+  .account-profile-grid,
+  .account-privacy {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .account-profile-grid .account-box {
+    padding: 16px;
+  }
+
+  .account-setting {
+    gap: 12px;
   }
 }

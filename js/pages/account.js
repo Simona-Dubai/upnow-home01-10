@@ -3,7 +3,7 @@
    Owners, managers and companies list across Spaces, Services, Experiences, Memberships, Programs, Health and Protection;
    customers contact them directly by phone, WhatsApp, email, chat or SMS. Each contact becomes a lead in the provider's
    dashboard (New → Contacted → Won / Lost); here the customer follows the reply, answers, and closes the enquiry.
-   There are no viewing requests, bookings or payments on UpNow, and no prices on the account.
+   There are no viewing requests, bookings or payments on UpNow; listing cards show the lister's price, as on the rest of the site.
    Reads what the rest of the site keeps for the signed-in account (saved listings, enquiries, recently viewed, saved
    searches) and adds its own record under 'dash'. */
 (function () {
@@ -38,10 +38,8 @@
   const DAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const hm = d => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
   const fmtSlot = ts => { const d = new Date(ts); return `${DAY[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]}, ${hm(d)}`; };
-  const shortSlot = ts => { const d = new Date(ts); return `${DAY[d.getDay()]} ${hm(d)}`; };
   const mins = ms => Math.max(1, Math.round(ms / 60000));
   const ago = ts => { const m = Math.round((now() - ts) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : Math.round(m / 1440) + ' d ago'; };
-  const inDays = ts => { const d = Math.round((new Date(ts).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 864e5); return d === 0 ? 'today' : d === 1 ? 'tomorrow' : d < 0 ? Math.abs(d) + ' d ago' : 'in ' + d + ' days'; };
 
   /* ---------- an enquiry, as the customer sees it ----------
      Owners, managers and companies list on UpNow; the customer contacts them directly by phone, WhatsApp, email, chat or SMS.
@@ -66,7 +64,8 @@
     // how we name the lister: a person by first name ("Dr. Priya", "Ahmed"), a company in full ("Commit Fitness") — like the listing page
     const isPerson = l && window.DM && DM.prov ? DM.prov(r.provider).person : /^(Dr\.|[A-Z][a-z]+ [A-Z][a-z]+( Al)?)$/.test(r.provider);
     const who = !isPerson ? r.provider : /^Dr\.\s/.test(r.provider) ? r.provider.split(' ').slice(0, 2).join(' ') : first(r.provider);
-    const role = lease ? 'agent' : 'provider', Role = lease ? 'Agent' : 'Provider';
+    // owners, managers and companies all list on UpNow — the customer sees them as listers
+    const role = 'lister', Role = 'Lister';
     const direct = r.type === 'call' || r.type === 'whatsapp';
     const ev = S.ev || simulate(r, direct);
     const closedEv = ev.filter(e => e.k === 'closed').pop(), replyEv = ev.find(e => e.k === 'reply' && e.t <= now());
@@ -77,7 +76,7 @@
     const pill = {
       sent: late ? ['No reply yet', 'is-warning'] : ['Awaiting reply', 'is-muted'],
       direct: S.heard === false ? ['No answer yet', 'is-warning'] : [r.type === 'call' ? 'Called' : 'WhatsApp sent', 'is-muted'],
-      talking: replyEv ? [Role + ' replied', 'is-info'] : ['In touch', 'is-info'],
+      talking: replyEv ? ['Replied', 'is-info'] : ['In touch', 'is-info'],
       closed: closedEv ? ['Closed by ' + role, 'is-muted'] : [OUT[S.outcome] || 'Closed', 'is-muted']
     }[stage];
     const next = {
@@ -170,7 +169,6 @@
   const similarHref = r => { const l = byId(r.lid); return l ? HREF.search + U.toQuery({ ...U.blankState(l.v, l.cat), loc: [l.loc] }) : HREF.search; };
   const tabs = (items, cur, key) => `<div class="account-tabs" role="tablist">${items.map(([id, l, n]) => `<button type="button" class="${id === cur ? 'is-active' : ''}" data-tab="${key}" data-v="${id}">${l}${n != null ? `<em>${n}</em>` : ''}</button>`).join('')}</div>`;
   const stars = (n, who) => n ? `<p class="account-stars">${'★'.repeat(n)}${'☆'.repeat(5 - n)} <small>you rated ${esc(who)}</small></p>` : '';
-  const noEnq = () => empty('msg', 'No enquiries yet', 'When you call, WhatsApp, email, chat or text a lister, it’s tracked here — with every reply.', `<a class="btn btn-primary btn-sm" href="${HREF.search}">${ico('search')}Start searching</a> <button class="btn btn-outline btn-sm" type="button" data-act="sample">Preview with sample activity</button>`);
 
   // how you contacted them — a source tag per channel, like the provider's Leads board
   const srcTag = r => { const [t, , c] = chOf(r); return `<span class="lead-source" style="--c:${c}"><i></i>${t}</span>`; };
@@ -186,7 +184,6 @@
       <p>${esc(lastMsg(m))}</p>
       <div class="lead-footer">${srcTag(r)}<span class="spacer"></span>${m.needs && !m.late ? '<span class="lead-tag">Your turn</span>' : m.late ? `<span class="late">${waited < 120 ? waited + 'm' : Math.round(waited / 60) + 'h'} no reply</span>` : `<span>${ago(m.ev.length ? m.ev[m.ev.length - 1].t : r.t)}</span>`}</div></a>`;
   }
-  const actCard = leadCard;
 
   /* ---------- home — decisions first, then where each enquiry stands; a side panel shows only what exists ---------- */
   // real decisions, with their buttons on the row (calls and WhatsApps are grouped into one follow-up row below)
@@ -216,7 +213,7 @@
     const card = (title, link, body, cls = '') => `<section class="dashboard-panel ${cls}"><div class="dashboard-panel-header"><h2>${title}</h2>${link || ''}</div>${body}</section>`;
     // one panel: the seven verticals in a single row, then three suggestions picked from what they contacted
     const discover = `<section class="dashboard-panel dashboard-discover"><div class="dashboard-panel-header"><h2>Explore ${esc(SITE.name)}</h2><a class="text-link" href="${HREF.search}">Search all${ico('chevR')}</a></div>
-      <div class="account-discover dashboard-verticals">${DISCOVER.map(([v, i, t, c]) => `<a href="${HREF.search}?v=${v}" class="is-${c}"><i>${ico(i)}</i><b>${t}</b></a>`).join('')}</div>
+      <div class="empty-state-chips dashboard-vertical-chips">${START.map(([v, i, l]) => `<a href="${HREF.search}?v=${v}">${ico(i)}${l}</a>`).join('')}</div>
       <h3 class="dashboard-suggestions-header">Suggested for you</h3>
       <div class="dashboard-suggestions">${more.map(([v, o, i, t, sub]) => `<a href="${HREF.search}?v=${v}${o ? '&o=' + o : ''}"><i>${ico(i)}</i><span><b>${t}</b><small>${esc(sub)}</small></span>${ico('chevR')}</a>`).join('')}</div></section>`;
     const head_ = `<header class="dashboard-header"><div><h1>${hi}, ${esc(first(u.first || u.name) || 'there')}</h1><p>${nNeed ? `<b>${nNeed} ${nNeed === 1 ? 'thing needs' : 'things need'} you</b>${bits.length ? ' · ' : ''}` : ''}${esc(bits.join(' · ') || (nNeed ? '' : 'You’re all caught up.'))}</p></div>
@@ -342,28 +339,31 @@
 
   /* ---------- saved (C21) ---------- */
   function saved() {
-    const ids = savedList(), lists = D.lists;
-    const curList = lists.find(x => x.id === A.list);
-    const shown = (curList ? curList.ids.filter(id => favs.has(id)) : ids);
+    const ids = savedList();
     const searches = alerts();
     const L = all(), agents = [...new Map(leads().map(r => [r.provider, r])).values()];
     const item = id => {
       const l = byId(id);
-      if (!l) return `<div class="account-saved is-gone"><div class="account-gone">${ico('x')}<b>No longer available</b><small>This listing was removed by the agent.</small><button class="btn btn-outline btn-sm" data-fav="${esc(id)}">Remove</button></div></div>`;
-      const note = D.notes[id], v = L.find(m => m.r.lid === id && m.stage !== 'closed');
+      if (!l) return `<div class="account-saved is-gone"><div class="account-gone">${ico('x')}<b>No longer available</b><small>This listing was removed by the lister.</small><button class="btn btn-outline btn-sm" data-fav="${esc(id)}">Remove</button></div></div>`;
+      const v = L.find(m => m.r.lid === id && m.stage !== 'closed');
       return `<div class="account-saved">${v ? `<a class="account-dropzone is-view" href="#enquiry=${v.r.id}">${ico(chOf(v.r)[1])}${esc(v.pill[0])}</a>` : ''}${U.card(l)}
-        <div class="account-saved-bar"><label class="account-compare-pick"><input type="checkbox" data-pick="${id}" ${A.pick.has(id) ? 'checked' : ''}><span>Compare</span></label>
-          <button type="button" data-act="note" data-id="${id}">${ico('pen')}${note ? 'Note' : 'Add note'}</button>
-          <button type="button" data-act="move" data-id="${id}">${ico('list')}List</button></div>
-        ${note ? `<p class="account-note">${esc(note)}</p>` : ''}</div>`;
+        <div class="account-saved-bar"><label class="account-compare-pick"><input type="checkbox" data-pick="${id}" ${A.pick.has(id) ? 'checked' : ''}><span>Compare</span></label></div></div>`;
     };
-    const listCards = `<div class="account-lists"><button type="button" class="${A.list === 'all' ? 'is-active' : ''}" data-list="all"><b>All saved</b><small>${ids.length} ${ids.length === 1 ? 'listing' : 'listings'}</small></button>
-      ${lists.map(x => { const n = x.ids.filter(i => favs.has(i)); return `<button type="button" class="${A.list === x.id ? 'is-active' : ''}" data-list="${x.id}"><b>${esc(x.name)}</b><small>${n.length} saved</small></button>`; }).join('')}
-      <button type="button" class="is-new" data-act="newlist">${ico('plus')}New list</button></div>`;
+    // list view: the search page's compact row (components.css .row-item), plus contact, compare and remove
+    const row = id => {
+      const l = byId(id); if (!l) return '';
+      const pt = U.priceText(l), v = L.find(m => m.r.lid === id && m.stage !== 'closed');
+      return `<div class="account-saved-row"><a class="row-item" href="${HREF.listing}?id=${l.id}">${U.photo(l, 0)}
+          <span><small class="row-category">${esc(offerOf(l.v, l.cat).label)}${v ? ` · <em>${esc(v.pill[0])}</em>` : ''}</small><b>${esc(l.title)}</b><small>${ico('pin')} ${esc(U.locText(l))}</small><small class="row-spec">${U.specOf(l).map(esc).join(' · ')}</small></span>
+          <span class="row-price">${pt.n}<span>${esc(pt.u)}</span></span></a>
+        <div class="account-saved-row-actions"><button class="btn btn-outline btn-sm" type="button" data-call="${l.id}" aria-label="Call" title="Call">${ico('phone')}</button><button class="btn btn-whatsapp btn-sm" type="button" data-wa="${l.id}" aria-label="WhatsApp" title="WhatsApp">${ico('wa')}</button>
+          <label class="account-compare-pick"><input type="checkbox" data-pick="${id}" ${A.pick.has(id) ? 'checked' : ''}><span>Compare</span></label>
+          <button class="icon-btn" type="button" data-fav="${esc(id)}" aria-label="Remove from saved" title="Remove from saved">${ico('heart')}</button></div></div>`;
+    };
+    const sview = D.sview || 'grid';
+    const viewSwitch = `<div class="account-saved-tools"><span>${ids.length} saved ${ids.length === 1 ? 'listing' : 'listings'}</span><div class="lead-view-switch">${[['grid', 'Grid', 'grid4'], ['list', 'List', 'list']].map(([k, t, i]) => `<button type="button" class="${sview === k ? 'is-on' : ''}" data-sview="${k}">${ico(i)}${t}</button>`).join('')}</div></div>`;
     const body = {
-      items: () => ids.length ? `${listCards}
-          ${curList ? `<div class="account-list-header"><h2>${esc(curList.name)}</h2><button type="button" class="btn btn-ghost btn-sm" data-act="renamelist">Rename</button><button type="button" class="btn btn-ghost btn-sm" data-act="dellist">Delete list</button></div>` : ''}
-          ${shown.length ? `<div class="account-grid is-saved">${shown.map(item).join('')}</div>` : empty('heart', 'This list is empty', 'Use “List” under any saved listing to add it here.')}
+      items: () => ids.length ? `${viewSwitch}${sview === 'list' ? `<div class="row-list account-saved-list">${ids.map(row).join('')}</div>` : `<div class="account-grid is-saved">${ids.map(item).join('')}</div>`}
           <p class="account-footer">${ico('grid4')}Tick up to 3 listings to compare them side by side.</p>`
         : ES.saved(),
       searches: () => searches.length ? `<div class="account-searches">${searches.map(q => { const s = searchInfo(q), a = alertMeta(q); return `<div class="account-box account-search">
@@ -376,17 +376,17 @@
       agents: () => agents.length ? `<div class="account-agents">${agents.map(r => { const mine = L.filter(m => m.r.provider === r.provider), open = mine.filter(m => m.stage !== 'closed').length; return `<div class="account-box">
           <a class="account-cell account-agent" href="${provHref(r.provider)}"><span class="account-avatar">${esc(initials(r.provider))}</span><span><b>${esc(r.provider)}</b><small>${esc(r.org)}</small><small>${mine.length} ${mine.length === 1 ? 'enquiry' : 'enquiries'}${open ? ` · ${open} open` : ''} · replies in ~${r.reply || 10} min</small></span>${ico('chevR')}</a>
           <div class="account-button-pair"><a class="btn btn-whatsapp btn-sm" target="_blank" rel="noopener" href="${waHref(r.pphone, `Hi ${first(r.provider)}, I found you on ${SITE.name}.`)}">${ico('wa')}WhatsApp</a><a class="btn btn-outline btn-sm" href="${provHref(r.provider)}">${ico('grid4')}Listings</a></div></div>`; }).join('')}</div>
-          <p class="account-footer">${ico('users')}Agents and providers you’ve contacted. Their profile shows all their listings and reviews.</p>`
-        : empty('users', 'No agents yet', 'Listers you call, WhatsApp, email, chat with or text show up here.', `<a class="btn btn-primary btn-sm" href="${HREF.search}">${ico('search')}Browse listings</a>`)
+          <p class="account-footer">${ico('users')}Owners, managers and companies you’ve contacted. Their profile shows all their listings and reviews.</p>`
+        : empty('users', 'No listers yet', 'Listers you call, WhatsApp, email, chat with or text show up here.', `<a class="btn btn-primary btn-sm" href="${HREF.search}">${ico('search')}Browse listings</a>`)
     };
-    return `${head('Saved', 'Your shortlist, saved searches and agents — synced to your account.', A.stab === 'items' && A.pick.size > 1 ? `<button class="btn btn-primary btn-sm" type="button" data-act="compare">${ico('grid4')}Compare ${A.pick.size}</button>` : '')}
+    return `${head('Saved', 'Your shortlist, saved searches and listers — synced to your account.', A.stab === 'items' && A.pick.size > 1 ? `<button class="btn btn-primary btn-sm" type="button" data-act="compare">${ico('grid4')}Compare ${A.pick.size}</button>` : '')}
       ${tabs([['items', 'Listings', ids.length], ['searches', 'Searches', searches.length], ['agents', 'Listers', agents.length]], A.stab, 'stab')}
       ${(body[A.stab] || body.items)()}`;
   }
   function compareModal() {
     const L = [...A.pick].map(byId).filter(Boolean).slice(0, 3);
     const rows = [['Location', l => esc(U.locText(l))], ['Category', l => esc(offerOf(l.v, l.cat).label)],
-      ['Key facts', l => esc(U.specOf(l).join(' · '))], ['Rating', l => `${ico('star')}${l.rating} <small>(${l.reviews})</small>`], ['Agent', l => `${esc(l.provider.name)}<small>replies in ~${l.provider.reply} min</small>`],
+      ['Key facts', l => esc(U.specOf(l).join(' · '))], ['Rating', l => `${ico('star')}${l.rating} <small>(${l.reviews})</small>`], ['Lister', l => `${esc(l.provider.name)}<small>replies in ~${l.provider.reply} min</small>`],
       ['Verified', l => l.a.verified ? `<span class="status-pill is-success">Verified</span>` : '<small>Not yet</small>'], ['Reference', l => esc(l.ref)]];
     openModal(`<div class="account-modal account-compare-modal"><div class="account-modal-header"><div><h3>Compare ${L.length}</h3><p>Side by side from your saved listings</p></div><button class="close-btn" data-close aria-label="Close">${ico('x')}</button></div>
       <div class="account-compare" style="--n:${L.length}"><div></div>${L.map(l => `<a href="${HREF.listing}?id=${l.id}" class="account-compare-header"><img src="${esc(l.img[0] || PATHS.img('hero.jpg'))}" alt=""><b>${esc(l.title)}</b></a>`).join('')}
@@ -412,37 +412,66 @@
           <label class="toggle account-quiet-hours"><span><b>Quiet hours</b><small>No WhatsApp or push between 22:00 and 08:00</small></span><input type="checkbox" data-quiet ${D.quiet ? 'checked' : ''}><i></i></label></aside></div>`;
   }
 
-  /* ---------- profile & privacy (C23) ---------- */
+  /* ---------- profile & privacy ----------
+     Verification beside personal details; family (Programs, Health) beside addresses (Services, home visits);
+     how we reach you (a summary of Alerts) beside privacy and your data. Sign out lives in the account menu. */
+  const familyOf = () => D.family || (D.family = []);
+  const placesOf = () => D.places || (D.places = []);
   function profile() {
     const u = user(), L = leads(), shared = [...new Map(L.map(r => [r.provider, r])).values()];
     const since = u.since ? new Date(u.since) : null;
-    const rowB = (icon, title, sub, right) => `<div class="account-row">${ico(icon)}<span><b>${title}</b><small>${sub}</small></span>${right}</div>`;
-    return `${head('Profile &amp; privacy', '')}
-      <div class="account-box account-profile-card"><span class="account-avatar is-xl">${esc(U.auth.initialsOf(u))}</span><div><h2>${esc(u.name || 'Add your name')}</h2><small>${since ? `Member since ${MON[since.getMonth()]} ${since.getFullYear()} · ` : ''}${L.length} enquiries · ${favs.size} saved</small></div><button class="btn btn-outline btn-sm" type="button" data-act="editname">${ico('pen')}Edit name</button></div>
-      <div class="account-columns">
-        <div class="account-box"><h3>Account</h3>
-          ${rowB('phone', u.phone ? esc(U.fmtPhone(u.dial + u.phone)) : 'No mobile yet', u.phone ? 'Verified · used to sign in' : 'Add one so agents can reach you', u.phone ? '<span class="status-pill is-success">Verified</span>' : '')}
-          ${rowB('mail', esc(u.email || 'No email'), 'Copies of your enquiries and replies', `<button class="btn btn-ghost btn-sm" type="button" data-act="editemail">${u.email ? 'Change' : 'Add'}</button>`)}
-          ${rowB('shield', 'UAE PASS', 'Share your verified ID with agents in one tap', '<span class="status-pill is-muted">Coming soon</span>')}</div>
-        <div class="account-box"><h3>What agents can see</h3>
-          ${rowB('eye', 'Name &amp; mobile', 'Only after you send a request or tap Call / WhatsApp', '')}
-          ${rowB('doc', 'Move-in, occupants, budget', 'Only the details you add to a request', '')}
-          ${rowB('lock', 'Documents', 'Never shared automatically — you send them to the agent yourself', '')}
-          <label class="toggle"><span><b>Prefill my details in requests</b><small>Saves typing — you can edit before sending</small></span><input type="checkbox" data-priv="share" ${D.privacy.share ? 'checked' : ''}><i></i></label>
-          <details class="account-shared"><summary>${ico('users')}Who has your details <em>${shared.length}</em></summary>${shared.length ? shared.map(r => `<div><b>${esc(r.provider)}</b><small>${esc(r.org)} · first contact ${ago(r.t)}</small></div>`).join('') : '<p>No agent has your details yet.</p>'}</details></div>
-        <div class="account-box"><h3>Preferences</h3>
-          <div class="account-row">${ico('globe')}<span><b>Language</b><small>Used across the site</small></span><label class="account-select"><select data-prefs="lang">${SITE.languages.map(([k, l]) => `<option value="${k}" ${U.prefs.lang === k ? 'selected' : ''}>${l}</option>`).join('')}</select></label></div>
-          <div class="account-row">${ico('tag')}<span><b>Currency</b><small>Prices are shown in this currency</small></span><label class="account-select"><select data-prefs="cur">${Object.keys(U.CUR).map(k => `<option value="${k}" ${U.prefs.cur === k ? 'selected' : ''}>${k}</option>`).join('')}</select></label></div>
-          <a class="account-row" href="#alerts">${ico('bell')}<span><b>Notifications</b><small>${D.quiet ? 'Quiet hours 22:00–08:00' : 'Any time'}</small></span>${ico('chevR')}</a>
-          <label class="toggle"><span><b>Search history</b><small>Used for “Recently viewed” and recommendations</small></span><input type="checkbox" data-priv="history" ${D.privacy.history ? 'checked' : ''}><i></i></label></div>
-        <div class="account-box"><h3>More</h3>
-          <button type="button" class="account-row" data-act="export">${ico('upload')}<span><b>Download my data</b><small>Your account, saved listings, enquiries and settings as a file</small></span>${ico('chevR')}</button>
-          <a class="account-row" href="${HREF.join}">${ico('brief')}<span><b>List on ${esc(SITE.name)}</b><small>For owners, agents and businesses</small></span>${ico('chevR')}</a>
-          <button type="button" class="account-row" data-act="signout">${ico('chevL')}<span><b>Sign out</b><small>On this device</small></span></button>
-          <button type="button" class="account-row is-danger" data-act="delete">${ico('x')}<span><b>Delete my account</b><small>Removes your account and everything saved with it</small></span></button></div>
+    const eidDoc = IDOCS.find(x => x.id === 'eid'), eid = idocs().eid, eidOk = eid && eid.ok, eidExp = eidOk ? expOf(eidDoc) : '', eidDays = eidExp ? daysTo(eidExp) : null;
+    const nationality = eidOk && eid.d && eid.d.nationality ? String(eid.d.nationality).replace(/^\?/, '') : '';
+    const CHN = { wa: 'WhatsApp', push: 'Push', email: 'Email' }, rep = D.notify.replies || { on: false, ch: [] };
+    const fam = familyOf(), places = placesOf();
+    // one row style for every setting: soft icon, value over a muted line, action on the right
+    const row = (icon, title, sub, right = '', cls = '') => `<div class="account-setting ${cls}"><i>${ico(icon)}</i><span><b>${title}</b>${sub ? `<small>${sub}</small>` : ''}</span>${right}</div>`;
+    const select = (k, opts) => `<label class="account-select"><select data-prefs="${k}" aria-label="${k === 'cur' ? 'Currency' : 'Language'}">${opts}</select></label>`;
+    const boxHead = (title, act = '') => `<div class="account-box-header"><h3>${title}</h3>${act}</div>`;
+    const addBtn = (act, label) => `<button class="text-link account-add" type="button" data-act="${act}">${ico('plus')}${label}</button>`;
+    const eidRow = !eidOk ? row('user', 'Emirates ID', 'Upload once — we read the details for you', `<a class="btn btn-outline btn-sm" href="#documents">${ico('plus')}Add</a>`, 'is-todo')
+      : eidDays !== null && eidDays <= 60 ? row('user', 'Emirates ID', `${eidDays < 0 ? 'Expired' : 'Expires'} ${niceD(eidExp)} — upload the renewed card`, `<a class="btn btn-primary btn-sm" href="#documents">Update</a>`, 'is-warn')
+      : row('user', 'Emirates ID', [nationality, eidExp ? `valid to ${niceD(eidExp)}` : ''].filter(Boolean).map(esc).join(' · '), '<span class="status-pill is-success">Verified</span>');
+    return `${head('Profile &amp; privacy', 'Verified once, ready whenever you contact a lister.')}
+      <div class="account-profile-grid">
+        <section class="account-box">
+          <div class="account-details-header"><span class="account-avatar is-lg">${esc(U.auth.initialsOf(u))}</span><div><h3>${esc(u.name || 'Add your name')}</h3><small>${since ? `Member since ${MON[since.getMonth()]} ${since.getFullYear()}` : ''}${nationality ? ` · ${esc(nationality)}` : ''}</small></div><button class="btn btn-ghost btn-sm" type="button" data-act="editname">${ico('pen')}Edit</button></div>
+          ${u.phone ? row('phone', esc(U.fmtPhone(u.dial + u.phone)), 'Verified · used to sign in', '<span class="status-pill is-success">Verified</span>') : row('phone', 'No mobile yet', 'Add one so listers can reach you', '', 'is-todo')}
+          ${row('mail', esc(u.email || 'No email yet'), u.email ? 'Copies of your enquiries and replies' : 'Get a copy of every enquiry and reply', `<button class="${u.email ? 'text-link' : 'btn btn-outline btn-sm'}" type="button" data-act="editemail">${u.email ? 'Change' : `${ico('plus')}Add`}</button>`, u.email ? '' : 'is-todo')}
+          ${eidRow}
+          ${row('shield', 'UAE PASS', 'Share your verified ID with listers in one tap', '<span class="status-pill is-muted">Coming soon</span>', 'is-later')}
+        </section>
+        <section class="account-box"><h3>Preferences</h3>
+          ${row('globe', 'Language', 'Used across the site', select('lang', SITE.languages.map(([k, l]) => `<option value="${k}" ${U.prefs.lang === k ? 'selected' : ''}>${l}</option>`).join('')))}
+          ${row('tag', 'Currency', 'Prices on listings are shown in this currency', select('cur', Object.keys(U.CUR).map(k => `<option value="${k}" ${U.prefs.cur === k ? 'selected' : ''}>${k}</option>`).join('')))}
+          <a class="account-setting is-link" href="#alerts"><i>${ico('bell')}</i><span><b>Notifications</b><small>${rep.on && rep.ch.length ? 'Replies by ' + rep.ch.map(c => CHN[c] || c).join(' & ') : 'Replies off'}${D.quiet ? ' · quiet 22:00–08:00' : ''}</small></span>${ico('chevR')}</a>
+          <label class="account-setting"><i>${ico('eye')}</i><span><b>Search history</b><small>Used for “Recently viewed” and suggestions</small></span><span class="toggle"><input type="checkbox" data-priv="history" ${D.privacy.history ? 'checked' : ''}><i></i></span></label>
+        </section>
+        <section class="account-box">${boxHead('Family', addBtn('addfamily', 'Add'))}
+          <p class="account-box-note">Enquire for a child or parent — handy for Programs and Health.</p>
+          ${fam.length ? fam.map(m => `<div class="account-setting"><span class="lead-avatar">${esc(initials(m.name))}</span><span><b>${esc(m.name)}</b><small>${[m.rel, m.age ? m.age + ' yrs' : ''].filter(Boolean).map(esc).join(' · ')}</small></span><button class="icon-btn" type="button" data-act="delfamily" data-id="${m.id}" aria-label="Remove ${esc(m.name)}">${ico('x')}</button></div>`).join('')
+            : `<p class="account-box-empty">No family members yet.</p>`}
+        </section>
+        <section class="account-box">${boxHead('Addresses', addBtn('addplace', 'Add'))}
+          <p class="account-box-note">Save your area once — cleaners, movers and home visits need it.</p>
+          ${places.length ? places.map(a => row('pin', esc(a.label), esc(a.addr), `<button class="icon-btn" type="button" data-act="delplace" data-id="${a.id}" aria-label="Remove ${esc(a.label)}">${ico('x')}</button>`)).join('')
+            : `<p class="account-box-empty">No addresses yet.</p>`}
+        </section>
+        <section class="account-box account-privacy">
+          <div><h3>Privacy &amp; data</h3>
+            <p class="account-privacy-note">${ico('lock')}<span>Listers only see your name and mobile when you contact them. Documents are never shared automatically.</span></p>
+            <details class="account-shared"><summary>${ico('users')}Who has your details <em>${shared.length}</em></summary>${shared.length ? shared.map(r => `<div><b>${esc(r.provider)}</b><small>${esc(r.org)} · first contact ${ago(r.t)}</small></div>`).join('') : '<p>No lister has your details yet.</p>'}</details></div>
+          <div>
+            <button type="button" class="account-setting is-link" data-act="export"><i>${ico('upload')}</i><span><b>Download my data</b><small>Account, saved listings, enquiries and settings</small></span>${ico('chevR')}</button>
+            <button type="button" class="account-setting is-link is-danger" data-act="delete"><i>${ico('x')}</i><span><b>Delete my account</b><small>Removes your account and everything saved with it</small></span>${ico('chevR')}</button></div>
+        </section>
       </div>
-      <p class="account-footer">${ico('lock')}We handle your data under the UAE Personal Data Protection Law. You can download or delete it at any time.</p>`;
+      <p class="account-footer">${ico('lock')}We handle your data under the UAE Personal Data Protection Law.</p>`;
   }
+
+
+
+
 
   /* ---------- empty states — what this place is for, three steps, an illustration, where to start ----------
      Illustrations are drawn inline in the onboarding style (brand greens, a pale circle, one amber accent that bobs). */
@@ -522,14 +551,13 @@
   const ES = {
     home: () => emptyState({ art: 'home', title: 'Welcome to your account', sub: 'Everyone you contact on UpNow, their replies and the places you love — in one place.', steps: ['Find a space, service or provider across the seven verticals', 'Call, WhatsApp, email, chat or text the owner, manager or company', 'Follow every reply here and pick up where you left off'], mock: 'contact', cta: `<a class="btn btn-primary" href="${HREF.search}">${ico('search')}Start exploring</a><button class="btn btn-ghost" type="button" data-act="sample">Preview with sample activity</button>` }),
     enquiries: () => emptyState({ art: 'enquiries', title: 'You haven’t contacted anyone yet', sub: 'Enquiries keep track of every lister you reach — so you always know who replied.', steps: ['Open any listing you like', 'Call, WhatsApp, email, chat or text the lister', 'Come back here to see who replied and close it when you’re done'], mock: 'contact' }),
-    messages: () => emptyState({ art: 'messages', title: 'No conversations yet', sub: 'Agent replies come straight here — no digging through WhatsApp to find them.', steps: ['Contact an agent from any listing', 'Their replies appear here, next to the listing', 'Answer from here — it opens WhatsApp and keeps a copy'], mock: 'reply' }),
+    messages: () => emptyState({ art: 'messages', title: 'No conversations yet', sub: 'Replies from listers come straight here — no digging through WhatsApp to find them.', steps: ['Contact a lister from any listing', 'Their replies appear here, next to the listing', 'Answer from here — it opens WhatsApp and keeps a copy'], mock: 'reply' }),
     saved: () => emptyState({ art: 'saved', title: 'You have no saved listings yet', sub: 'Saving helps you compare and come back to places faster.', steps: ['Browse listings', 'Tap the heart on the ones you like', 'Compare them side by side and add notes here'], mock: 'heart' }),
     searches: () => emptyState({ art: 'searches', title: 'You have no saved searches yet', sub: 'Saving a search helps you find the right place faster.', steps: ['Start a search with the filters you need', 'Select Save search', 'Get new matches on WhatsApp — and return here anytime'], mock: 'save' }),
-    alerts: () => emptyState({ art: 'alerts', title: 'No alerts yet', sub: 'We tell you the moment something happens — never more than you choose.', steps: ['Contact an agent or save a search', 'We alert you when they reply or something new matches', 'Choose WhatsApp, push or email in the panel'], mock: 'bell', chips: false }),
+    alerts: () => emptyState({ art: 'alerts', title: 'No alerts yet', sub: 'We tell you the moment something happens — never more than you choose.', steps: ['Contact a lister or save a search', 'We alert you when they reply or something new matches', 'Choose WhatsApp, push or email in the panel'], mock: 'bell', chips: false }),
     documents: () => emptyState({ art: 'documents', title: 'Keep your documents ready', sub: 'Owners and providers often ask for your ID before a contract or sign-up. Upload once and it’s ready when you need it.', steps: ['Upload your Emirates ID or passport', 'We read the details — you just check them', 'Share it yourself when a lister asks — never automatically'], mock: 'scan', chips: false })
   };
 
-  const DISCOVER = [['spaces', 'building', 'Spaces', 'green'], ['services', 'wrench', 'Services', 'blue'], ['experiences', 'compass', 'Experiences', 'amber'], ['memberships', 'badge', 'Memberships', 'green'], ['programs', 'grad', 'Programs', 'blue'], ['health', 'medic', 'Health', 'red'], ['insurance', 'shield', 'Protection', 'amber']];
 
   /* ---------- messages — one conversation per enquiry, linked to its listing ---------- */
   function logOf(m) {
@@ -640,19 +668,19 @@
       ${due ? `<div class="document-alert">${ico('clock')}<span><b>${esc(due.t)} ${daysTo(expOf(due)) < 0 ? 'expired' : 'expires'} ${esc(niceD(expOf(due)))}</b><small>Listers ask for a valid ID before a contract or sign-up. Upload the renewed one — we’ll read it again.</small></span><label class="btn btn-primary btn-sm">${ico('upload')}Upload<input type="file" hidden accept="image/*,.pdf" data-idoc="${due.id}"></label></div>` : ''}
       ${have.length ? '' : ES.documents()}
       <div class="account-id-documents">${main}${have.map(idocCard).join('')}</div>
-      ${missing.filter(d => d.id !== 'eid' || idocs().eid).length ? `<section class="account-section"><div class="account-section-header"><h2>${have.length ? 'Also useful' : 'Agents may also ask for'}</h2></div>
+      ${missing.filter(d => d.id !== 'eid' || idocs().eid).length ? `<section class="account-section"><div class="account-section-header"><h2>${have.length ? 'Also useful' : 'Listers may also ask for'}</h2></div>
         <div class="onboarding-needs">${missing.filter(d => d.id !== 'eid').map(d => `<div class="onboarding-need"><i>${ico(d.icon)}</i><span><b>${esc(d.t)}</b><small>${esc(d.hint)}</small></span><em class="onboarding-need-tag">Optional</em>
           <label class="btn btn-outline btn-sm onboarding-need-upload">${ico('upload')}Upload<input type="file" accept="image/*,.pdf" data-idoc="${d.id}" hidden></label></div>`).join('')}</div></section>` : ''}
       <section class="account-box document-health"><div class="document-health-header"><i>${ico('medic')}</i><span><b>Health records</b><small>Private. Only you and your care team can see these. Every view is logged.</small></span></div>
         <div class="document-health-body">${ico('lock')}<small>No health records yet — results shared by clinics you book through ${esc(SITE.name)} will appear here.</small></div></section>
-      <p class="account-footer">${ico('lock')}Reading a document isn’t verification — you check the details. ${esc(SITE.name)} never sends your documents to an agent.</p>`;
+      <p class="account-footer">${ico('lock')}Reading a document isn’t verification — you check the details. ${esc(SITE.name)} never sends your documents to a lister.</p>`;
   }
 
   /* ---------- small dialogs ---------- */
   function ask({ title, text = '', label, value = '', placeholder = '', ok = 'Save', danger, fields }, done) {
     const F = fields || [{ name: 'v', label, value, placeholder }];
     openModal(`<form class="account-modal" id="accAsk"><div class="account-modal-header"><div><h3>${title}</h3>${text ? `<p>${text}</p>` : ''}</div><button class="close-btn" type="button" data-close aria-label="Close">${ico('x')}</button></div>
-      ${F.map(f => `<div class="field"><label for="account-${f.name}">${esc(f.label)}</label>${f.area ? `<textarea id="account-${f.name}" name="${f.name}" rows="4" placeholder="${esc(f.placeholder || '')}">${esc(f.value || '')}</textarea>` : `<input id="account-${f.name}" name="${f.name}" value="${esc(f.value || '')}" placeholder="${esc(f.placeholder || '')}" ${f.type ? `type="${f.type}"` : ''}>`}</div>`).join('')}
+      ${F.map(f => `<div class="field"><label for="account-${f.name}">${esc(f.label)}</label>${f.options ? `<select id="account-${f.name}" name="${f.name}">${f.options.map(o => `<option ${o === f.value ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>` : f.area ? `<textarea id="account-${f.name}" name="${f.name}" rows="4" placeholder="${esc(f.placeholder || '')}">${esc(f.value || '')}</textarea>` : `<input id="account-${f.name}" name="${f.name}" value="${esc(f.value || '')}" placeholder="${esc(f.placeholder || '')}" ${f.type ? `type="${f.type}"` : ''}>`}</div>`).join('')}
       <button class="btn ${danger ? 'account-danger' : 'btn-primary'} account-modal-submit">${ok}</button></form>`, 'account-modal-wrap');
     const f = document.getElementById('accAsk'), i = f.querySelector('input,textarea'); if (i) i.focus();
     f.onsubmit = e => { e.preventDefault(); const v = Object.fromEntries(new FormData(f).entries()); if (done(v) !== false) closeModal(); };
@@ -679,10 +707,11 @@
     store.set('leads', [...recs, ...leads()]);
     const ids = [L[0], L[1], L[2], ...LISTINGS.filter(l => l.img.length && !used.has(l.id)).slice(0, 3)].map(l => l.id);
     ids.forEach(id => favs.add(id)); store.set('favs', [...favs]);
-    if (!D.lists.length) D.lists.push({ id: 'l' + T, name: 'My shortlist', ids: ids.slice(0, 4) });
     const q = U.toQuery({ ...U.blankState('spaces', 'residential'), loc: ['dubai-marina'] });
     if (!alerts().includes(q)) setAlerts([...alerts(), q]);
     if (!Object.keys(idocs()).length) ['eid', 'passport', 'visa'].forEach(id => { const got = readIdoc(id), d = {}, src = {}; IDOCS.find(x => x.id === id).fields.forEach(([k, , kind]) => { const v = String(got[k] || '').replace(/^\?/, ''); d[k] = kind === 'date' ? isoD(v) : v; src[k] = 'doc'; }); idocs()[id] = { name: id + '.pdf', size: '240 KB', state: 'read', ok: true, d, src, orig: { ...d }, t: T }; });
+    if (!familyOf().length) familyOf().push({ id: 'f' + T, name: 'Sami ' + ((user() || {}).last || ''), rel: 'Child', age: '7' });
+    if (!placesOf().length) placesOf().push({ id: 'p' + T, label: 'Home', addr: (L[0].building ? L[0].building + ', ' : '') + areaName(L[0].loc) });
     store.set('recent', [...ids.slice(2), ...(store.get('recent') || [])].slice(0, 12));
     D.seeded = true; save(); if (!quiet) toast('Sample activity added'); render();
   }
@@ -708,8 +737,8 @@
   root.addEventListener('click', e => {
     const de = e.target.closest('[data-idocedit]'); if (de) { A.docOpen = A.docOpen || {}; A.docOpen[de.dataset.idocedit] = true; render(); return; }
     const qk = e.target.closest('[data-quick]'); if (qk) { const i = root.querySelector('.message-compose input'); if (i) { i.value = qk.dataset.quick; i.focus(); } return; }
+    const sv = e.target.closest('[data-sview]'); if (sv) { D.sview = sv.dataset.sview; save(); render(); return; }
     const tab = e.target.closest('[data-tab]'); if (tab) { A[tab.dataset.tab] = tab.dataset.v; render(); return; }
-    const lst = e.target.closest('[data-list]'); if (lst) { A.list = lst.dataset.list; render(); return; }
     const rd = e.target.closest('[data-read]'); if (rd && !D.read.includes(rd.dataset.read)) { D.read.push(rd.dataset.read); save(); }
     // contacting the agent from here is logged on the enquiry, like the provider's timeline
     const wl = e.target.closest('[data-walog],[data-calllog]'); if (wl) { logLine(wl.dataset.walog || wl.dataset.calllog, wl.dataset.walog ? 'WhatsApp message' : 'You called', wl.dataset.walog ? 'WhatsApp' : 'Phone'); save(); setTimeout(render, 300); return; }
@@ -722,30 +751,25 @@
       withdraw: () => withdrawModal(id),
       heard: () => { S.heard = true; logLine(id, 'You confirmed you’re in touch'); save(); render(); toast('Great — we’ll keep it in your enquiries'); },
       noanswer: () => { S.heard = false; logLine(id, 'No answer'); save(); render(); },
-      nudge: () => { const m = M(); S.nudged = now(); logLine(id, `Reminder sent to ${orgOf(m.r)}`); save(); render(); toast(`We’ve reminded ${m.who} — most agents reply within the hour`); },
+      nudge: () => { const m = M(); S.nudged = now(); logLine(id, `Reminder sent to ${orgOf(m.r)}`); save(); render(); toast(`We’ve reminded ${m.who} — most listers reply within the hour`); },
       report: () => ask({ title: 'Report a problem', text: 'Our team reviews every report within one working day.', fields: [{ name: 'why', label: 'What happened?', area: true, placeholder: 'e.g. asked me to pay before I saw it' }], ok: 'Send report' }, () => toast('Thanks — we’ll look into it')),
-      note: () => ask({ title: 'Private note', text: 'Only you can see this.', fields: [{ name: 'v', label: 'Note', area: true, value: D.notes[id] || '', placeholder: 'e.g. ask about parking; ask about move-in date' }] }, v => { v.v.trim() ? D.notes[id] = v.v.trim() : delete D.notes[id]; save(); render(); }),
-      move: () => {
-        if (!D.lists.length) return ask({ title: 'New list', label: 'List name', placeholder: 'e.g. Marina shortlist', ok: 'Create & add' }, v => { if (!v.v.trim()) return false; D.lists.push({ id: 'l' + now(), name: v.v.trim(), ids: [id] }); save(); render(); toast('Added to ' + v.v.trim()); });
-        openModal(`<div class="account-modal"><div class="account-modal-header"><div><h3>Add to a list</h3></div><button class="close-btn" data-close aria-label="Close">${ico('x')}</button></div><div class="account-move-list">${D.lists.map(x => `<label><input type="checkbox" data-mv="${x.id}" ${x.ids.includes(id) ? 'checked' : ''}><span>${esc(x.name)}</span></label>`).join('')}</div><button class="btn btn-primary account-modal-submit" data-close>Done</button></div>`, 'account-modal-wrap');
-        document.querySelector('.scrim').onchange = ev => { const x = D.lists.find(y => y.id === ev.target.dataset.mv); if (!x) return; ev.target.checked ? x.ids.push(id) : x.ids = x.ids.filter(i => i !== id); save(); render(); };
-      },
-      newlist: () => ask({ title: 'New list', label: 'List name', placeholder: 'e.g. JLT 2-beds', ok: 'Create list' }, v => { if (!v.v.trim()) return false; const x = { id: 'l' + now(), name: v.v.trim(), ids: [] }; D.lists.push(x); A.list = x.id; save(); render(); }),
-      renamelist: () => { const x = D.lists.find(y => y.id === A.list); ask({ title: 'Rename list', label: 'List name', value: x.name }, v => { if (!v.v.trim()) return false; x.name = v.v.trim(); save(); render(); }); },
-      dellist: () => { D.lists = D.lists.filter(y => y.id !== A.list); A.list = 'all'; save(); render(); toast('List deleted — your saved listings are still here'); },
       compare: compareModal,
       heardall: () => { all().filter(m => m.stage === 'direct' && m.S.heard !== false).forEach(m => { const S2 = D.lead[m.r.id] = D.lead[m.r.id] || {}; S2.heard = true; logLine(m.r.id, 'You confirmed you’re in touch'); }); save(); render(); toast('Updated'); },
       deldoc: () => { delete idocs()[id]; save(); render(); toast('Removed'); },
       delsearch: () => { setAlerts(alerts().filter(q => q !== b.dataset.q)); delete D.alert[b.dataset.q]; save(); render(); toast('Saved search deleted'); },
       readall: () => { D.read = [...new Set([...D.read, ...feed().map(n => n.id)])]; save(); render(); },
-      editname: () => { const u = user(); ask({ title: 'Your name', text: 'Shown to agents when you contact them.', fields: [{ name: 'f', label: 'First name', value: u.first }, { name: 'l', label: 'Last name', value: u.last }] }, v => { if (!v.f.trim()) return false; U.auth.setName(v.f.trim(), v.l.trim()); render(); toast('Name updated'); }); },
+      addfamily: () => ask({ title: 'Add a family member', text: 'Used when you enquire for them — never shared on its own.', fields: [{ name: 'n', label: 'Name', placeholder: 'e.g. Lina' }, { name: 'r', label: 'Relationship', options: ['Child', 'Spouse', 'Parent', 'Other'], value: 'Child' }, { name: 'a', label: 'Age (optional)', type: 'number', placeholder: 'e.g. 7' }], ok: 'Add' }, v => { if (!v.n.trim()) return false; familyOf().push({ id: 'f' + now(), name: v.n.trim(), rel: v.r, age: v.a.trim() }); save(); render(); toast('Family member added'); }),
+      delfamily: () => { D.family = familyOf().filter(m => m.id !== id); save(); render(); },
+      addplace: () => ask({ title: 'Add an address', text: 'Only shared when you send it to a lister.', fields: [{ name: 'l', label: 'Label', options: ['Home', 'Work', 'Other'], value: placesOf().some(a => a.label === 'Home') ? 'Work' : 'Home' }, { name: 'a', label: 'Building and area', placeholder: 'e.g. Marina Gate 2, Dubai Marina' }], ok: 'Add' }, v => { if (!v.a.trim()) return false; placesOf().push({ id: 'p' + now(), label: v.l, addr: v.a.trim() }); save(); render(); toast('Address saved'); }),
+      delplace: () => { D.places = placesOf().filter(a => a.id !== id); save(); render(); },
+      editname: () => { const u = user(); ask({ title: 'Your name', text: 'Shown to listers when you contact them.', fields: [{ name: 'f', label: 'First name', value: u.first }, { name: 'l', label: 'Last name', value: u.last }] }, v => { if (!v.f.trim()) return false; U.auth.setName(v.f.trim(), v.l.trim()); render(); toast('Name updated'); }); },
       editemail: () => { const u = user(); ask({ title: u.email ? 'Change email' : 'Add email', fields: [{ name: 'e', label: 'Email', type: 'email', value: u.email, placeholder: 'you@email.com' }] }, v => { if (!/^\S+@\S+\.\S+$/.test(v.e)) return false; u.email = v.e.trim(); store.set('user', u); render(); toast('Email saved'); }); },
       export: () => {
-        const data = { exported: new Date().toISOString(), account: user(), saved: savedList(), lists: D.lists, notes: D.notes, enquiries: leads(), progress: D.lead, searches: alerts(), recentlyViewed: store.get('recent') || [], notifications: D.notify, privacy: D.privacy };
+        const data = { exported: new Date().toISOString(), account: user(), saved: savedList(), family: familyOf(), addresses: placesOf(), enquiries: leads(), progress: D.lead, searches: alerts(), recentlyViewed: store.get('recent') || [], notifications: D.notify, privacy: D.privacy };
         const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })); a.download = `${SITE.name.toLowerCase()}-my-data.json`; a.click(); toast('Your data is downloading');
       },
       signout: () => { U.auth.signOut(); location.href = HREF.home; },
-      delete: () => ask({ title: 'Delete your account?', text: 'This removes your account, saved listings, lists, enquiries and alerts from ' + esc(SITE.name) + '. It can’t be undone. Agents you already contacted keep their own conversation with you.', fields: [{ name: 'c', label: 'Type DELETE to confirm', placeholder: 'DELETE' }], ok: 'Delete my account', danger: true }, v => {
+      delete: () => ask({ title: 'Delete your account?', text: 'This removes your account, saved listings, lists, enquiries and alerts from ' + esc(SITE.name) + '. It can’t be undone. Listers you already contacted keep their own conversation with you.', fields: [{ name: 'c', label: 'Type DELETE to confirm', placeholder: 'DELETE' }], ok: 'Delete my account', danger: true }, v => {
         if (v.c.trim().toUpperCase() !== 'DELETE') return false;
         const u = user(), acc = store.get('accounts') || {}; Object.keys(acc).forEach(k => { if (acc[k] && ((u.phone && acc[k].phone === u.phone) || (u.email && acc[k].email === u.email))) delete acc[k]; });
         store.set('accounts', acc); ['favs', 'leads', 'recent', 'dash', 'me'].forEach(k => store.set(k, null)); setAlerts([]);
