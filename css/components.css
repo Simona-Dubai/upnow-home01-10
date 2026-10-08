@@ -5306,3 +5306,29 @@ select.is-menu-open {
   height: 21px;
   padding: 0 7px;
 }
+
+/* header: the heart fills once you have saved listings; avatars show your photo when you've added one */
+.header-saved.is-filled .icon,
+.mobile-tabs .has-saved-state.is-filled .icon {
+  fill: var(--color-danger);
+  stroke: var(--color-danger);
+}
+
+.account-menu-avatar,
+.mobile-tabs-avatar {
+  overflow: hidden;
+  text-transform: uppercase;
+}
+
+.account-menu-avatar.has-photo img,
+.mobile-tabs-avatar.has-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.site-header .icon-btn em[hidden],
+.mobile-tabs em[hidden] {
+  display: none;
+}

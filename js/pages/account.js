@@ -158,9 +158,11 @@
     const img = new Image(), url = URL.createObjectURL(file);
     img.onload = () => { const c = document.createElement('canvas'), n = 256, side = Math.min(img.width, img.height); c.width = c.height = n;
       c.getContext('2d').drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, n, n);
-      URL.revokeObjectURL(url); D.photo = c.toDataURL('image/jpeg', 0.85); try { save(); } catch (e) { delete D.photo; return toast('That photo is too large'); } render(); toast('Profile photo updated'); };
+      URL.revokeObjectURL(url); D.photo = c.toDataURL('image/jpeg', 0.85); try { save(); } catch (e) { delete D.photo; return toast('That photo is too large'); } render(); refreshHeader(); toast('Profile photo updated'); };
     img.onerror = () => toast('We couldn’t read that image'); img.src = url;
   }
+  // the header avatar follows the profile photo
+  const refreshHeader = () => { document.getElementById('hdr').innerHTML = U.header(null); U.bindHeader(); };
   let asked = false, shown = false;
   function render() {
     const u = user();
@@ -175,7 +177,8 @@
     root.innerHTML = nav(R.s) + `<section class="account-main">${body}</section>`;
     root.querySelectorAll('.account-enquiry-filters .lead-bar').forEach(b => { const f = () => b.classList.toggle('is-overflowing', b.scrollWidth > b.clientWidth + 1 && b.scrollLeft + b.clientWidth < b.scrollWidth - 1); f(); b.addEventListener('scroll', f, { passive: true }); });
     document.title = `${R.s === 'overview' ? 'My account' : (SECTIONS.find(x => x[0] === R.s) || [])[1]} | ${SITE.name}`;
-    U.updateHdrCounts();
+    // the header's chat badge shows unread replies — the same number as Messages here
+    store.set('inbox', { unread: unreadMsgs(), t: now() }); U.updateHdrCounts();
   }
 
   /* ---------- shared bits ---------- */
@@ -281,8 +284,10 @@
     // 3 · continue searching (one card, no panel around a single row) · 4 · saved
     const resume = al ? `<a class="dashboard-search" href="${esc(al.href)}"><i>${ico('search')}</i><span><small>Continue searching</small><b>${esc(al.title)}</b><em>${[al.sub, al.count + ' ' + (al.count === 1 ? 'listing' : 'listings')].filter(Boolean).map(esc).join(' · ')}</em></span>${al.fresh.length ? `<span class="dashboard-new">${al.fresh.length} new</span>` : ico('chevR')}</a>` : '';
     const contacted = l => L.some(m => m.r.lid === l.id), notYet = saved.filter(l => !contacted(l)).length;
-    const savedBox = saved.length ? card(`Saved <em>${saved.length}</em>`, viewAll('#saved'), saved.slice(0, 3).map(l => `<a class="dashboard-saved-item" href="${HREF.listing}?id=${l.id}"><img src="${esc(l.img[0] || '')}" alt="" loading="lazy"><span><b>${esc(l.title)}</b><small>${contacted(l) ? `<span class="dashboard-contacted">${ico('check')}Contacted</span> · ` : ''}${esc(U.locText(l))}</small></span></a>`).join('')
-      + (notYet ? `<a class="dashboard-saved-tip" href="#saved" data-saved-filter="new">${ico('msg')}<span>${notYet} saved but not contacted yet</span>${ico('chevR')}</a>` : ''), 'is-saved') : '';
+    // not contacted yet come first — they're the ones to act on; the tip then counts only those not already shown
+    const savedTop = [...saved.filter(l => !contacted(l)), ...saved.filter(l => contacted(l))].slice(0, 3), notYetHidden = notYet - savedTop.filter(l => !contacted(l)).length;
+    const savedBox = saved.length ? card(`Saved <em>${saved.length}</em>`, viewAll('#saved'), savedTop.map(l => `<a class="dashboard-saved-item" href="${HREF.listing}?id=${l.id}"><img src="${esc(l.img[0] || '')}" alt="" loading="lazy"><span><b>${esc(l.title)}</b><small>${contacted(l) ? `<span class="dashboard-contacted">${ico('check')}Contacted</span> · ` : ''}${esc(U.locText(l))}</small></span></a>`).join('')
+      + (notYetHidden > 0 ? `<a class="dashboard-saved-tip" href="#saved" data-saved-filter="new">${ico('msg')}<span>${notYetHidden} more saved but not contacted yet</span>${ico('chevR')}</a>` : ''), 'is-saved') : '';
 
     // 6 · discover more — picked from what they enquired about, not another menu of the verticals
     const lastLead = L.find(m => m.l), near = lastLead ? lastLead.r.area : '';
@@ -979,7 +984,7 @@ ${channels}</div>`;
       report: () => ask({ title: 'Report a problem', text: 'Our team reviews every report within one working day.', fields: [{ name: 'why', label: 'What happened?', area: true, placeholder: 'e.g. asked me to pay before I saw it' }], ok: 'Send report' }, () => toast('Thanks — we’ll look into it')),
       compare: compareModal,
       enqreset: () => { A.ev = 'all'; A.ech = 'all'; A.eq = ''; render(); },
-      delphoto: () => { delete D.photo; save(); render(); toast('Photo removed'); },
+      delphoto: () => { delete D.photo; save(); render(); refreshHeader(); toast('Photo removed'); },
       fmore: () => { A.fmore = true; render(); },
       savedreset: () => { A.sv = 'all'; A.sstat = 'all'; render(); },
       heardall: () => { all().filter(m => m.stage === 'direct' && m.S.heard !== false).forEach(m => { const S2 = D.lead[m.r.id] = D.lead[m.r.id] || {}; S2.heard = true; logLine(m.r.id, 'You confirmed you’re in touch'); }); save(); render(); toast('Updated'); },

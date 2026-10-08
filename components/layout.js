@@ -13,13 +13,13 @@
   const tabOn = name => ({ search: /search\.html/, home: /(index\.html|\/)$/ })[name].test(location.pathname);
   function meTab() {
     const u = U.auth && U.auth.user();
-    return u ? `<button type="button" data-me-tab data-account-tab><span class="mobile-tabs-avatar">${esc(U.auth.initialsOf(u))}</span>${esc(t('Me'))}</button>`
+    return u ? `<button type="button" data-me-tab data-account-tab>${(d => d && d.photo ? `<span class="mobile-tabs-avatar has-photo"><img src="${d.photo}" alt=""></span>` : `<span class="mobile-tabs-avatar">${esc(U.auth.initialsOf(u))}</span>`)(U.store && U.store.get('dash'))}${esc(t('Me'))}</button>`
       : `<button type="button" data-me-tab data-open="signin">${ico('user')}${esc(t('Log in'))}</button>`;
   }
   const mTabs = () => `<nav class="mobile-tabs" aria-label="Main">
       <a href="${SITE.homeHref || HREF.home}" class="${tabOn('home') ? 'is-active' : ''}">${ico('home')}${esc(t('Explore'))}</a>
       <a href="${HREF.search}" class="${tabOn('search') ? 'is-active' : ''}">${ico('search')}${esc(t('Search'))}</a>
-      <button type="button" data-open="saved">${ico('heart')}${esc(t('Saved'))}<em id="mtFav" hidden></em></button>
+      <button type="button" data-open="saved" class="has-saved-state">${ico('heart')}${esc(t('Saved'))}<em id="mtFav" hidden></em></button>
       <button type="button" data-open="enq">${ico('msg')}${esc(t('Enquiries'))}<em id="mtLead" hidden></em></button>
       ${meTab()}</nav>`;
   // sign-in / sign-out changes the last tab
@@ -45,8 +45,8 @@
       <div class="header-actions">
         ${H.currency ? `<label class="header-select"><select id="hCur">${Object.keys(CUR).map(k => `<option value="${k}" ${prefs.cur === k ? 'selected' : ''}>${CUR[k][2]} ${k}</option>`).join('')}</select>${ico('chev')}</label>` : ''}
         ${H.language ? `<label class="header-select is-subtle"><select id="hLang">${SITE.languages.map(([k, l]) => `<option value="${k}" ${prefs.lang === k ? 'selected' : ''}>${l}</option>`).join('')}</select>${ico('chev')}</label>` : ''}
-        ${H.saved ? `<button class="icon-btn" data-open="saved" title="${t('Saved')}">${ico('heart')}<em id="hdrFav">0</em></button>` : ''}
-        ${H.enquiries ? `<button class="icon-btn" data-open="enq" title="${t('Enquiries')}">${ico('msg')}<em id="hdrLead">0</em></button>` : ''}
+        ${H.saved ? `<button class="icon-btn header-saved" data-open="saved" title="${t('Saved')}" aria-label="${t('Saved')}">${ico('heart')}<em id="hdrFav" hidden></em></button>` : ''}
+        ${H.enquiries ? `<button class="icon-btn" data-open="enq" title="${t('Enquiries & replies')}" aria-label="${t('Enquiries & replies')}">${ico('msg')}<em id="hdrLead" hidden></em></button>` : ''}
         ${H.signIn ? (U.accountButton ? U.accountButton() : `<button class="btn btn-outline btn-sm" data-open="signin">${ico('user')}${t('Sign in')}</button>`) : ''}
         ${H.cta ? `<a class="btn btn-primary btn-sm" href="${H.cta.href}">${H.cta.icon ? ico(H.cta.icon) : ''}${t(H.cta.label)}</a>` : ''}
       </div></div></header>${tabs ? mTabs() : ''}`;
@@ -61,12 +61,16 @@
     if (C) C.onchange = () => { prefs.cur = C.value; store.set('prefs', prefs); location.reload(); };
     updateHdrCounts();
   }
-  // counters come from the marketplace state module when it is loaded
+  /* header icons: the heart is filled when you have saved listings (no number — nothing to act on);
+     the chat icon shows only unread replies — the same number as Messages in the account (it keeps it
+     in the 'inbox' record as it works them out), and nothing when there are none */
   function updateHdrCounts() {
-    [['hdrFav', 'mtFav'], ['hdrLead', 'mtLead']].forEach(([a, b], i) => {
-      const n = i ? (U.leads ? U.leads().length : null) : (U.favs ? U.favs.size : null); if (n == null) return;
-      [a, b].forEach(id => { const el = document.getElementById(id); if (el) { el.textContent = n; el.hidden = !n; } });
-    });
+    const saved = U.favs ? U.favs.size : 0, unread = ((U.store && U.store.get('inbox')) || {}).unread || 0;
+    document.querySelectorAll('.header-saved, .mobile-tabs .has-saved-state').forEach(b => b.classList.toggle('is-filled', saved > 0));
+    ['hdrFav', 'mtFav'].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = true; });
+    ['hdrLead', 'mtLead'].forEach(id => { const el = document.getElementById(id); if (el) { el.textContent = unread; el.hidden = !unread; } });
+    const lead = document.querySelector('.header-actions [data-open="enq"]');
+    if (lead) lead.title = unread ? `${unread} unread ${unread === 1 ? 'reply' : 'replies'}` : t('Enquiries & replies');
   }
   const BTN = { light: 'background:#fff;color:var(--color-primary-darkest)', outline: 'border:1.5px solid rgba(255,255,255,.4)' };
   function footer({ cta = true } = {}) {

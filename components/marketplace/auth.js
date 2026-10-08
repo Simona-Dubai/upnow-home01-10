@@ -278,7 +278,9 @@
   // the modal was closed (×, Esc, backdrop) — forget the half-finished flow
   document.addEventListener('upnow:modal-closed', () => { if (A) { clearInterval(A.timer); A = null; } });
 
-  const initialsOf = u => ((u.first || '')[0] || '') + ((u.last || '')[0] || '') || (u.email || '?')[0].toUpperCase();
+  const initialsOf = u => (((u.first || '')[0] || '') + ((u.last || '')[0] || '') || (u.email || '?')[0]).toUpperCase();
+  // the profile photo added in the account (Profile & privacy), if any
+  const photoOf = () => { const d = U.store && U.store.get('dash'); return d && d.photo || ''; };
   // the verified name (read from the provider's ID) becomes the account name
   function setName(first, last) {
     const u = user(); if (!u || !first) return;
@@ -296,7 +298,7 @@
     // this account's provider application (js/pages/join.js), if any
     const app = (() => { try { const d = JSON.parse(localStorage.getItem('upnow.join') || 'null'); return d && (!d.owner || d.owner === (u.email || u.dial + u.phone)) ? d : null; } catch (e) { return null; } })();
     const st = app && (app.status || (app.done ? 'submitted' : 'draft')), applied = st === 'submitted', approved = st === 'approved', draft = st === 'draft' && app.role;
-    return `<div class="account-menu" data-auth-slot><button class="account-btn" type="button" data-account aria-label="Account menu"><span class="account-menu-avatar">${esc(initialsOf(u))}</span><span class="account-name">${esc(u.first || 'Account')}</span>${ico('chev')}</button>
+    return `<div class="account-menu" data-auth-slot><button class="account-btn" type="button" data-account aria-label="Account menu">${photoOf() ? `<span class="account-menu-avatar has-photo"><img src="${photoOf()}" alt=""></span>` : `<span class="account-menu-avatar">${esc(initialsOf(u))}</span>`}<span class="account-name">${esc(u.first || 'Account')}</span>${ico('chev')}</button>
       <div class="account-drop"><div class="account-who"><b>${esc(u.name || u.email || 'Your account')}</b><small>${u.phone ? esc(u.dial + ' ' + fmt(u.iso || 'AE', u.phone)) : esc(u.email)}</small></div>
         <a href="${HREF.account}">${ico('home')}My account</a>
         <a href="${HREF.account}#enquiries">${ico('list')}My enquiries</a>

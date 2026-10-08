@@ -13,7 +13,7 @@
      (lists, notes, documents…), recently viewed and contact details are kept per signed-in account. Signed out, they go to
      a guest area; logging in moves the guest's activity into that account (store.adopt), creating an account starts empty. Device settings
      (language, currency), the sign-in itself and the list of accounts stay shared. */
-  const OWN = ['favs', 'leads', 'alerts', 'dash', 'recent', 'me', 'follows'];
+  const OWN = ['favs', 'leads', 'alerts', 'dash', 'recent', 'me', 'follows', 'inbox'];
   const raw = k => SITE.storageKey + '.' + k;
   const read = k => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } };
   const ownerOf = u => u ? (u.phone ? (u.dial || '') + u.phone : String(u.email || '').toLowerCase()) : '';
