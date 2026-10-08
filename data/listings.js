@@ -298,7 +298,7 @@
   ];
 
   const V = { spaces: { id: 'spaces', label: 'Spaces', icon: 'building', blurb: 'Homes, offices, warehouses, land, holiday homes, venues, courts and yachts.', offers } };
-  V.services = { id: 'services', label: 'Services', icon: 'wrench', blurb: 'Cleaning, AC maintenance and salons.', offers: [
+  V.services = { id: 'services', label: 'Services', icon: 'wrench', blurb: 'Cleaning, AC, salons, photography, design and more.', offers: [
     { id: 'cleaning', label: 'Cleaning', h1: 'Cleaning services', basis: 'One-time or recurring', img: [IMG + 'clean1.jpg', IMG + 'clean2.jpg'], n: 10, coverage: 1, from: 1,
       action: 'Request a booking', flow: ['Enquiry', 'Slot confirmed', 'Visit', 'Photo evidence', 'Pay the provider'], org: ['DED-licensed company'], names: ['Sparkle Home Cleaning', 'Maids on Call', 'Fresh Nest', 'Shine & Co.', 'Neat Freaks DXB'],
       fields: ['service', 'loc', 'date', 'frequency'], locLabel: 'Location',
@@ -349,7 +349,61 @@
       ],
       price: () => between(60, 260, 5), unit: () => '/appointment',
       title: (a, c) => `${a.treatment[0]} · ${c.name}`,
-      meta: (a, l) => [['clock', a.duration + ' min'], ['pin', a.setting.includes('home') ? 'Home visit' : 'In salon'], ['star', l.rating + ' (' + l.reviews + ')']] }
+      meta: (a, l) => [['clock', a.duration + ' min'], ['pin', a.setting.includes('home') ? 'Home visit' : 'In salon'], ['star', l.rating + ' (' + l.reviews + ')']] },
+
+    // services an individual may also offer (freelance permit) — added Oct 2026; late: listings generated after all others
+    { id: 'photography', label: 'Photography', h1: 'Photographers & videographers', basis: 'AED / session', img: [IMG + 'workshop2.jpg', IMG + 'villa1.jpg'], n: 8, coverage: 1, late: 1,
+      action: 'Ask for a quote', org: ['Freelance photographer'], names: ['Lens by Sara', 'Studio Frame', 'Golden Hour Photo', 'Pixel & Co.', 'Omar Visuals'],
+      fields: ['shoot', 'loc', 'date'],
+      defs: [
+        sel('shoot', 'Shoot', ['Portrait', 'Wedding', 'Event', 'Product', 'Real estate', 'Video'], { many: 1 }), date('date', 'Date'),
+        lte('duration', 'Session', [['1', 'Up to 1 hr'], ['2', 'Up to 2 hrs'], ['4', 'Half day']], () => pick([1, 2, 2, 4]), { fmt: v => v + ' hr session' }),
+        sel('delivery', 'Delivery', [['48h', 'Within 48 hrs'], ['week', 'Within a week']]),
+        rating(), price('Price per session', [[null, 500], [500, 1500], [1500, null]]), tog('verified', 'Verified only', { p: .85 })
+      ],
+      price: () => between(350, 2500, 50), unit: () => '/session',
+      title: (a, c) => `${a.shoot[0] === 'Video' ? 'Videography' : a.shoot[0] + ' photography'} · ${c.name}`,
+      meta: (a, l) => [['camera', a.shoot.slice(0, 2).join(', ')], ['clock', a.duration + ' hr session'], ['star', l.rating + ' (' + l.reviews + ')']] },
+
+    { id: 'design', label: 'Design', h1: 'Interior & graphic designers', basis: 'AED / project', img: [IMG + 'office3.jpg', IMG + 'apt3.jpg'], n: 8, coverage: 1, late: 1,
+      action: 'Ask for a quote', org: ['Design studio'], names: ['Atelier Noor', 'Studio Mira', 'Blueprint Interiors', 'Line & Form', 'Kanvas Design'],
+      fields: ['dtype', 'loc'],
+      defs: [
+        sel('dtype', 'Design', ['Interior design', 'Fit-out design', 'Graphic design', 'Branding', 'Web design'], { many: 1 }),
+        sel('scope', 'Scope', [['consult', 'Consultation'], ['full', 'Full project']], { many: 1 }),
+        gte('projects', 'Experience', [['10', '10+ projects'], ['50', '50+ projects'], ['100', '100+ projects']], () => pick([12, 30, 60, 120]), { fmt: v => v + '+ projects' }),
+        rating(), price('Starting price', [[null, 2000], [2000, 8000], [8000, null]]), tog('verified', 'Verified only', { p: .85 })
+      ],
+      price: () => between(800, 12000, 100), unit: () => '/project',
+      title: (a, c) => `${a.dtype[0]} · ${c.name}`,
+      meta: (a, l) => [['palette', a.dtype.slice(0, 2).join(', ')], ['check', a.projects + '+ projects'], ['star', l.rating + ' (' + l.reviews + ')']] },
+
+    { id: 'makeup', label: 'Make-up artist', h1: 'Make-up artists', basis: 'AED / look', img: [IMG + 'salon2.jpg', IMG + 'salon1.jpg'], n: 8, late: 1,
+      action: 'Ask about a date', org: ['Make-up artist'], names: ['Glow by Lina', 'Bridal Beauty DXB', 'Rania MUA', 'The Glam Room', 'Hana Artistry'],
+      fields: ['occasion', 'loc', 'date'],
+      defs: [
+        sel('occasion', 'Occasion', ['Bridal', 'Party', 'Photoshoot', 'Henna & make-up'], { many: 1 }), date('date', 'Date'),
+        sel('setting', 'At home / studio', [['studio', 'In studio'], ['home', 'At home']], { many: 1 }),
+        sel('artist', 'Artist', [['female', 'Female artist'], ['male', 'Male artist']], { many: 1 }),
+        rating(), price('Price', [[null, 300], [300, 800], [800, null]]), tog('verified', 'Verified only', { p: .85 })
+      ],
+      price: () => between(200, 1500, 50), unit: () => '/look',
+      title: (a, c) => `${a.occasion[0]} make-up · ${c.name}`,
+      meta: (a, l) => [['spark', a.occasion.slice(0, 2).join(', ')], ['pin', a.setting.includes('home') ? 'Home visit' : 'In studio'], ['star', l.rating + ' (' + l.reviews + ')']] },
+
+    { id: 'handyman', label: 'Handyman', h1: 'Handyman & home maintenance', basis: 'AED / visit', img: [IMG + 'ac2.jpg', IMG + 'clean2.jpg'], n: 8, coverage: 1, from: 1, late: 1,
+      action: 'Request a quote', org: ['DED-licensed company'], names: ['FixIt Dubai', 'Handy Home Services', 'ProFix Technical', 'HomeCare Maintenance'],
+      fields: ['job', 'property', 'date'],
+      defs: [
+        sel('job', 'Job', ['Plumbing', 'Electrical', 'Carpentry', 'Painting', 'Furniture assembly', 'TV mounting'], { many: 1 }), date('date', 'Date'),
+        sel('property', 'Property', ['Apartment', 'Villa', 'Office'], { many: 1 }),
+        lte('sla', 'Response', [['4', 'Within 4 hrs'], ['24', 'Within 24 hrs']], () => pick([4, 24, 24]), { fmt: v => v + ' hrs' }),
+        tog('emergency', 'Same-day visits'),
+        rating(), price('Price per visit', [[null, 150], [150, 300], [300, null]]), tog('verified', 'Licensed only', { p: .85 })
+      ],
+      price: () => between(90, 400, 10), unit: () => '/visit',
+      title: (a, c) => `${a.job[0]} · ${c.name}`,
+      meta: (a, l) => [['tool', a.job.slice(0, 2).join(', ')], ['clock', a.sla + 'h response'], ['star', l.rating + ' (' + l.reviews + ')']] }
   ] };
 
   V.experiences = { id: 'experiences', label: 'Experiences', icon: 'compass', blurb: 'Safaris, workshops and tours.', offers: [
@@ -704,7 +758,7 @@
 
   /* ---------- generate listings ---------- */
   const LISTINGS = [];
-  VORDER.forEach(vid => V[vid].offers.forEach(off => {
+  function generate(vid, off) {
     off.v = vid;
     const defMap = Object.fromEntries(off.defs.map(d => [d.id, d]));
     for (let i = 0; i < off.n; i++) {
@@ -736,8 +790,13 @@
         ref: 'UN-' + between(100000, 999999), permit: off.permit ? (off.lease ? '71' + between(10000000, 99999999) : 'DXB-' + between(100000, 999999)) : null
       });
     }
-  }));
+  }
+  VORDER.forEach(vid => V[vid].offers.forEach(off => { if (off.late) off.v = vid; else generate(vid, off); }));
   LISTINGS.forEach((l, i) => { l.id = 'L' + (1000 + i); l.featured = rnd() < .18; });
+  // categories added later: their own random sequence, ids after the original ones — nothing existing changes
+  const first = LISTINGS.length; seed = 7919;
+  VORDER.forEach(vid => V[vid].offers.forEach(off => { if (off.late) generate(vid, off); }));
+  LISTINGS.slice(first).forEach((l, i) => { l.id = 'L' + (1000 + first + i); l.featured = rnd() < .18; });
 
   const offerOf = (v, c) => { const vv = V[v] || V.spaces; return vv.offers.find(x => x.id === c) || vv.offers[0]; };
   window.UP = { AREAS, areaById, areaName, LISTINGS, VERTICALS: V, VORDER, offerOf, K };

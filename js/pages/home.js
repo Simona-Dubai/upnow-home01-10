@@ -13,11 +13,18 @@ const go = () => {
   location.href = PATHS.href.search + toQuery(S);
 };
 
-const { headlines: COPY, heroImages: HERO, steps: STEPS } = CONTENT.home;
+const { headlines: COPY, heroImages: HERO_ALL, heroByCountry = {}, steps: STEPS, promos: PROMOS = [] } = CONTENT.home;
+// the visitor's country picks the hero photos (its own famous places); anything it doesn't have uses the defaults
+const COUNTRY = window.MARKETS ? MARKETS.visitor() : "AE";
+const HERO = { ...HERO_ALL, ...(heroByCountry[COUNTRY] || {}) };
 const OICO = UPF.OICO || {
   cleaning: "spark",
   ac: "snow",
   haircut: "user",
+  photography: "camera",
+  design: "palette",
+  makeup: "smile",
+  handyman: "wrench",
   dental: "tooth",
   safari: "sun",
   workshop: "tool",
@@ -42,7 +49,13 @@ function setHero(src) {
   bgCur = src;
   const next = bgImgs[1 - bgIdx];
   const pre = new Image();
-  pre.onload = pre.onerror = () => {
+  // a country photo that doesn't load falls back to the default one for the same tab
+  pre.onerror = () => {
+    const fb = Object.keys(HERO).find((k) => HERO[k] === src);
+    const alt = (fb && HERO_ALL[fb]) || HERO_ALL.all;
+    if (alt !== src) { bgCur = null; setHero(alt); }
+  };
+  pre.onload = () => {
     next.src = src;
     requestAnimationFrame(() => {
       next.classList.add("is-active");
@@ -257,6 +270,13 @@ function paint() {
             };
           })
           .sort((a, b) => (b.on || 0) - (a.on || 0));
+  // promotional banners: one large, two small — the tab's own first
+  const promoList = [...PROMOS.filter((p) => p.v === S.v), ...PROMOS.filter((p) => p.v !== S.v)].slice(0, 3);
+  const promo = (p, i) =>
+    `<a class="promo-card ${i === 0 ? "is-large" : ""}" href="${PATHS.href.search}${toQuery(blankState(p.v, p.o))}"><img src="${esc(p.img)}" alt="" loading="lazy"><span class="promo-text"><small>${esc(p.eyebrow)}</small><b>${esc(p.title)}</b><span>${esc(p.text)}</span><em>${esc(p.cta)}${ico("chevR")}</em></span></a>`;
+  const promos = promoList.length
+    ? `<section class="section promo-section"><div class="section-header"><div><h2>This season on ${esc(SITE.name)}</h2><p>Picked from verified providers</p></div></div><div class="promo-grid">${promoList.map(promo).join("")}</div></section>`
+    : "";
   document.getElementById("sections").innerHTML = blocks
     .filter((b) => b.list.length)
     .map(
@@ -267,6 +287,7 @@ function paint() {
       .map((l) => card(l))
       .join("")}</div></section>`,
     )
+    .map((html, i) => (i === 0 ? html + promos : html))
     .join("");
 
   const pool = S.v === "all" ? inV : inV.filter((l) => l.cat === S.o);

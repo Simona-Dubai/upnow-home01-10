@@ -3,7 +3,7 @@
   const { VERTICALS, VORDER, AREAS, areaName, LISTINGS } = UP;
   const { ico, esc, facetCount, valueLabel, offer, empty, t } = UPUI;
 
-  const OICO = { cleaning: 'spark', ac: 'snow', haircut: 'user', nursery: 'smile', higher: 'book', doctor: 'medic', dental: 'tooth', physio: 'wave', diagnostics: 'flask', mental: 'leaf', homecare: 'home', safari: 'sun', workshop: 'tool', tour: 'compass', gym: 'bolt', credits: 'tag', school: 'grad', course: 'doc', camp: 'sun', academy: 'ball', motor: 'car', health: 'heart', property: 'home' };
+  const OICO = { cleaning: 'spark', ac: 'snow', haircut: 'user', photography: 'camera', design: 'palette', makeup: 'smile', handyman: 'wrench', nursery: 'smile', higher: 'book', doctor: 'medic', dental: 'tooth', physio: 'wave', diagnostics: 'flask', mental: 'leaf', homecare: 'home', safari: 'sun', workshop: 'tool', tour: 'compass', gym: 'bolt', credits: 'tag', school: 'grad', course: 'doc', camp: 'sun', academy: 'ball', motor: 'car', health: 'heart', property: 'home' };
   function switchVertical(S, v) { const B = UPUI.blankState(v); Object.assign(S, { v: B.v, o: B.o, f: B.f, page: 1, sort: 'rec' }); }
   function switchOffer(S, o) { const B = UPUI.blankState(S.v, o); Object.assign(S, { o: B.o, f: B.f, page: 1, sort: 'rec' }); }
   function setVal(S, d, val) { if (empty(val)) delete S.f[d.id]; else S.f[d.id] = val; if (d.type === 'seg') delete S.f.price; S.page = 1; }

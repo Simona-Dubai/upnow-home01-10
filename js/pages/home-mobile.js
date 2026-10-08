@@ -38,6 +38,13 @@
   }
 
   /* ---------- screens ---------- */
+  // "This season": the promotional banners from data/home.js, this tab's first
+  function promoRow() {
+    const P = (window.CONTENT && CONTENT.home && CONTENT.home.promos) || []; if (!P.length) return '';
+    const list = [...P.filter(p => p.v === S.v), ...P.filter(p => p.v !== S.v)].slice(0, 4);
+    return `<div class="mobile-section"><div class="mobile-section-header"><div><h2>This season</h2><p>Picked from verified providers</p></div></div>
+      <div class="horizontal-scroll mobile-promos">${list.map((p, i) => `<button class="promo-card ${i === 0 ? 'is-large' : ''}" data-promo="${p.v}|${p.o}"><img src="${esc(p.img)}" alt="" loading="lazy"><span class="promo-text"><small>${esc(p.eyebrow)}</small><b>${esc(p.title)}</b><span>${esc(p.text)}</span><em>${esc(p.cta)}${ico('chevR')}</em></span></button>`).join('')}</div></div>`;
+  }
   function home() {
     const Oo = O(), base = S.v === 'all' ? null : UPUI.blankState(S.v, S.o);
     const offers = S.v === 'all' ? VORDER.map(v => ({ id: v, label: VERTICALS[v].label, icon: VERTICALS[v].icon, vert: 1 })) : VERTICALS[S.v].offers.map(o => ({ ...o, icon: iconOf(S.v, o) }));
@@ -57,6 +64,7 @@
       ${typeDef ? `<div class="mobile-section"><div class="mobile-section-header"><div><h2>Browse ${esc(Oo.label.toLowerCase())}</h2><p>By ${esc(typeDef.label.toLowerCase())}</p></div></div><div class="horizontal-scroll" style="gap:6px">${typeDef.options.map(op => { const f = { [typeDef.id]: typeDef.type === 'multi' ? [op.v] : op.v }; const n = UPUI.results({ ...base, f: { ...base.f, ...f } }).length; return n ? `<button class="chip" data-type="${typeDef.id}" data-tv="${esc(op.v)}">${esc(typeDef.id === 'beds' && op.v !== '0' ? op.l + ' bed' : op.l)} <span class="count">${n}</span></button>` : ''; }).join('')}</div></div>` : ''}
       ${rec.length ? `<div class="mobile-section"><div class="mobile-section-header"><h2>Recently viewed</h2></div><div class="horizontal-scroll">${rec.map(hcard).join('')}</div></div>` : ''}
       <div class="mobile-section"><div class="mobile-section-header"><div><h2>${Oo ? 'Top ' + esc(Oo.label.toLowerCase()) : 'Top rated'}</h2><p>Verified providers · ${feat.length}+ results</p></div><button data-go="results">See all</button></div><div class="horizontal-scroll">${feat.map(hcard).join('')}</div></div>
+      ${promoRow()}
       ${fresh.length ? `<div class="mobile-section"><div class="mobile-section-header"><div><h2>New this week</h2><p>Listed in the last 7 days</p></div><button data-go="results" data-sort="new">See all</button></div><div class="horizontal-scroll">${fresh.map(hcard).join('')}</div></div>` : ''}
       ${ar.length && !(Oo && Oo.locAll) ? `<div class="mobile-section"><div class="mobile-section-header"><h2>Popular areas</h2></div><div class="area-tiles">${ar.map((a, i) => `<button data-area="${a.id}"><img src="${areaImg[i % areaImg.length]}" alt=""><span><b>${esc(a.n)}</b><small>${a.c} listings</small></span></button>`).join('')}</div></div>` : ''}
       <div class="promo"><div style="flex:1"><b>List on UpNow</b><small>Get leads by call & WhatsApp.</small></div><a class="btn" href="${PATHS.href.join}">Learn more</a></div>
@@ -190,10 +198,11 @@
     if (e.target.closest('[data-fav],[data-call],[data-wa],[data-email],[data-sms],[data-chat],[data-bk],[data-open],.scrim,.side-drawer')) { setTimeout(() => { if (e.target.closest('[data-fav]')) { const tb = scr.querySelector('.tab-bar'); if (tb) tb.outerHTML = tbar(); } }, 0); return; }
     const ctl = e.target.closest('[data-ctl]');
     if (ctl && ctl.tagName !== 'INPUT') { e.preventDefault(); if (UPF.handleControl(ctl, S)) { if (sheet) reSheet(); else render(); } return; }
-    const b = e.target.closest('[data-tab],[data-back],[data-go],[data-v],[data-o],[data-l],[data-type],[data-area],[data-addloc],[data-rmloc],[data-reset],[data-view],[data-pin],[data-sheet],[data-closesheet],[data-sort],[data-clearf],[data-ptab],[data-prov]');
+    const b = e.target.closest('[data-promo],[data-tab],[data-back],[data-go],[data-v],[data-o],[data-l],[data-type],[data-area],[data-addloc],[data-rmloc],[data-reset],[data-view],[data-pin],[data-sheet],[data-closesheet],[data-sort],[data-clearf],[data-ptab],[data-prov]');
     if (!b) return; e.preventDefault();
     const d = b.dataset;
-    if (d.tab) setTab(d.tab);
+    if (d.promo) { const [pv, po] = d.promo.split('|'); UPF.switchVertical(S, pv); UPF.switchOffer(S, po); go('results'); }
+    else if (d.tab) setTab(d.tab);
     else if ('back' in d) back();
     else if (d.v) { UPF.switchVertical(S, d.v); render(); }
     else if (d.o) { UPF.switchOffer(S, d.o); render(); }

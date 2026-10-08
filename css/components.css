@@ -317,9 +317,9 @@ body {
 }
 
 .chip.is-active {
-  background: var(--color-primary-dark);
-  color: #fff;
-  border-color: var(--color-primary-dark);
+  background: var(--color-primary-tint);
+  border-color: var(--color-primary-lighter);
+  color: var(--color-primary);
 }
 
 .chip .count {
@@ -5109,4 +5109,200 @@ select.is-menu-open {
   from {
     transform: translateY(100%);
   }
+}
+
+/* card tags never run into the heart: they stop before it, stay on one line each, and on narrow cards
+   "Verified" shrinks to its shield (the label stays for screen readers) */
+.card .photo {
+  container-type: inline-size;
+}
+
+.card .badges {
+  right: 50px;
+  flex-wrap: wrap;
+}
+
+.card .badge {
+  white-space: nowrap;
+}
+
+@container (max-width: 250px) {
+  .card .badge.is-verified {
+    padding: 3px 5px;
+    font-size: 0;
+    gap: 0;
+  }
+
+  .card .badge.is-verified .icon {
+    width: 13px;
+    height: 13px;
+  }
+}
+
+/* card tags match the Save button: the same frosted white, soft shadow and height; Verified's shield in green.
+   On narrow cards Verified becomes a round shield badge — the same shape as the heart */
+.card .badge {
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.card .badge.is-verified {
+  color: var(--color-primary-dark);
+}
+
+.card .badge.is-verified .icon {
+  width: 13px;
+  height: 13px;
+  color: var(--color-primary);
+}
+
+.card .badge.is-featured {
+  background: var(--color-amber);
+  color: #fff;
+}
+
+@container (max-width: 250px) {
+  .card .badge.is-verified {
+    width: 26px;
+    padding: 0;
+    justify-content: center;
+    font-size: 0;
+  }
+
+  .card .badge.is-verified .icon {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.compact-grid .card .badge {
+  height: 24px;
+  padding: 0 8px;
+  font-size: 10.5px;
+}
+
+/* narrow cards, final word: the Verified tag is a round shield only — this comes last and outranks the
+   compact-grid sizes; the phone app's rail cards get the same treatment */
+.rail-card .photo,
+.mobile-card .gallery {
+  container-type: inline-size;
+}
+
+.rail-card .badges,
+.mobile-card .badges {
+  right: 50px;
+  flex-wrap: wrap;
+}
+
+@container (max-width: 250px) {
+  .photo .badges .badge.is-verified,
+  .gallery .badges .badge.is-verified {
+    width: 26px;
+    min-width: 26px;
+    height: 26px;
+    padding: 0;
+    gap: 0;
+    justify-content: center;
+    font-size: 0;
+    line-height: 0;
+    overflow: hidden;
+  }
+
+  .photo .badges .badge.is-verified .icon,
+  .gallery .badges .badge.is-verified .icon {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+/* =====================================================================
+   Card tags, settled: each corner of the photo has one job —
+   top left Featured, top right the heart, bottom left Verified, bottom right the photo count.
+   Verified takes the photo count's look (dark see-through, white text), so the two bottom tags read as a pair
+   and the top never shows two matching circles.
+   ===================================================================== */
+.photo .badges,
+.gallery .badges {
+  top: 10px;
+  bottom: 10px;
+  right: 50px;
+  align-items: flex-start;
+  pointer-events: none;
+}
+
+.photo .badges .badge.is-verified,
+.gallery .badges .badge.is-verified {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: auto;
+  min-width: 0;
+  height: auto;
+  padding: 3px 7px 3px 6px;
+  gap: 4px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.55);
+  box-shadow: none;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: normal;
+  color: #fff;
+  overflow: visible;
+}
+
+.photo .badges .badge.is-verified .icon,
+.gallery .badges .badge.is-verified .icon {
+  width: 12px;
+  height: 12px;
+  color: #7ee2ad;
+}
+
+/* the photo count sits at the same height on the right */
+.compact-grid .card .badges {
+  top: 7px;
+  bottom: 7px;
+}
+
+@container (max-width: 250px) {
+  .photo .badges .badge.is-verified,
+  .gallery .badges .badge.is-verified {
+    width: auto;
+    min-width: 0;
+    height: auto;
+    padding: 2px 6px 2px 5px;
+    font-size: 10.5px;
+    line-height: normal;
+    gap: 3px;
+  }
+
+  .photo .badges .badge.is-verified .icon,
+  .gallery .badges .badge.is-verified .icon {
+    width: 11px;
+    height: 11px;
+  }
+}
+
+/* Verified and the photo count: same height, same baseline */
+.photo .badges .badge.is-verified,
+.gallery .badges .badge.is-verified {
+  height: 21px;
+  padding: 0 7px 0 6px;
+  font-size: 11px;
+}
+
+.photo .badges .badge.is-verified .icon,
+.gallery .badges .badge.is-verified .icon {
+  width: 11px;
+  height: 11px;
+}
+
+.card .photo .count {
+  height: 21px;
+  padding: 0 7px;
 }

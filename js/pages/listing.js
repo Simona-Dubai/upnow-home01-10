@@ -678,7 +678,7 @@ function paint() {
             terms.length
               ? `
             <p class="price-terms">
-              ${terms.map(([k, v]) => `<span>${esc(k)} <b>${esc(v)}</b></span>`).join("")}
+              ${terms.map(([k, v]) => `<span><small>${esc(k)}</small><b>${esc(v)}</b></span>`).join("")}
             </p>
           `
               : ""

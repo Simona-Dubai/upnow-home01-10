@@ -1616,3 +1616,10 @@ body {
     padding-bottom: 68px;
   }
 }
+
+/* Follow on agent and agency pages: filled once you follow */
+.provider-actions .btn-follow.is-following {
+  border-color: var(--color-primary);
+  background: var(--color-primary-tint-light);
+  color: var(--color-primary-dark);
+}

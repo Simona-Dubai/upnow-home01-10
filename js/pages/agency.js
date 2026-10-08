@@ -147,7 +147,7 @@ function paint() {
           [L.length, SP ? "Listings" : "Offers"],
           [`~${reply} min`, "Reply time"],
         ])}</div>
-      <div class="provider-actions"><button class="btn btn-outline" onclick="navigator.clipboard&&navigator.clipboard.writeText(location.href);UPUI.toast('Agency link copied')">${ico("share")}Share</button><button class="btn btn-outline" onclick="UPUI.toast('Following ${esc(org)} — you’ll get new listings')">${ico("bell")}Follow</button></div>
+      <div class="provider-actions"><button class="btn btn-outline" onclick="navigator.clipboard&&navigator.clipboard.writeText(location.href);UPUI.toast('Agency link copied')">${ico("share")}Share</button>${(on => `<button class="btn btn-outline btn-follow ${on ? "is-following" : ""}" type="button" data-follow="agency|${esc(org)}" aria-pressed="${on}">${ico("bell")}<span>${UPUI.followLabel(on)}</span></button>`)(UPUI.follows.has("agency", org))}</div>
     </div>
     <div class="provider-layout"><div>
       <div class="key-figures"><div><b>${agents.length}</b><span>${SP ? "Agents" : "Team members"}</span></div><div><b>${L.length}</b><span>Active ${SP ? "listings" : "offers"}</span></div><div><b>${areas.length}</b><span>Areas covered</span></div><div><b>~${reply} min</b><span>Typical reply</span></div></div>

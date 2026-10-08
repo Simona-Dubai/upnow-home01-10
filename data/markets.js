@@ -10,7 +10,7 @@
 
   /* licence keys used by the signup page:
      agentCard / agentNo  — individual agent licence (+ its number field)
-     office / officeNo    — agency / brokerage registration
+     office / officeNo    — agency / office registration
      company / companyNo  — business registration for any company (+ issuers in `authorities`)
      ownership            — proof the owner may let the property
      shortStay, tour, education, insurance, health, freelance — sector licences
@@ -42,7 +42,7 @@
       signIn: { label: 'UAE PASS', badge: 'UAE', hint: 'Fastest — verifies your name and mobile in one step' },
       idDoc: 'Emirates ID', emailExample: 'you@company.ae',
       licences: {
-        agentCard: ['RERA broker card', 'Shows your BRN · issued by Dubai Land Department', true], agentNo: 'RERA BRN', agentNoPattern: '^\\d{4,6}$',
+        agentCard: ['RERA card', 'Shows your BRN · issued by Dubai Land Department', true], agentNo: 'RERA BRN', agentNoPattern: '^\\d{4,6}$',
         office: ['RERA office registration (ORN)', 'Office registration certificate from DLD', true], officeNo: 'RERA ORN',
         company: ['Trade licence', 'Valid DED, DET or free-zone licence', true], companyNo: 'Trade licence no.',
         authorities: ['Dubai DET (mainland)', 'DMCC', 'Dubai South', 'DIFC', 'Dubai Silicon Oasis', 'Abu Dhabi ADDED', 'Sharjah SEDD', 'Other free zone'],
@@ -50,7 +50,7 @@
         shortStay: ['DTCM holiday home permit', 'Holiday home operator licence', true],
         tour: ['DTCM tour operator licence', 'Required for tours, safaris and activities', true],
         education: ['KHDA permit', 'For schools, training centres and courses', true],
-        insurance: ['CBUAE licence', 'Central Bank of the UAE insurer / broker licence', true],
+        insurance: ['CBUAE licence', 'Central Bank of the UAE insurer or intermediary licence', true],
         health: ['DHA licence', 'Dubai Health Authority licence for clinics and practitioners', false],
         freelance: ['Freelance permit', 'Issued by your free zone or the DED', true]
       },
@@ -66,15 +66,15 @@
       signIn: { label: 'Nafath', badge: 'KSA', hint: 'Verify your identity with the national single sign-on' },
       idDoc: 'National ID or Iqama', emailExample: 'you@company.sa',
       licences: {
-        agentCard: ['REGA FAL licence', 'Real Estate General Authority broker licence', true], agentNo: 'FAL licence no.',
-        office: ['REGA FAL licence (company)', 'Brokerage licence of the office', true], officeNo: 'FAL licence no.',
+        agentCard: ['REGA FAL licence', 'Real Estate General Authority agent licence', true], agentNo: 'FAL licence no.',
+        office: ['REGA FAL licence (company)', 'Real estate licence of the office', true], officeNo: 'FAL licence no.',
         company: ['Commercial Registration (CR)', 'Valid CR certificate', true], companyNo: 'CR number',
         authorities: ['Ministry of Commerce', 'MISA (foreign investment)'],
         ownership: ['Title deed (sak)', 'Electronic title deed — checked, never shown', true],
         shortStay: ['Ministry of Tourism licence', 'Required for holiday rentals', true],
         tour: ['Ministry of Tourism licence', 'Required for tours and activities', true],
         education: ['Ministry of Education licence', 'For schools and training centres', true],
-        insurance: ['Insurance Authority licence', 'Insurer or broker licence', true],
+        insurance: ['Insurance Authority licence', 'Insurer or intermediary licence', true],
         health: ['Ministry of Health licence', 'For clinics and practitioners', false],
         freelance: ['Freelance document', 'Issued through the national freelance platform', true]
       },
@@ -111,13 +111,13 @@
       idDoc: 'Aadhaar or PAN card', emailExample: 'you@company.in',
       licences: {
         agentCard: ['State RERA agent registration', 'Issued by your state RERA', true], agentNo: 'RERA agent reg. no.',
-        office: ['State RERA registration (firm)', 'Registration of the brokerage', true], officeNo: 'RERA reg. no.',
+        office: ['State RERA registration (firm)', 'Registration of the real estate firm', true], officeNo: 'RERA reg. no.',
         company: ['GST certificate', 'Or company / shop registration', true], companyNo: 'GSTIN',
         authorities: ['MCA (private limited / LLP)', 'Shop & Establishment', 'Partnership firm', 'Sole proprietor'],
         ownership: ['Sale deed or property tax receipt', 'Checked, never shown', true],
         shortStay: ['State tourism registration', 'If your state requires one', false], tour: ['Ministry of Tourism approval', 'If applicable', false],
         education: ['Board recognition / affiliation', 'For schools and coaching centres', false],
-        insurance: ['IRDAI licence', 'Insurer or broker licence', true],
+        insurance: ['IRDAI licence', 'Insurer or intermediary licence', true],
         health: ['Clinical establishment registration', 'For clinics and practitioners', false],
         freelance: ['PAN card', 'For tax identification', true]
       },
@@ -132,7 +132,7 @@
       signIn: null, idDoc: 'Driver’s license or passport', emailExample: 'you@company.com',
       licences: {
         agentCard: ['State real estate license', 'Issued by your state real estate commission', true], agentNo: 'License no.',
-        office: ['Brokerage license', 'State broker license of the office', true], officeNo: 'Broker license no.',
+        office: ['Real estate firm license', 'State real estate license of the office', true], officeNo: 'License no.',
         company: ['Business registration', 'Articles of organization or business license', true], companyNo: 'EIN',
         authorities: ['LLC', 'Corporation', 'Sole proprietor', 'Partnership'],
         ownership: ['Deed or property tax bill', 'Checked, never shown', true],
@@ -155,5 +155,23 @@
     const p = PROFILES[iso] || {};
     return { ...GENERIC, ...p, phone: { ...GENERIC.phone, ...(p.phone || {}) }, licences: { ...GENERIC.licences, ...(p.licences || {}) }, cities: p.cities || {} };
   };
-  window.MARKETS = { COUNTRIES, PROFILES, GENERIC, market, byIso: iso => COUNTRIES.find(c => c.iso === iso), DEFAULT: 'AE' };
+  // the visitor's country, worked out on the device (no location request, nothing sent anywhere): a country they picked
+  // (localStorage "upnow.country"), else their time zone, else the region in their browser language, else the default
+  const TZ = 'Asia/Dubai|AE;Asia/Muscat|OM;Asia/Qatar|QA;Asia/Bahrain|BH;Asia/Kuwait|KW;Asia/Riyadh|SA;Asia/Amman|JO;Asia/Beirut|LB;Africa/Cairo|EG;' +
+    'Asia/Karachi|PK;Asia/Kolkata|IN;Asia/Calcutta|IN;Asia/Dhaka|BD;Asia/Colombo|LK;Asia/Kathmandu|NP;Asia/Manila|PH;Asia/Singapore|SG;Asia/Kuala_Lumpur|MY;' +
+    'Asia/Jakarta|ID;Asia/Bangkok|TH;Asia/Ho_Chi_Minh|VN;Asia/Hong_Kong|HK;Asia/Shanghai|CN;Asia/Tokyo|JP;Asia/Seoul|KR;Asia/Tehran|IR;Asia/Baghdad|IQ;' +
+    'Europe/Istanbul|TR;Europe/London|GB;Europe/Dublin|IE;Europe/Paris|FR;Europe/Berlin|DE;Europe/Madrid|ES;Europe/Rome|IT;Europe/Amsterdam|NL;' +
+    'Europe/Brussels|BE;Europe/Zurich|CH;Europe/Vienna|AT;Europe/Stockholm|SE;Europe/Oslo|NO;Europe/Copenhagen|DK;Europe/Helsinki|FI;Europe/Warsaw|PL;' +
+    'Europe/Prague|CZ;Europe/Lisbon|PT;Europe/Athens|GR;Europe/Bucharest|RO;Europe/Kiev|UA;Europe/Kyiv|UA;Europe/Moscow|RU;Africa/Johannesburg|ZA;' +
+    'Africa/Lagos|NG;Africa/Nairobi|KE;Africa/Casablanca|MA;Australia/Sydney|AU;Australia/Melbourne|AU;Australia/Perth|AU;Pacific/Auckland|NZ;' +
+    'America/Toronto|CA;America/Vancouver|CA;America/Sao_Paulo|BR;America/Mexico_City|MX;America/Argentina/Buenos_Aires|AR';
+  const TZMAP = Object.fromEntries(TZ.split(';').map(x => x.split('|')));
+  const visitor = () => {
+    const known = iso => iso && COUNTRIES.some(c => c.iso === iso) ? iso : null;
+    let picked = null; try { picked = localStorage.getItem('upnow.country'); } catch (e) {}
+    let tz = ''; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
+    const lang = ((navigator.languages || [navigator.language])[0] || '').split('-')[1];
+    return known(picked) || known(TZMAP[tz]) || (/^America\/(?!Toronto|Vancouver|Sao_Paulo|Mexico_City|Argentina)/.test(tz) ? 'US' : null) || known((lang || '').toUpperCase()) || 'AE';
+  };
+  window.MARKETS = { COUNTRIES, PROFILES, GENERIC, market, visitor, byIso: iso => COUNTRIES.find(c => c.iso === iso), DEFAULT: 'AE' };
 })();

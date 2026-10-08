@@ -3,7 +3,7 @@
 (function () {
   const U = window.UPUI = window.UPUI || {};
 
-  function initials(n) { return n.split(/\s+/).map(x => x[0]).slice(0, 2).join('').toUpperCase(); }
+  function initials(n) { return String(n || '').split(/\s+/).filter(x => /^[\p{L}\d]/u.test(x)).map(x => x[0]).slice(0, 2).join('').toUpperCase(); } // "Shine & Co." → SC, not S&
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   // 1234 → "1K", 2500000 → "2.5M"
   const K = n => n >= 1e6 ? (n / 1e6).toFixed(n % 1e6 ? 1 : 0) + 'M' : n >= 1000 ? Math.round(n / 1000) + 'K' : String(n);
@@ -13,7 +13,7 @@
      (lists, notes, documents…), recently viewed and contact details are kept per signed-in account. Signed out, they go to
      a guest area; logging in moves the guest's activity into that account (store.adopt), creating an account starts empty. Device settings
      (language, currency), the sign-in itself and the list of accounts stay shared. */
-  const OWN = ['favs', 'leads', 'alerts', 'dash', 'recent', 'me'];
+  const OWN = ['favs', 'leads', 'alerts', 'dash', 'recent', 'me', 'follows'];
   const raw = k => SITE.storageKey + '.' + k;
   const read = k => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } };
   const ownerOf = u => u ? (u.phone ? (u.dial || '') + u.phone : String(u.email || '').toLowerCase()) : '';
@@ -56,5 +56,24 @@
 
   const fmtPhone = p => p.replace(/^\+971(\d{2})(\d{3})(\d{4})$/, '+971 $1 $2 $3');
 
-  Object.assign(U, { initials, esc, K, store, prefs, CUR, money, moneyK, t, fmtPhone });
+  /* ---------- following agents and agencies ----------
+     Follow on an agent's or an agency's page: kept per account like saved listings, shown in Saved › Following.
+     An entry is { k: 'agent' | 'agency', n: name, t: when }. Any [data-follow="agent|Name"] button toggles it. */
+  const follows = {
+    all: () => store.get('follows') || [],
+    has: (k, n) => follows.all().some(f => f.k === k && f.n === n),
+    toggle(k, n) { const L = follows.all(), on = L.some(f => f.k === k && f.n === n); store.set('follows', on ? L.filter(f => !(f.k === k && f.n === n)) : [{ k, n, t: Date.now() }, ...L]); return !on; }
+  };
+  const followLabel = on => on ? 'Following' : 'Follow';
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-follow]'); if (!b) return;
+    e.preventDefault();
+    const [k, ...rest] = b.dataset.follow.split('|'), n = rest.join('|'), on = follows.toggle(k, n);
+    b.classList.toggle('is-following', on); b.setAttribute('aria-pressed', on);
+    const label = b.querySelector('span'); if (label) label.textContent = followLabel(on);
+    if (U.toast) U.toast(on ? `Following ${n} — find them in Saved` : `Unfollowed ${n}`);
+    document.dispatchEvent(new CustomEvent('upnow:follow'));
+  });
+
+  Object.assign(U, { initials, esc, K, store, prefs, CUR, money, moneyK, t, fmtPhone, follows, followLabel });
 })();

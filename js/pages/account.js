@@ -108,18 +108,25 @@
   const alertMeta = q => D.alert[q] || (D.alert[q] = { freq: 'instant', ch: 'wa' });
 
   /* ---------- notifications (built from what the agents did) ---------- */
+  /* every alert: { id, kind (reply · remind · listing · document), img, title, text, t, go, m? } — what happened, about
+     which place (its photo), and when. A reply to an enquiry that was closed afterwards is history, not news. */
   function feed() {
     const out = [];
     all().forEach(m => {
-      const { r } = m, at = '#enquiry=' + r.id;
-      if (m.replyEv) out.push({ id: 'rep' + r.id + m.replyEv.t, kind: 'enq', icon: 'msg', tone: 'info', t: m.replyEv.t, title: `${r.provider} replied`, text: `${r.title} — “${m.replyEv.text}”`, go: '#messages=' + r.id });
-      if (m.late) out.push({ id: 'late' + r.id, kind: 'enq', icon: 'clock', tone: 'amber', t: r.t + SLA, title: `No reply yet from ${m.who}`, text: `${r.title} — nudge them or try another channel.`, go: at });
-      if (m.closedEv) out.push({ id: 'cls' + r.id, kind: 'enq', icon: 'x', tone: 'red', t: m.closedEv.t, title: `${r.provider} closed your enquiry`, text: `${r.title} — ${m.closedEv.text}`, go: at });
+      const { r } = m, at = '#enquiry=' + r.id, img = PATHS.img(r.img);
+      if (m.replyEv) out.push({ id: 'rep' + r.id + m.replyEv.t, kind: 'reply', type: 'reply', m, img, badge: 'msg', tone: 'info', t: m.replyEv.t, title: `${r.provider} replied`, text: `“${m.replyEv.text}”`, sub: r.title, go: '#messages=' + r.id, stale: m.stage === 'closed' });
+      if (m.late) out.push({ id: 'late' + r.id, kind: 'remind', type: 'late', m, img, badge: 'clock', tone: 'amber', t: r.t + SLA, title: `No reply yet from ${m.who}`, text: 'Nudge them, or try WhatsApp or a call.', sub: r.title, go: at });
+      if (m.closedEv) out.push({ id: 'cls' + r.id, kind: 'reply', type: 'closed', m, img, badge: 'x', tone: 'red', t: m.closedEv.t, title: `${r.provider} closed your enquiry`, text: `“${m.closedEv.text}”`, sub: r.title, go: at });
     });
-    alerts().forEach(q => { const s = searchInfo(q); if (s.fresh.length && alertMeta(q).freq !== 'paused') out.push({ id: 'new' + q + s.fresh.length, kind: 'match', icon: 'spark', tone: 'ok', t: now() - 6 * 3600000, title: `${s.fresh.length} new for “${s.title}”`, text: `Including ${s.fresh[0].title}.`, go: s.href }); });
+    alerts().forEach(q => { const s = searchInfo(q); if (s.fresh.length && alertMeta(q).freq !== 'paused') out.push({ id: 'new' + q + s.fresh.length, kind: 'listing', type: 'match', count: s.fresh.length, img: s.fresh[0].img[0], badge: 'search', tone: 'ok', t: now() - 6 * 3600000, title: `${s.fresh.length} new ${s.fresh.length === 1 ? 'listing' : 'listings'} for your search`, text: s.title, sub: `Including ${s.fresh[0].title}`, go: s.href }); });
+    // agents and agencies you follow: what they posted this week
+    U.follows.all().forEach(f => { const Ls = LISTINGS.filter(l => (f.k === 'agency' ? l.provider.org : l.provider.name) === f.n && l.posted <= 7).sort((a, b) => a.posted - b.posted);
+      if (Ls.length) out.push({ id: 'fol' + f.k + f.n + Ls.length, kind: 'listing', type: 'follow', count: Ls.length, img: Ls[0].img[0], badge: 'bell', tone: 'ok', t: now() - Ls[0].posted * 864e5 - 2 * 3600000, title: `${f.n} posted ${Ls.length} new ${Ls.length === 1 ? 'listing' : 'listings'}`, text: Ls[0].title, sub: 'Someone you follow', go: f.k === 'agency' ? HREF.agency + '?a=' + encodeURIComponent(f.n) : provHref(f.n) }); });
+    docsDue().forEach(doc => { const e = expOf(doc), d = daysTo(e); out.push({ id: 'doc' + doc.id + e, kind: 'document', type: 'document', badge: 'doc', tone: d < 0 ? 'red' : 'amber', icon: 'doc', t: now() - 3600000, title: `Your ${doc.t} ${d < 0 ? 'has expired' : 'expires in ' + d + ' days'}`, text: 'Listers ask for a valid ID before a contract or sign-up.', sub: niceD(e), go: '#documents' }); });
     return out.sort((a, b) => b.t - a.t);
   }
-  const unread = () => feed().filter(n => !D.read.includes(n.id)).length;
+  const isRead = n => n.stale || D.read.includes(n.id);
+  const unread = () => feed().filter(n => !isRead(n)).length;
 
   /* ---------- routing ---------- */
   const SECTIONS = [['overview', 'Home', 'home'], ['enquiries', 'My enquiries', 'list'], ['messages', 'Messages', 'msg'], ['saved', 'Saved', 'heart'], ['documents', 'Documents', 'doc'], ['alerts', 'Alerts', 'bell'], ['profile', 'Profile & privacy', 'user']];
@@ -137,12 +144,23 @@
     const badge = { enquiries: need || null, messages: unreadMsgs() || null, saved: favs.size || null, documents: docsDue().length || null, alerts: n || null };
     const u = user();
     return `<aside class="account-sidebar">
-      <div class="account-user"><span class="account-avatar">${esc(U.auth.initialsOf(u))}</span><div><b>${esc(u.name || u.email || 'Your account')}</b><small>${u.phone ? `${ico('shield')}Verified mobile` : esc(u.email || '')}</small></div></div>
-      <nav class="account-nav" aria-label="Account">${SECTIONS.map(([id, l, i]) => `<a href="#${id}" class="${cur === id ? 'is-active' : ''}">${ico(i)}<span>${l}</span>${badge[id] ? `<em class="${id === 'messages' ? 'is-red' : id === 'enquiries' || id === 'alerts' || id === 'documents' ? 'is-hot' : ''}">${badge[id]}</em>` : ''}</a>`).join('')}</nav>
+      <div class="account-user">${meAvatar(u)}<div><b>${esc(u.name || u.email || 'Your account')}</b><small>${u.phone ? `${ico('shield')}Verified mobile` : esc(u.email || '')}</small></div></div>
+      <nav class="account-nav" aria-label="Account">${SECTIONS.map(([id, l, i]) => `${id === 'documents' ? '<small class="account-nav-group">Account</small>' : ''}<a href="#${id}" class="${cur === id ? 'is-active' : ''}">${ico(i)}<span>${l}</span>${badge[id] ? `<em class="${id === 'messages' ? 'is-red' : id === 'enquiries' || id === 'alerts' || id === 'documents' ? 'is-hot' : ''}">${badge[id]}</em>` : ''}</a>`).join('')}</nav>
       <a class="account-explore" href="${SITE.homeHref || HREF.home}">${ico('compass')}Explore marketplace</a>
     </aside>`;
   }
 
+  // your avatar: the photo you added on Profile, otherwise your initials
+  const meAvatar = (u, cls = '') => D.photo ? `<span class="account-avatar has-photo ${cls}"><img src="${D.photo}" alt=""></span>` : `<span class="account-avatar ${cls}">${esc(U.auth.initialsOf(u))}</span>`;
+  // a picked photo: cropped to a square from the centre and scaled to 256 px, so it stays small in storage
+  function setPhoto(file) {
+    if (!/^image\//.test(file.type)) return toast('Choose an image file');
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => { const c = document.createElement('canvas'), n = 256, side = Math.min(img.width, img.height); c.width = c.height = n;
+      c.getContext('2d').drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, n, n);
+      URL.revokeObjectURL(url); D.photo = c.toDataURL('image/jpeg', 0.85); try { save(); } catch (e) { delete D.photo; return toast('That photo is too large'); } render(); toast('Profile photo updated'); };
+    img.onerror = () => toast('We couldn’t read that image'); img.src = url;
+  }
   let asked = false, shown = false;
   function render() {
     const u = user();
@@ -155,6 +173,7 @@
     const R = route();
     const body = { overview, enquiries: () => R.id ? tracking(R.id) : enquiries(), messages: () => messages(R.id), saved, documents, alerts: alertsView, profile }[R.s]();
     root.innerHTML = nav(R.s) + `<section class="account-main">${body}</section>`;
+    root.querySelectorAll('.account-enquiry-filters .lead-bar').forEach(b => { const f = () => b.classList.toggle('is-overflowing', b.scrollWidth > b.clientWidth + 1 && b.scrollLeft + b.clientWidth < b.scrollWidth - 1); f(); b.addEventListener('scroll', f, { passive: true }); });
     document.title = `${R.s === 'overview' ? 'My account' : (SECTIONS.find(x => x[0] === R.s) || [])[1]} | ${SITE.name}`;
     U.updateHdrCounts();
   }
@@ -174,142 +193,247 @@
   const srcTag = r => { const [t, , c] = chOf(r); return `<span class="lead-source" style="--c:${c}"><i></i>${t}</span>`; };
   const av = (n, cls = '') => `<span class="lead-avatar ${cls}">${esc(initials(n))}</span>`;
   const spec = r => [...(r.spec || []).slice(0, 2), r.building || r.area].filter(Boolean).join(' · ');
-  // the latest thing said in the conversation, like the message line on a provider's lead card
+  // the latest thing said in the conversation, like the message line on a provider's lead card;
+  // each card leads with the listing's photo, so you know which place it is at a glance
   const lastMsg = m => { const e = [...m.ev].reverse().find(x => x.text && x.t <= now()); return e ? m.who + ': ' + e.text : m.r.msg ? 'You: ' + m.r.msg : m.next; };
   function leadCard(m) {
     const { r } = m, waited = m.late ? Math.round((now() - r.t) / 60000) : 0;
     return `<a class="lead-card ${m.needs ? 'is-hot' : ''}" href="#enquiry=${r.id}">
-      <div class="lead-title">${av(r.provider)}<b>${esc(r.provider)}</b></div>
-      <div class="lead-listing">${ico('building')}<span>${esc(r.title)}</span></div>
+      <div class="lead-card-top">${thumb(r)}<span><b>${esc(r.title)}</b><small>${esc(r.provider)}</small></span></div>
       <p>${esc(lastMsg(m))}</p>
-      <div class="lead-footer">${srcTag(r)}<span class="spacer"></span>${m.needs && !m.late ? '<span class="lead-tag">Your turn</span>' : m.late ? `<span class="late">${waited < 120 ? waited + 'm' : Math.round(waited / 60) + 'h'} no reply</span>` : `<span>${ago(m.ev.length ? m.ev[m.ev.length - 1].t : r.t)}</span>`}</div></a>`;
+      <div class="lead-footer">${srcTag(r)}<span class="spacer"></span>${m.needs && !m.late ? '<span class="lead-tag">Your turn</span>' : m.late ? `<span class="late">${waited < 120 ? waited + 'm' : waited < 2880 ? Math.round(waited / 60) + 'h' : Math.round(waited / 1440) + 'd'} no reply</span>` : `<span>${ago(m.ev.length ? m.ev[m.ev.length - 1].t : r.t)}</span>`}</div></a>`;
   }
 
-  /* ---------- home — decisions first, then where each enquiry stands; a side panel shows only what exists ---------- */
-  // real decisions, with their buttons on the row (calls and WhatsApps are grouped into one follow-up row below)
+  /* ---------- home — a customer activity centre, in priority order:
+     needs your attention → your enquiries → messages → continue where you left off → saved → discover more ---------- */
+  // one row per decision, with its own colour and button: replied → Review, no reply → Nudge (calls and WhatsApps are
+  // grouped into one "did you get through?" row; expiring documents ask for an update)
   function homeAction(m) {
-    const id = m.r.id, b = (act, label, cls = 'btn-outline') => `<button class="btn ${cls} btn-sm" type="button" data-act="${act}" data-id="${id}">${label}</button>`;
-    if (m.stage !== 'closed' && m.replyEv && isUnreadMsg(m)) return { icon: 'msg', tone: 'green', t: `${esc(m.who)} replied`, sub: m.replyEv.text, b: `<a class="btn btn-primary btn-sm" href="#messages=${id}">Reply</a>` };
-    if (m.late) return { icon: 'clock', tone: 'red', t: `No reply from ${esc(m.who)} yet`, b: m.S.nudged ? `<a class="btn btn-outline btn-sm" href="${esc(similarHref(m.r))}">Similar</a>` : b('nudge', 'Nudge', 'btn-primary') };
+    const { r } = m, id = r.id;
+    const call = `<a class="btn btn-outline btn-sm" href="tel:${esc(r.pphone)}" data-calllog="${id}">${ico('phone')}Call</a>`;
+    const wa = `<a class="btn btn-outline btn-sm" target="_blank" rel="noopener" href="${waHref(r.pphone, `Hi ${m.who}, about ${r.title} (Ref ${r.ref}) on ${SITE.name}.`)}" data-walog="${id}">${ico('wa')}WhatsApp</a>`;
+    const waited = ago(r.t).replace(' ago', '');
+    const waGreen = `<a class="btn btn-whatsapp btn-sm" target="_blank" rel="noopener" href="${waHref(r.pphone, `Hi ${m.who}, about ${r.title} (Ref ${r.ref}) on ${SITE.name}.`)}" data-walog="${id}">${ico('wa')}WhatsApp</a>`;
+    if (m.stage !== 'closed' && m.replyEv && isUnreadMsg(m)) return { p: 1, t0: m.replyEv.t, m, kicker: 'New reply', one: `<a class="btn btn-primary btn-sm" href="#messages=${id}">${ico('msg')}Reply</a>`, href: `#messages=${id}`, icon: 'msg', tone: 'green', t: `${esc(m.who)} replied`, sub: `${ago(m.replyEv.t)} · ${r.title}`, quote: m.replyEv.text, b: `<a class="btn btn-primary btn-sm" href="#messages=${id}">${ico('msg')}Reply</a>${call}` };
+    if (m.late) return { p: 2, t0: r.t, m, href: `#enquiry=${id}`, icon: 'clock', tone: 'red', t: m.S.nudged ? `${esc(m.who)} hasn’t replied in ${waited}` : `No reply from ${esc(m.who)} in ${waited}`, sub: m.S.nudged ? `You nudged ${ago(m.S.nudged)} · ${r.title}` : r.title,
+      one: m.S.nudged ? waGreen : `<button class="btn btn-primary btn-sm" type="button" data-act="nudge" data-id="${id}">${ico('bell')}Nudge</button>`,
+      b: m.S.nudged ? `${wa}<a class="btn btn-ghost btn-sm" href="${esc(similarHref(r))}">See similar</a>` : `<button class="btn btn-primary btn-sm" type="button" data-act="nudge" data-id="${id}">${ico('bell')}Nudge ${esc(m.who)}</button>${wa}` };
     return null;
   }
-  // a plain status for the list — the "did you get through?" question lives in one follow-up row, not on every line
-  const homeStatus = m => m.pill;
   function overview() {
     const u = user(), L = all(), open = L.filter(m => m.stage !== 'closed');
-    const acts = L.map(m => [m, homeAction(m)]).filter(x => x[1]);
     const follow = L.filter(m => m.stage === 'direct' && m.S.heard !== false);
-    const people = [...new Map(follow.map(m => [m.r.provider, m])).values()]; // each agent once
-    const waiting = L.filter(m => m.stage === 'sent').length;
-    const convos = L.filter(lastIn).sort((a, b) => lastIn(b).t - lastIn(a).t).slice(0, 3);
+    const people = [...new Map(follow.map(m => [m.r.provider, m])).values()]; // each lister once
+    const waiting = L.filter(m => colOf(m) === 0).length;
     const al = alerts()[0] && searchInfo(alerts()[0]);
     const saved = savedList().map(byId).filter(Boolean);
-    const nNeed = acts.length + (follow.length ? 1 : 0);
     const h = new Date().getHours(), hi = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
-    const bits = [open.length && `${open.length} active ${open.length === 1 ? 'enquiry' : 'enquiries'}`, unreadMsgs() && `${unreadMsgs()} unread ${unreadMsgs() === 1 ? 'message' : 'messages'}`].filter(Boolean);
-    const lastLead = L.find(m => m.l), near = lastLead ? lastLead.r.area : 'you';
-    const more = lastLead && lastLead.lease ? [['services', 'cleaning', 'wrench', 'Move-in cleaning', 'Verified cleaners near ' + near], ['services', 'movers', 'car', 'Movers & packers', 'Compare verified movers'], ['insurance', 'property', 'shield', 'Tenant contents insurance', 'Compare licensed insurers']]
-      : [['services', 'cleaning', 'wrench', 'Home cleaning', 'Verified cleaners near ' + near], ['experiences', '', 'compass', 'Weekend experiences', 'Hosted by verified operators'], ['insurance', '', 'shield', 'Insurance', 'Compare licensed insurers']];
-    const card = (title, link, body, cls = '') => `<section class="dashboard-panel ${cls}"><div class="dashboard-panel-header"><h2>${title}</h2>${link || ''}</div>${body}</section>`;
-    // one panel: the seven verticals in a single row, then three suggestions picked from what they contacted
-    const discover = `<section class="dashboard-panel dashboard-discover"><div class="dashboard-panel-header"><h2>Explore ${esc(SITE.name)}</h2><a class="text-link" href="${HREF.search}">Search all${ico('chevR')}</a></div>
-      <div class="empty-state-chips dashboard-vertical-chips">${START.map(([v, i, l]) => `<a href="${HREF.search}?v=${v}">${ico(i)}${l}</a>`).join('')}</div>
-      <h3 class="dashboard-suggestions-header">Suggested for you</h3>
-      <div class="dashboard-suggestions">${more.map(([v, o, i, t, sub]) => `<a href="${HREF.search}?v=${v}${o ? '&o=' + o : ''}"><i>${ico(i)}</i><span><b>${t}</b><small>${esc(sub)}</small></span>${ico('chevR')}</a>`).join('')}</div></section>`;
-    const head_ = `<header class="dashboard-header"><div><h1>${hi}, ${esc(first(u.first || u.name) || 'there')}</h1><p>${nNeed ? `<b>${nNeed} ${nNeed === 1 ? 'thing needs' : 'things need'} you</b>${bits.length ? ' · ' : ''}` : ''}${esc(bits.join(' · ') || (nNeed ? '' : 'You’re all caught up.'))}</p></div>
-      <a class="btn btn-outline btn-sm" href="${HREF.search}">${ico('search')}Find a place</a></header>`;
+    const name = esc(first(u.first || u.name) || 'there');
 
     // new account: nothing empty — where to start
-    if (!L.length) return `${head_.replace(/<p>.*?<\/p>/, '<p>Let’s get you started.</p>').replace(/<a class="btn btn-outline btn-sm"[^]*?<\/a>/, '')}${ES.home()}`;
+    if (!L.length) return `<header class="dashboard-header"><div><h1>${hi}, ${name}</h1><p>Let’s get you started.</p></div></header>${ES.home()}`;
 
-    const needBox = nNeed ? card(`Needs you <em>${nNeed}</em>`, '', acts.map(([m, a]) => `<div class="dashboard-action"><a href="#enquiry=${m.r.id}" class="dashboard-action-link"><i class="is-${a.tone}">${ico(a.icon)}</i><span><b>${a.t}</b><small>${esc(a.sub || m.r.title)}</small></span></a><div class="dashboard-action-body">${a.b}</div></div>`).join('')
-      + (follow.length ? `<div class="dashboard-action"><a href="#enquiries" class="dashboard-action-link"><span class="dashboard-stack">${people.slice(0, 3).map(m => av(m.r.provider)).join('')}</span><span><b>Did ${people.length === 1 ? esc(people[0].who) : people.length + ' listers'} get back to you?</b><small>You called or messaged ${esc(people.slice(0, 3).map(m => m.who).join(', '))}${people.length > 3 ? ' +' + (people.length - 3) : ''} · ${follow.length} ${follow.length === 1 ? 'enquiry' : 'enquiries'}</small></span></a>
-          <div class="dashboard-action-body"><button class="btn btn-primary btn-sm" type="button" data-act="heardall">${follow.length === 1 ? 'Yes' : 'All answered'}</button><a class="btn btn-outline btn-sm" href="#enquiries">Review</a></div></div>` : ''), 'is-need') : '';
+    // 1 · needs your attention
+    const rows = L.map(homeAction).filter(Boolean);
+    // calls and WhatsApps: one row for one lister ("Did you get through to Dr. Priya Mehta?"), grouped when there are several
+    if (follow.length) rows.push({ p: 3, href: follow.length === 1 ? `#enquiry=${follow[0].r.id}` : '#enquiries', tone: 'amber', icon: 'phone', stack: people.length > 1 ? people.slice(0, 3).map(m => av(m.r.provider)).join('') : '',
+      t: people.length === 1 ? `Did you get through to ${esc(people[0].r.provider)}?` : `Did ${people.length} listers get back to you?`,
+      sub: people.length === 1 ? people[0].r.title : `You called or messaged ${people.slice(0, 3).map(m => m.who).join(', ')}${people.length > 3 ? ' +' + (people.length - 3) : ''}`,
+      one: follow.length === 1 ? `<button class="btn btn-primary btn-sm" type="button" data-act="heard" data-id="${follow[0].r.id}">${ico('check')}Yes, in touch</button>` : `<button class="btn btn-primary btn-sm" type="button" data-act="heardall">${ico('check')}All in touch</button>`,
+      b: follow.length === 1 ? `<button class="btn btn-primary btn-sm" type="button" data-act="heard" data-id="${follow[0].r.id}">Yes, we’re in touch</button><button class="btn btn-outline btn-sm" type="button" data-act="noanswer" data-id="${follow[0].r.id}">No answer</button>`
+        : `<button class="btn btn-primary btn-sm" type="button" data-act="heardall">Yes, all in touch</button><a class="btn btn-outline btn-sm" href="#enquiries">Answer one by one</a>` });
+    docsDue().forEach(doc => { const d = daysTo(expOf(doc)); rows.push({ p: 4, href: '#documents', icon: 'doc', tone: d < 0 ? 'red' : 'amber', t: `Your ${doc.t} ${d < 0 ? 'has expired' : 'expires ' + niceD(expOf(doc))}`, sub: 'Upload the renewed one — listers ask for a valid ID', one: `<a class="btn btn-primary btn-sm" href="#documents">${ico('upload')}Update</a>`, b: `<a class="btn btn-primary btn-sm" href="#documents">Update</a>` }); });
+    rows.sort((a, b) => a.p - b.p || (b.t0 || 0) - (a.t0 || 0));
+    const nNeed = rows.length;
+    // the most urgent reply opens up: the lister's avatar, a kicker ("New reply · 20 h ago"), the whole message, the listing,
+    // Reply and Call; every other row is a tinted icon, what happened, and one button
+    const actionRow = (a, k) => { const featured = k === 0 && a.quote;
+      if (featured) return `<div class="dashboard-action is-${a.tone} is-featured"><a class="dashboard-action-link" href="${a.href}">${av(a.m.r.provider, 'is-lg')}<span><small class="dashboard-kicker">${ico(a.icon)}${esc(a.kicker)} · ${esc(ago(a.t0))}</small><b>${a.t}</b></span></a>
+        <blockquote class="dashboard-action-quote">“${esc(a.quote)}”</blockquote><a class="dashboard-action-listing" href="#enquiry=${a.m.r.id}">${thumb(a.m.r)}<span>${esc(a.m.r.title)}</span>${ico('chevR')}</a>
+        <div class="dashboard-action-body">${a.b}</div></div>`;
+      return `<div class="dashboard-action is-${a.tone}"><a class="dashboard-action-link" href="${a.href}">${a.stack ? `<span class="dashboard-stack">${a.stack}</span>` : `<i>${ico(a.icon)}</i>`}<span><b>${a.t}</b><small>${esc(a.quote ? '“' + a.quote + '”' : a.sub || '')}</small></span></a>
+        <div class="dashboard-action-body">${a.one || a.b}</div></div>`; };
+    const needBox = `<section class="dashboard-panel dashboard-needs ${nNeed ? 'is-need' : 'is-clear'}"><div class="dashboard-panel-header"><h2>Up next${nNeed ? ` <em>${nNeed}</em>` : ''}</h2>${nNeed > 1 ? '<span class="dashboard-hint">Most urgent first</span>' : ''}</div>
+      ${nNeed ? rows.map(actionRow).join('')
+        : `<p class="dashboard-none">${ico('check')}You’re all caught up — we’ll tell you when a lister replies.</p>`}</section>`;
 
-    const enqBox = card('Your enquiries', `<a href="#enquiries">View all ${L.length}${ico('chevR')}</a>`, open.concat(L.filter(m => m.stage === 'closed')).slice(0, 6).map(m => `<a class="dashboard-enquiry" href="#enquiry=${m.r.id}">${thumb(m.r)}<span><b>${esc(m.r.title)}</b><small>${esc(m.r.provider)} · ${esc(ago((lastIn(m) || m.r).t))}</small></span>${pill(homeStatus(m))}</a>`).join(''), 'is-enquiry');
+    // light glance figures — links, not tiles, so they don't compete with the actions
+    const glance = `<nav class="dashboard-glance" aria-label="At a glance">${[['#enquiries', open.length, 'active enquiries'], ['#enquiries', waiting, 'waiting for reply'], ['#messages', unreadMsgs(), 'unread messages'], ['#saved', favs.size, 'saved']].map(([href, v, l]) => `<a href="${href}"><b>${v}</b>${l}</a>`).join('')}</nav>`;
 
-    const side = [
-      convos.length ? card('Latest messages', `<a href="#messages">Open${ico('chevR')}</a>`, convos.map(m => `<a class="dashboard-message" href="#messages=${m.r.id}">${av(m.r.provider)}<span><b>${esc(m.r.provider)}${isUnreadMsg(m) ? '<i></i>' : ''}</b><small>${esc(lastIn(m).text)}</small></span><em>${esc(ago(lastIn(m).t))}</em></a>`).join('')) : '',
-      al ? `<a class="dashboard-search" href="${esc(al.href)}"><i>${ico('search')}</i><span><small>Continue searching</small><b>${esc(al.title)}</b><em>${[al.sub, al.count ? al.count + ' listings' : ''].filter(Boolean).map(esc).join(' · ')}</em></span>${al.fresh.length ? `<span class="dashboard-new">${al.fresh.length} new</span>` : ico('chevR')}</a>` : '',
-      saved.length ? card('Saved', `<a href="#saved">All ${saved.length}${ico('chevR')}</a>`, saved.slice(0, 3).map(l => `<a class="dashboard-saved-item" href="${HREF.listing}?id=${l.id}"><img src="${esc(l.img[0] || '')}" alt="" loading="lazy"><span><b>${esc(l.title)}</b><small>${esc(U.locText(l))}</small></span></a>`).join('')) : ''
-    ].filter(Boolean).join('');
+    const card = (title, link, body, cls = '') => `<section class="dashboard-panel ${cls}"><div class="dashboard-panel-header"><h2>${title}</h2>${link || ''}</div>${body}</section>`;
+    const viewAll = (href, label = 'View all') => `<a href="${href}">${label}${ico('chevR')}</a>`;
 
-    const tile = (href, icon, c, v, l) => `<a class="dashboard-stat is-${c}" href="${href}"><i>${ico(icon)}</i><span><b>${v}</b><small>${l}</small></span></a>`;
-    return `${head_}
-      <div class="dashboard-stats">
-        ${tile('#enquiries', 'list', 'green', open.length, 'Active enquiries')}
-        ${tile('#enquiries', 'clock', 'blue', waiting, 'Awaiting reply')}
-        ${tile('#messages', 'msg', 'amber', unreadMsgs(), 'Unread messages')}
-        ${tile('#saved', 'heart', 'red', favs.size, 'Saved')}</div>
-      <div class="dashboard-grid"><div class="dashboard-main">${needBox}${enqBox}</div>${side ? `<aside class="dashboard-side">${side}</aside>` : ''}</div>
+    // 2 · your enquiries — the same three stages as My enquiries (Waiting → In touch → Closed), then each open one
+    // with its step track and the next thing that happens; closed ones fold into one line
+    const cnt = i => L.filter(m => colOf(m) === i).length;
+    // opens on the most useful stage: waiting, else in touch, else closed — until you pick one
+    const tab = A.htab != null ? +A.htab : cnt(0) ? 0 : cnt(1) ? 1 : 2;
+    // the three stages as the account's usual tabs: name, count badge, underline on the chosen one
+    const stages = `<div class="dashboard-stage-tabs">${tabs(COLS.map((c, i) => [i, c[1], cnt(i)]), tab, 'htab')}</div>`;
+    const lastAt = m => (lastIn(m) || m.r).t;
+    const inTab = L.filter(m => colOf(m) === tab).sort((a, b) => lastAt(b) - lastAt(a)), SHOW = 4;
+    const openRows = inTab.slice(0, SHOW).map(m => `<a class="dashboard-enquiry" href="#enquiry=${m.r.id}">${thumb(m.r)}<span class="dashboard-enquiry-main"><b>${esc(m.r.title)}</b><small>${srcTag(m.r)} · ${esc(m.r.provider)} · ${esc(ago(lastAt(m)))}</small>
+        <span class="dashboard-enquiry-next"><span>${esc(m.next)}</span></span></span>${pill(m.pill)}</a>`).join('')
+      || `<p class="dashboard-none">${ico('check')}Nothing ${tab === 0 ? 'waiting for a reply' : tab === 1 ? 'in touch yet' : 'closed yet'}.</p>`;
+    const enqBox = card('Your enquiries', viewAll('#enquiries', `View all ${L.length}`), stages + openRows
+      + (inTab.length > SHOW ? `<a class="dashboard-closed" href="#enquiries">${ico('plus')}<span>${inTab.length - SHOW} more ${esc(COLS[tab][1].toLowerCase())}</span>${ico('chevR')}</a>` : ''), 'is-enquiry');
+
+    // 3 · continue searching (one card, no panel around a single row) · 4 · saved
+    const resume = al ? `<a class="dashboard-search" href="${esc(al.href)}"><i>${ico('search')}</i><span><small>Continue searching</small><b>${esc(al.title)}</b><em>${[al.sub, al.count + ' ' + (al.count === 1 ? 'listing' : 'listings')].filter(Boolean).map(esc).join(' · ')}</em></span>${al.fresh.length ? `<span class="dashboard-new">${al.fresh.length} new</span>` : ico('chevR')}</a>` : '';
+    const contacted = l => L.some(m => m.r.lid === l.id), notYet = saved.filter(l => !contacted(l)).length;
+    const savedBox = saved.length ? card(`Saved <em>${saved.length}</em>`, viewAll('#saved'), saved.slice(0, 3).map(l => `<a class="dashboard-saved-item" href="${HREF.listing}?id=${l.id}"><img src="${esc(l.img[0] || '')}" alt="" loading="lazy"><span><b>${esc(l.title)}</b><small>${contacted(l) ? `<span class="dashboard-contacted">${ico('check')}Contacted</span> · ` : ''}${esc(U.locText(l))}</small></span></a>`).join('')
+      + (notYet ? `<a class="dashboard-saved-tip" href="#saved" data-saved-filter="new">${ico('msg')}<span>${notYet} saved but not contacted yet</span>${ico('chevR')}</a>` : ''), 'is-saved') : '';
+
+    // 6 · discover more — picked from what they enquired about, not another menu of the verticals
+    const lastLead = L.find(m => m.l), near = lastLead ? lastLead.r.area : '';
+    const more = lastLead && lastLead.lease ? [['services', 'cleaning', 'wrench', 'Move-in cleaning', 'Verified cleaners near ' + near], ['services', 'movers', 'car', 'Movers & packers', 'Compare verified movers'], ['insurance', 'property', 'shield', 'Tenant contents insurance', 'Compare licensed insurers']]
+      : [['services', 'cleaning', 'wrench', 'Home cleaning', near ? 'Verified cleaners near ' + near : 'Verified cleaners near you'], ['experiences', '', 'compass', 'Weekend experiences', 'Hosted by verified operators'], ['insurance', '', 'shield', 'Insurance', 'Compare licensed insurers']];
+    const why = lastLead ? `Because you enquired about ${esc(lastLead.r.title)}${near ? ' in ' + esc(near) : ''}` : 'Picked for you';
+    const discover = `<section class="dashboard-panel dashboard-discover"><div class="dashboard-panel-header"><div><h2>Discover more on ${esc(SITE.name)}</h2><small>${why}</small></div></div>
+      <div class="dashboard-suggestions">${more.map(([v, o, i, t, sub]) => `<a href="${HREF.search}?v=${v}${o ? '&o=' + o : ''}"><i>${ico(i)}</i><span><b>${t}</b><small>${esc(sub)}</small></span>${ico('chevR')}</a>`).join('')}</div></section>`;
+
+    const side = [resume, savedBox].filter(Boolean).join('');
+    return `<header class="dashboard-header"><div><h1>${hi}, ${name}</h1><p>${nNeed ? `<b>${nNeed} ${nNeed === 1 ? 'thing needs' : 'things need'} your attention</b>` : 'You’re all caught up.'}</p>${glance}</div>
+        <a class="btn btn-outline btn-sm" href="${HREF.search}">${ico('search')}Search ${esc(SITE.name)}</a></header>
+      ${needBox}
+      <div class="dashboard-grid"><div class="dashboard-main">${enqBox}</div>${side ? `<aside class="dashboard-side">${side}</aside>` : ''}</div>
       ${discover}`;
   }
 
-  /* ---------- my enquiries — every lister you contacted, by channel and stage ---------- */
-  // columns follow the provider's leads: New → Contacted → Won / Lost, from the customer's side
+
+  /* ---------- my enquiries — a board (default) or a list, both filtered by vertical and search ----------
+     Board: Waiting for reply → In touch → Closed, like the provider's leads; each column shows five, then "Show N more".
+     List: the same enquiries in sections — Needs you → Waiting → In touch, closed folded. Verticals, not channels:
+     customers think "the cleaners", "the flat"; the channel is a tag on each card. */
   const COLS = [['sent', 'Waiting for reply', ['sent', 'direct']], ['talking', 'In touch', ['talking']], ['closed', 'Closed', ['closed']]];
   const colOf = m => COLS.findIndex(c => c[2].includes(m.stage));
+  const needsYou = m => m.stage !== 'closed' && (m.needs || (m.replyEv && isUnreadMsg(m)));
+  // the one button that moves an enquiry on (the enquiry page has the rest)
+  function enquiryAction(m) {
+    const id = m.r.id;
+    if (m.stage !== 'closed' && m.replyEv && isUnreadMsg(m)) return `<a class="btn btn-primary btn-sm" href="#messages=${id}">${ico('msg')}Reply</a>`;
+    if (m.late) return m.S.nudged ? `<a class="btn btn-outline btn-sm" href="${esc(similarHref(m.r))}">See similar</a>` : `<button class="btn btn-primary btn-sm" type="button" data-act="nudge" data-id="${id}">${ico('bell')}Nudge</button>`;
+    if (m.stage === 'direct') return m.S.heard === false ? `<a class="btn btn-outline btn-sm" href="tel:${esc(m.r.pphone)}" data-calllog="${id}">${ico('phone')}Call again</a>` : `<button class="btn btn-primary btn-sm" type="button" data-act="heard" data-id="${id}">Yes, in touch</button>`;
+    return '';
+  }
   function enquiries() {
     const L = all();
     if (!L.length) return head('My enquiries', `Everyone you called, WhatsApped, emailed, chatted with or texted on ${esc(SITE.name)}.`) + ES.enquiries();
-    const f = A.via || 'all', LL = L.filter(m => f === 'all' || m.r.type === f || (f === 'email' && !CH[m.r.type]));
-    const vias = Object.keys(CH).filter(k => L.some(m => (CH[m.r.type] ? m.r.type : 'email') === k));
+    const vOf = m => m.l ? m.l.v : '', verts = START.filter(([v]) => L.some(m => vOf(m) === v));
+    const sv = verts.some(([v]) => v === A.ev) ? A.ev : 'all', q = (A.eq || '').trim().toLowerCase();
+    // channel: how you contacted them (Phone · WhatsApp · Email · Chat · SMS), on top of vertical and search
+    const chOfM = m => CH[m.r.type] ? m.r.type : 'email', chans = Object.keys(CH).filter(k => L.some(m => chOfM(m) === k)), sc = chans.includes(A.ech) ? A.ech : 'all';
+    const LL = L.filter(m => (sv === 'all' || vOf(m) === sv) && (sc === 'all' || chOfM(m) === sc) && (!q || [m.r.title, m.r.provider, m.r.org, m.r.ref].join(' ').toLowerCase().includes(q)));
+    const lastAt = m => (lastIn(m) || m.r).t;
+    const row = m => { const a = enquiryAction(m);
+      return `<div class="account-enquiry-row ${needsYou(m) ? 'is-needs' : ''}"><a class="account-enquiry-row-link" href="#enquiry=${m.r.id}">${thumb(m.r)}<span class="account-enquiry-row-main"><b>${esc(m.r.title)}</b>
+        <small>${esc(m.r.provider)} · ${srcTag(m.r)} · ${esc(ago(lastAt(m)))}</small><small class="account-enquiry-row-next">${esc(m.next)}</small></span>${pill(m.pill)}</a>${a ? `<div class="account-enquiry-row-action">${a}</div>` : ''}</div>`; };
+    const GROUPS = [['needs', 'Needs you', m => needsYou(m)], ['sent', 'Waiting for reply', m => !needsYou(m) && colOf(m) === 0], ['talking', 'In touch', m => !needsYou(m) && colOf(m) === 1], ['closed', 'Closed', m => colOf(m) === 2]];
+    const SHOW = 5, more = A.emore || (A.emore = {});
+    const group = ([k, t, test]) => {
+      const ms = LL.filter(test).sort((a, b) => lastAt(b) - lastAt(a)); if (!ms.length) return '';
+      if (k === 'closed' && !more.closed) return `<button type="button" class="account-enquiry-closed" data-more="closed">${ico('check')}<span>${ms.length} closed ${ms.length === 1 ? 'enquiry' : 'enquiries'} · outcomes and ratings</span><em>Show</em>${ico('chevR')}</button>`;
+      const open = more[k] || ms.length <= SHOW + 1;
+      return `<section class="account-enquiry-group is-${k}"><h2>${t} <em>${ms.length}</em></h2><div class="account-box account-enquiry-list">${(open ? ms : ms.slice(0, SHOW)).map(row).join('')}
+        ${open ? '' : `<button type="button" class="account-enquiry-more" data-more="${k}">Show ${ms.length - SHOW} more${ico('chevR')}</button>`}</div></section>`;
+    };
+    // channels: round icon buttons in the channel's colour after a "Via" label — clearly not another vertical;
+    // click one to filter, click it again to clear
+    const channels = chans.length > 1 ? `<div class="account-enquiry-channels" role="group" aria-label="Contacted by"><span>Via</span>${chans.map(k => { const n = L.filter(m => chOfM(m) === k).length, on = sc === k;
+      return `<button type="button" class="${on ? 'is-on' : ''}" data-tab="ech" data-v="${on ? 'all' : k}" style="--c:${CH[k][2]}" title="${CH[k][0]} · ${n}" aria-label="${CH[k][0]}, ${n} ${n === 1 ? 'enquiry' : 'enquiries'}" aria-pressed="${on}">${k === 'sms' ? '<b>SMS</b>' : ico(CH[k][1])}<em>${n}</em></button>`; }).join('')}</div>` : '';
+    const filters = `<div class="account-enquiry-filters">${verts.length > 1 ? `<div class="lead-bar account-saved-verticals"><button class="chip ${sv === 'all' ? 'is-active' : ''}" data-tab="ev" data-v="all">All <em>${L.length}</em></button>${verts.map(([v, i, t]) => `<button class="chip ${sv === v ? 'is-active' : ''}" data-tab="ev" data-v="${v}">${ico(i)}${t}<em>${L.filter(m => vOf(m) === v).length}</em></button>`).join('')}</div>` : ''}
+${channels}</div>`;
+    const search = L.length > 5 ? `<label class="account-enquiry-search">${ico('search')}<input type="search" data-enq-search value="${esc(A.eq || '')}" placeholder="Search enquiries" aria-label="Search by listing, lister or ref" title="Search by listing, lister or ref"></label>` : '';
     const view = A.eview || 'board';
-    const bar = vias.length > 1 ? `<div class="lead-bar"><button class="chip ${f === 'all' ? 'is-active' : ''}" data-tab="via" data-v="all">All <em>${L.length}</em></button>${vias.map(v => `<button class="chip ${f === v ? 'is-active' : ''}" data-tab="via" data-v="${v}"><span class="lead-source" style="--c:${CH[v][2]}"><i></i>${CH[v][0]}</span><em>${L.filter(m => (CH[m.r.type] ? m.r.type : 'email') === v).length}</em></button>`).join('')}</div>` : '';
+    // board, kept short however many there are: five per column then "Show N more"; enquiries waiting over a week fold
+    // into one line (they rarely come back); Closed shows the last 30 days — older ones stay a click (or a search) away
+    const DAY = 864e5, foldOf = i => q ? null : i === 0 ? ['stale', 7, n => `${n} waiting over a week — try someone similar`] : i === 2 ? ['old', 30, n => `${n} closed more than a month ago`] : null;
+    const column = (c, i) => {
+      const ms = LL.filter(m => colOf(m) === i).sort((a, b) => lastAt(b) - lastAt(a)), k = 'col' + i, f = foldOf(i);
+      const old = f && !more[f[0]] ? ms.filter(m => now() - lastAt(m) > f[1] * DAY) : [], fresh = ms.filter(m => !old.includes(m));
+      const open = more[k] || fresh.length <= SHOW + 1;
+      return `<div class="lead-column"><div class="lead-column-header">${c[1]}<span>${ms.length}</span></div>${(open ? fresh : fresh.slice(0, SHOW)).map(leadCard).join('') || (old.length ? '' : '<div class="lead-column-empty">—</div>')}
+        ${open ? '' : `<button type="button" class="lead-column-more" data-more="${k}">Show ${fresh.length - SHOW} more${ico('chevR')}</button>`}
+        ${old.length ? `<button type="button" class="lead-column-fold" data-more="${f[0]}">${ico(i === 0 ? 'clock' : 'check')}<span>${f[2](old.length)}</span><em>Show</em></button>` : ''}</div>`;
+    };
+    const listHint = LL.length > 15 ? `<p class="lead-board-hint">${ico('list')}<span>Lots of enquiries? The list is easier to scan.</span><button type="button" data-tab="eview" data-v="list">Switch to List</button></p>` : '';
+    const board = `${listHint}<div class="lead-board is-3">${COLS.map(column).join('')}</div>`;
     const seg = `<div class="lead-view-switch">${[['board', 'Board', 'grid4'], ['list', 'List', 'list']].map(([k, l, i]) => `<button type="button" class="${view === k ? 'is-on' : ''}" data-tab="eview" data-v="${k}">${ico(i)}${l}</button>`).join('')}</div>`;
-    const body = view === 'list'
-      ? `<div class="account-box account-table-wrap"><table class="account-table"><thead><tr><th>Lister</th><th>Via</th><th>Listing</th><th>Stage</th><th>Latest</th><th>Last activity</th></tr></thead><tbody>${LL.sort((a, b) => b.r.t - a.r.t).map(m => `<tr data-href="#enquiry=${m.r.id}" class="${m.needs ? 'is-hot' : ''}">
-          <td><div class="account-cell">${av(m.r.provider, 'sm')}<span><b>${esc(m.r.provider)}</b><small>${esc(orgOf(m.r))}</small></span></div></td><td>${srcTag(m.r)}</td><td><b class="lead-cell-text">${esc(m.r.title)}</b></td>
-          <td><span class="lead-status ${m.stage === 'closed' ? 'is-mute' : ''}">${esc(COLS[colOf(m)][1])}</span></td><td><small class="account-next">${esc(m.next)}</small></td><td>${ago(m.ev.length ? m.ev[m.ev.length - 1].t : m.r.t)}</td></tr>`).join('')}</tbody></table></div>`
-      : `<div class="lead-board is-3">${COLS.map((c, i) => { const ms = LL.filter(m => colOf(m) === i); return `<div class="lead-column"><div class="lead-column-header">${c[1]}<span>${ms.length}</span></div>${ms.map(leadCard).join('') || '<div class="lead-column-empty">—</div>'}</div>`; }).join('')}</div>`;
-    return `${head('My enquiries', `Everyone you called, WhatsApped, emailed, chatted with or texted on ${esc(SITE.name)} — and where each one stands.`, seg)}${bar}${body}
+    const body = LL.length ? (view === 'board' ? board : GROUPS.map(group).join('')) : empty('search', 'No enquiries match', q ? `Nothing for “${esc(A.eq)}” with these filters.` : 'Nothing with these filters yet.', `<button class="btn btn-outline btn-sm" type="button" data-act="enqreset">Show all enquiries</button>`);
+    // the controls sit top right, beside the title (they drop under it where there isn't room)
+    return `${head('My enquiries', 'Everyone you contacted, and where each one stands.', search + seg)}${filters}${body}
       <p class="account-footer">${ico('shield')}Calls and WhatsApps happen outside ${esc(SITE.name)} — tell us when you got through so we can keep track.</p>`;
   }
 
-  /* ---------- one enquiry ---------- */
+  /* ---------- one enquiry — what you asked about, where it stands, what to do next ----------
+     The lister is named once (the contact card); the timeline is the only progress view, and each step carries only
+     its own action. Contact buttons live in the card, tips beside it: one for this step, two questions worth asking
+     for this kind of listing, and the safety line — UpNow never asks for money. */
+  const QUESTIONS = {
+    lease: ['Ask for the Trakheesi permit number and who the landlord is', 'Ask how many cheques, and whether DEWA, chiller and parking are included'],
+    spaces: ['Confirm the dates, the total for your group and what’s included', 'Ask about the cancellation policy before you commit'],
+    services: ['Ask what’s included and whether materials are extra', 'Ask for a time window and who will come'],
+    experiences: ['Confirm pick-up, duration and what’s included', 'Ask what happens if the weather changes'],
+    memberships: ['Ask for a free trial or day pass first', 'Ask how freezing and cancelling work'],
+    programs: ['Ask for a trial session and who teaches it', 'Ask about make-up sessions if you miss one'],
+    health: ['Check the DHA licence on their profile', 'Ask whether your insurance is accepted'],
+    insurance: ['Ask for the policy wording and the main exclusions', 'Ask how a claim works and how long it takes']
+  };
+  function tipsFor(m) {
+    const { r, l, stage } = m, ref = r.ref ? ' ' + r.ref : '';
+    const now_ = {
+      sent: m.late ? ['wa', `A WhatsApp often gets a faster answer than ${chOf(r)[0].toLowerCase()} — quote the listing ref${ref} so they know which one.`]
+        : ['clock', 'Most listers reply within the hour. We’ll tell you the moment they do — no need to keep checking.'],
+      direct: ['phone', `If they didn’t pick up, a short WhatsApp with the listing ref${ref} usually gets a call back.`],
+      talking: ['doc', 'Ask them to confirm the key details in writing — by WhatsApp or email — before you decide.'],
+      closed: ['search', 'Similar listings nearby often have the same lister type — your saved search keeps an eye out for new ones.']
+    }[stage];
+    const qs = QUESTIONS[m.lease ? 'lease' : l ? l.v : ''] || [];
+    return [now_, ...(stage === 'closed' ? [] : qs.map(q => ['msg', q])), ['shield', `Never pay before you’ve seen it or signed a contract — ${SITE.name} never asks you for money.`]];
+  }
   function tracking(id) {
     const r = leads().find(x => x.id === id);
     if (!r) return `${head('Enquiry not found', '')}${empty('msg', 'We couldn’t find this enquiry', 'It may have been removed from this account.', `<a class="btn btn-outline btn-sm" href="#enquiries">Back to my enquiries</a>`)}`;
     const m = model(r), { S, l, who, role, stage } = m, [chName, chIco] = chOf(r);
     const st = (cls, icon, title, when, extra = '') => `<li class="${cls}"><i>${icon}</i><div><b>${title}</b>${when ? `<small>${when}</small>` : ''}${extra}</div></li>`;
     const acts = (...b) => `<div class="account-timeline-actions">${b.filter(Boolean).join('')}</div>`;
-    const hi = `Hi ${who}, about ${r.title} (Ref ${r.ref}) on ${SITE.name}.`;
-    const waBtn = (text, label = 'WhatsApp') => `<a class="btn btn-whatsapp btn-sm" target="_blank" rel="noopener" href="${waHref(r.pphone, text)}" data-walog="${r.id}">${ico('wa')}${label}</a>`;
-    const callBtn = label => `<a class="btn btn-outline btn-sm" href="tel:${esc(r.pphone)}" data-calllog="${r.id}">${ico('phone')}${label}</a>`;
+    const similar = (cls = 'btn btn-ghost btn-sm') => `<a class="${cls}" href="${esc(similarHref(r))}">${ico('search')}Similar listings</a>`;
+    const SENT = { call: 'You called', whatsapp: 'You sent a WhatsApp', email: 'You sent an email', chat: 'You started a chat', sms: 'You sent a text' };
     const items = [];
-    // 1 · you made contact (provider: New)
-    items.push(st('is-done', ico(chIco), `You ${chOf(r)[3]} ${esc(who)}`, `${fmtSlot(r.t)} · by ${chName}`, r.msg ? `<blockquote>“${esc(r.msg)}”</blockquote>` : ''));
-    // 2 · their reply (provider: Contacted)
+    // 1 · you made contact
+    items.push(st('is-done', ico(chIco), SENT[r.type] || 'You sent an enquiry', fmtSlot(r.t), r.msg ? `<blockquote>“${esc(r.msg)}”</blockquote>` : ''));
+    // 2 · their reply — the one action this step needs; calling and WhatsApp are in the contact card
     if (stage === 'sent') items.push(m.late
-      ? st('is-current is-warn', ico('clock'), `No reply from ${esc(who)} yet`, `Sent ${ago(r.t)} · listers on ${esc(SITE.name)} aim to reply within 15 min${S.nudged ? ` · you nudged ${ago(S.nudged)}` : ''}`,
-        acts(S.nudged ? '' : `<button class="btn btn-primary btn-sm" data-act="nudge" data-id="${r.id}">${ico('bell')}Nudge ${esc(who)}</button>`, callBtn('Call'), waBtn(hi + ' Is it still available?'), `<a class="btn btn-ghost btn-sm" href="${esc(similarHref(r))}">${ico('search')}Similar listings</a>`))
-      : st('is-current', ico('clock'), `Waiting for ${esc(who)} to reply`, `Usually replies in ${r.reply || 10} min · we’ll let you know the moment they do`));
+      ? st('is-current is-warn', ico('clock'), 'No reply yet', `Sent ${ago(r.t)} · listers on ${esc(SITE.name)} aim to reply within 15 min${S.nudged ? ` · you nudged ${ago(S.nudged)}` : ''}`,
+        acts(S.nudged ? '' : `<button class="btn btn-primary btn-sm" data-act="nudge" data-id="${r.id}">${ico('bell')}Send a reminder</button>`, similar()))
+      : st('is-current', ico('clock'), 'Waiting for a reply', `Usually within ${r.reply || 10} min · we’ll let you know`));
     else if (stage === 'direct') items.push(S.heard === false
-      ? st('is-current is-warn', ico(chIco), `${esc(who)} didn’t answer`, 'Listers often get back within the hour — or try another channel.', acts(callBtn('Call again'), waBtn(hi), `<button class="btn btn-ghost btn-sm" data-act="heard" data-id="${r.id}">We’re in touch now</button>`))
+      ? st('is-current is-warn', ico(chIco), 'No answer yet', 'Listers often call back within the hour — or try another way in the card.', acts(`<button class="btn btn-outline btn-sm" data-act="heard" data-id="${r.id}">We’re in touch now</button>`))
       : st('is-current', ico(chIco), 'Did you get through?', `${chName} happens outside ${esc(SITE.name)} — tell us so we can keep track.`, acts(`<button class="btn btn-primary btn-sm" data-act="heard" data-id="${r.id}">Yes, we’re in touch</button>`, `<button class="btn btn-outline btn-sm" data-act="noanswer" data-id="${r.id}">No answer</button>`)));
-    else items.push(st('is-done', ico('check'), m.replyEv ? `${esc(who)} replied` : `You’re in touch with ${esc(who)}`,
-      m.replyEv ? `${fmtSlot(m.replyEv.t)} · replied in ${m.replyMin} min` : 'You confirmed you got through', m.replyEv ? `<blockquote>“${esc(m.replyEv.text)}”</blockquote>` + acts(`<a class="btn btn-primary btn-sm" href="#messages=${r.id}">${ico('msg')}Reply</a>`, callBtn('Call')) : acts(callBtn('Call'), waBtn(hi))));
-    // 3 · closed (provider: Won / Lost)
-    if (stage === 'closed') items.push(st('is-done', ico(m.closedEv ? 'x' : 'check'), m.closedEv ? `${esc(r.provider)} closed this enquiry` : esc(m.pill[0]),
+    else items.push(st('is-done', ico('check'), m.replyEv ? 'They replied' : 'You’re in touch',
+      m.replyEv ? `${fmtSlot(m.replyEv.t)} · in ${m.replyMin} min` : 'You confirmed you got through', m.replyEv ? `<blockquote>“${esc(m.replyEv.text)}”</blockquote>` + (stage === 'closed' ? '' : acts(`<a class="btn btn-primary btn-sm" href="#messages=${r.id}">${ico('msg')}Reply</a>`)) : ''));
+    // 3 · closed
+    if (stage === 'closed') items.push(st('is-done', ico(m.closedEv ? 'x' : 'check'), m.closedEv ? 'Closed by the lister' : esc(m.pill[0]),
       m.closedEv ? `${fmtSlot(m.closedEv.t)} · “${esc(m.closedEv.text)}”` : (S.closedAt ? fmtSlot(S.closedAt) : '') + (S.why ? ' · ' + esc(S.why) : ''),
-      stars(S.rating, who) + (S.outcome === 'got' || S.outcome === 'found' ? '' : acts(`<a class="btn btn-outline btn-sm" href="${esc(similarHref(r))}">${ico('search')}See similar listings</a>`))));
-    else items.push(st('', '3', 'Close when you’re done', `Got what you needed or not for you? Close it and rate the ${role} — it keeps ${esc(SITE.name)} honest.`, stage === 'talking' ? acts(`<button class="btn btn-outline btn-sm" data-act="withdraw" data-id="${r.id}">Close enquiry</button>`) : ''));
+      stars(S.rating, who) + (S.outcome === 'got' || S.outcome === 'found' ? '' : acts(similar('btn btn-outline btn-sm')))));
+    else items.push(st('', '3', 'Close it when you’re done', `Got what you needed, or not for you? Close it and rate the ${role} — it keeps ${esc(SITE.name)} honest.`, acts(`<button class="btn btn-outline btn-sm" data-act="withdraw" data-id="${r.id}">Close enquiry</button>`)));
 
-    const u = user(), P = l && window.DM ? DM.prov(l.provider.name) : null;
-    const kv = [['Contacted by', chName], ['Usually replies', P ? (P.reply <= 5 ? 'within 5 min' : 'within ' + P.reply + ' min') : 'within ' + (r.reply || 10) + ' min'], ['Listing ref', r.ref], ['Enquiry', r.id]];
-    return `<nav class="account-breadcrumbs"><a href="#enquiries">${ico('chevL')}My enquiries</a><span>${esc(r.id)}</span></nav>
-      <div class="account-box lead-header"><div class="lead-header-top">${av(r.provider, 'is-lg')}<div><h1>${esc(r.provider)}</h1><small>${srcTag(r)} · ${esc(orgOf(r))} · ${ago(r.t)}</small></div>${pill(m.pill)}</div>
-        <div class="lead-stepper">${COLS.map((c, i) => `<span class="${i < colOf(m) ? 'is-done' : ''} ${i === colOf(m) ? 'is-on' : ''}">${esc(c[1])}</span>`).join('')}</div>
-        <a class="lead-original-listing" href="${l ? HREF.listing + '?id=' + r.lid : '#'}">${thumb(r)}<span><b>${esc(r.title)}</b><small>${esc(spec(r))}${l ? '' : ' · no longer listed'}</small></span>${ico('chevR')}</a>
-        <div class="lead-details">${kv.map(([k, v]) => `<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div></div>
+    // the lister, once: who they are and every way to reach them (the listing page's channel buttons)
+    const P = l && window.DM ? DM.prov(l.provider.name) : null;
+    const lister = `<section class="account-box account-lister"><a class="account-lister-header" href="${provHref(r.provider)}">${av(r.provider, 'is-lg')}<span><b>${esc(r.provider)}${l && l.a.verified ? ico('badge') : ''}</b><small>${esc(orgOf(r) === r.provider ? (P ? offerOf(l.v, l.cat).org[0] : 'Lister') : orgOf(r))}</small>
+        <small>${P ? `${ico('star')}${P.rating.toFixed(1)} (${P.reviews.toLocaleString()}) · ` : ''}replies in ~${P ? P.reply : r.reply || 10}&nbsp;min</small></span>${ico('chevR')}</a>
+      ${l && window.DM ? DM.agentCard(l, { channels: true }) : `<div class="account-button-pair"><a class="btn btn-whatsapp btn-sm" target="_blank" rel="noopener" href="${waHref(r.pphone, `Hi ${who}, about ${r.title} (Ref ${r.ref}) on ${SITE.name}.`)}" data-walog="${r.id}">${ico('wa')}WhatsApp</a><a class="btn btn-outline btn-sm" href="tel:${esc(r.pphone)}" data-calllog="${r.id}">${ico('phone')}Call</a></div>`}</section>`;
+    const tips = `<section class="account-box account-tips"><h3>${ico('spark')}Tips for this enquiry</h3><ul>${tipsFor(m).map(([i, t]) => `<li>${ico(i)}<span>${esc(t)}</span></li>`).join('')}</ul></section>`;
+
+    return `<nav class="account-breadcrumbs"><a href="#enquiries">${ico('chevL')}My enquiries</a></nav>
+      <header class="account-box account-enquiry-header"><a class="account-enquiry-listing" href="${l ? HREF.listing + '?id=' + r.lid : '#'}">${thumb(r)}</a>
+        <div class="account-enquiry-title"><h1>${esc(r.title)}</h1><small>${esc(spec(r))}${l ? '' : ' · no longer listed'}</small>
+          <small>${srcTag(r)} · ${ago(r.t)}${r.ref ? ` · Ref ${esc(r.ref)}` : ''}${l ? ` · <a class="text-link" href="${HREF.listing}?id=${r.lid}">View listing</a>` : ''}</small></div>${pill(m.pill)}</header>
       <div class="account-tracking"><div class="account-box"><h2>Progress</h2><ol class="account-timeline">${items.join('')}</ol></div>
-        <aside class="account-tracking-side">
-          ${l && window.DM ? DM.agentCard(l) : `<div class="account-box"><a class="account-cell account-agent" href="${provHref(r.provider)}">${av(r.provider)}<span><b>${esc(r.provider)}</b><small>${esc(orgOf(r))}</small></span>${ico('chevR')}</a><div class="account-button-pair">${waBtn(hi)}${callBtn('Call')}</div></div>`}
-          <div class="account-box"><h3>What ${esc(who)} can see</h3>
-            <p class="account-shared-label">${ico('eye')}<span>Your name${u && u.phone ? ' and mobile' : ''}${r.msg ? ' and your message' : ''} — shared when you ${chOf(r)[3]} them. Documents are never shared automatically.</span></p>
-            ${stage !== 'closed' ? `<button class="account-report" type="button" data-act="withdraw" data-id="${r.id}">${ico('x')}Close this enquiry</button>` : ''}</div>
-          <button class="account-report is-out" type="button" data-act="report" data-id="${r.id}">${ico('flag')}Report a problem with this ${role}</button>
-        </aside></div>`;
+        <aside class="account-tracking-side">${lister}${tips}
+          <div class="account-enquiry-links"><button class="text-link" type="button" data-act="report" data-id="${r.id}">${ico('flag')}Report a problem</button></div>
+        </aside></div>
+      <p class="account-footer">${ico('eye')}They see your name${user() && user().phone ? ' and mobile' : ''}${r.msg ? ' and your message' : ''} — shared when you contacted them. Documents are never shared automatically.</p>`;
   }
 
   /* ---------- close an enquiry: how it went, and an optional rating ---------- */
@@ -361,26 +485,79 @@
           <button class="icon-btn" type="button" data-fav="${esc(id)}" aria-label="Remove from saved" title="Remove from saved">${ico('heart')}</button></div></div>`;
     };
     const sview = D.sview || 'grid';
-    const viewSwitch = `<div class="account-saved-tools"><span>${ids.length} saved ${ids.length === 1 ? 'listing' : 'listings'}</span><div class="lead-view-switch">${[['grid', 'Grid', 'grid4'], ['list', 'List', 'list']].map(([k, t, i]) => `<button type="button" class="${sview === k ? 'is-on' : ''}" data-sview="${k}">${ico(i)}${t}</button>`).join('')}</div></div>`;
+    // narrow the shortlist like a search: by vertical, by whether you already contacted the lister, and in which order
+    const contacted = id => L.some(m => m.r.lid === id);
+    const vOf = id => (byId(id) || {}).v, verts = START.filter(([v]) => ids.some(id => vOf(id) === v));
+    const sv = verts.some(([v]) => v === A.sv) ? A.sv : 'all', st = A.sstat || 'all', so = A.ssort || 'recent';
+    let shown = ids.filter(id => (sv === 'all' || vOf(id) === sv) && (st === 'all' || (st === 'new' ? !contacted(id) : contacted(id))));
+    shown = so === 'rated' ? shown.slice().sort((a, b) => ((byId(b) || {}).rating || 0) - ((byId(a) || {}).rating || 0)) : shown.slice().reverse();
+    const option = (v, t, cur) => `<option value="${v}" ${cur === v ? 'selected' : ''}>${t}</option>`;
+    // one toolbar: vertical chips on the left; show, sort and grid / list on the right (the count only when filtered)
+    const filters = `<div class="account-saved-toolbar">${verts.length > 1 ? `<div class="account-saved-verticals"><button class="chip ${sv === 'all' ? 'is-active' : ''}" data-tab="sv" data-v="all">All <em>${ids.length}</em></button>${verts.map(([v, i, t]) => `<button class="chip ${sv === v ? 'is-active' : ''}" data-tab="sv" data-v="${v}">${ico(i)}${t}<em>${ids.filter(id => vOf(id) === v).length}</em></button>`).join('')}</div>` : '<span></span>'}
+      <div class="account-saved-tools">${shown.length !== ids.length ? `<span class="account-saved-count">${shown.length} of ${ids.length}</span>` : ''}
+        <label class="account-text-select"><span>Show</span><select data-saved-status aria-label="Show">${option('all', 'All', st)}${option('new', 'Not contacted', st)}${option('contacted', 'Contacted', st)}</select></label>
+        <label class="account-text-select"><span>Sort</span><select data-saved-sort aria-label="Sort by">${option('recent', 'Recent', so)}${option('rated', 'Top rated', so)}</select></label>
+        <div class="lead-view-switch is-icons">${[['grid', 'Grid', 'grid4'], ['list', 'List', 'list']].map(([k, t, i]) => `<button type="button" class="${sview === k ? 'is-on' : ''}" data-sview="${k}" aria-label="${t} view" title="${t} view">${ico(i)}</button>`).join('')}</div></div></div>`;
+    const results = !shown.length ? empty('heart', 'Nothing matches these filters', st === 'new' ? 'You’ve contacted every listing you saved here.' : 'Try another vertical or show all saved.', `<button class="btn btn-outline btn-sm" type="button" data-act="savedreset">Show all saved</button>`)
+      : sview === 'list' ? `<div class="row-list account-saved-list">${shown.map(row).join('')}</div>` : `<div class="account-grid is-saved">${shown.map(item).join('')}</div>`;
     const body = {
-      items: () => ids.length ? `${viewSwitch}${sview === 'list' ? `<div class="row-list account-saved-list">${ids.map(row).join('')}</div>` : `<div class="account-grid is-saved">${ids.map(item).join('')}</div>`}
+      items: () => ids.length ? `${filters}${results}
           <p class="account-footer">${ico('grid4')}Tick up to 3 listings to compare them side by side.</p>`
         : ES.saved(),
-      searches: () => searches.length ? `<div class="account-searches">${searches.map(q => { const s = searchInfo(q), a = alertMeta(q); return `<div class="account-box account-search">
-          <span class="account-search-icon">${ico('search')}</span><div class="account-search-text"><b>${esc(s.title)}</b><small>${esc(s.sub)} · ${s.count} listings</small>${s.fresh.length && a.freq !== 'paused' ? `<span class="status-pill is-success">${s.fresh.length} new</span>` : '<span class="status-pill is-muted">Up to date</span>'}</div>
-          <label class="account-select"><span>Alerts</span><select data-afreq="${esc(q)}">${[['instant', 'Instantly'], ['daily', 'Daily'], ['weekly', 'Weekly'], ['paused', 'Paused']].map(([v, t]) => `<option value="${v}" ${a.freq === v ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
-          <label class="account-select"><span>By</span><select data-ach="${esc(q)}">${[['wa', 'WhatsApp'], ['push', 'Push'], ['email', 'Email']].map(([v, t]) => `<option value="${v}" ${a.ch === v ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
-          <div class="account-search-open"><a class="btn btn-outline btn-sm" href="${esc(s.href)}">Open</a><button class="btn btn-ghost btn-sm" type="button" data-act="delsearch" data-q="${esc(q)}" aria-label="Delete search">${ico('x')}</button></div></div>`; }).join('')}</div>
-          <p class="account-footer">${ico('bell')}We check every few minutes and message you on your chosen channel. WhatsApp alerts are opt-in — pause them any time.</p>`
+      searches: () => searches.length ? `<div class="account-searches">${searches.map(q => { const s = searchInfo(q), a = alertMeta(q), off = a.freq === 'paused'; return `<div class="account-box account-search">
+          <div class="account-search-top"><span class="account-search-icon">${ico('search')}</span><div class="account-search-text"><b>${esc(s.title)}</b><small>${[s.sub, s.count + ' ' + (s.count === 1 ? 'listing' : 'listings')].filter(Boolean).map(esc).join(' · ')}</small></div>
+            ${s.fresh.length && !off ? `<span class="status-pill is-success">${s.fresh.length} new</span>` : ''}</div>
+          <div class="account-search-bottom"><div class="account-search-alert">${ico('bell')}<span>Alert me</span>
+              <select class="account-pill-select" data-afreq="${esc(q)}" aria-label="How often">${[['instant', 'instantly'], ['daily', 'daily'], ['weekly', 'weekly'], ['paused', 'never (paused)']].map(([v, t]) => `<option value="${v}" ${a.freq === v ? 'selected' : ''}>${t}</option>`).join('')}</select>
+              ${off ? '' : `<span>by</span><select class="account-pill-select" data-ach="${esc(q)}" aria-label="Channel">${[['wa', 'WhatsApp'], ['push', 'push'], ['email', 'email']].map(([v, t]) => `<option value="${v}" ${a.ch === v ? 'selected' : ''}>${t}</option>`).join('')}</select>`}</div>
+            <div class="account-search-open"><a class="btn btn-outline btn-sm" href="${esc(s.href)}">View ${s.count ? s.count + ' ' : ''}${s.count === 1 ? 'listing' : 'listings'}</a><button class="icon-btn" type="button" data-act="delsearch" data-q="${esc(q)}" aria-label="Delete saved search" title="Delete saved search">${ico('x')}</button></div></div></div>`; }).join('')}</div>
+          <p class="account-footer">${ico('bell')}We check every few minutes. WhatsApp alerts are opt-in — pause them any time.</p>`
         : ES.searches(),
-      agents: () => agents.length ? `<div class="account-agents">${agents.map(r => { const mine = L.filter(m => m.r.provider === r.provider), open = mine.filter(m => m.stage !== 'closed').length; return `<div class="account-box">
-          <a class="account-cell account-agent" href="${provHref(r.provider)}"><span class="account-avatar">${esc(initials(r.provider))}</span><span><b>${esc(r.provider)}</b><small>${esc(r.org)}</small><small>${mine.length} ${mine.length === 1 ? 'enquiry' : 'enquiries'}${open ? ` · ${open} open` : ''} · replies in ~${r.reply || 10} min</small></span>${ico('chevR')}</a>
-          <div class="account-button-pair"><a class="btn btn-whatsapp btn-sm" target="_blank" rel="noopener" href="${waHref(r.pphone, `Hi ${first(r.provider)}, I found you on ${SITE.name}.`)}">${ico('wa')}WhatsApp</a><a class="btn btn-outline btn-sm" href="${provHref(r.provider)}">${ico('grid4')}Listings</a></div></div>`; }).join('')}</div>
-          <p class="account-footer">${ico('users')}Owners, managers and companies you’ve contacted. Their profile shows all their listings and reviews.</p>`
-        : empty('users', 'No listers yet', 'Listers you call, WhatsApp, email, chat with or text show up here.', `<a class="btn btn-primary btn-sm" href="${HREF.search}">${ico('search')}Browse listings</a>`)
+      // the agents and agencies you follow (Follow on their page), searchable and nine at a time; under them, people
+      // you contacted but don't follow yet, one line each with a Follow button
+      agents: () => {
+        const F = U.follows.all(), q = (A.fq || '').trim().toLowerCase(), SHOW = 9;
+        const info = f => {
+          const Ls = LISTINGS.filter(l => f.k === 'agency' ? l.provider.org === f.n : l.provider.name === f.n); if (!Ls.length) return null;
+          const P = f.k === 'agent' && window.DM ? DM.prov(f.n) : null, l0 = Ls[0];
+          const reviews = Ls.reduce((n, l) => n + l.reviews, 0), rating = reviews ? Ls.reduce((n, l) => n + l.rating * l.reviews, 0) / reviews : 0;
+          const mine = L.filter(m => f.k === 'agency' ? m.r.org === f.n : m.r.provider === f.n).sort((a, b) => b.r.t - a.r.t);
+          return { f, Ls, l0, rating, mine, fresh: Ls.filter(l => l.posted <= 7).length, reply: P ? P.reply : Math.min(...Ls.map(l => l.provider.reply)),
+            sub: f.k === 'agency' ? `Agency · ${Ls.length} ${Ls.length === 1 ? 'listing' : 'listings'}` : P && P.person ? l0.provider.org : offerOf(l0.v, l0.cat).org[0],
+            href: f.k === 'agency' ? HREF.agency + '?a=' + encodeURIComponent(f.n) : provHref(f.n) };
+        };
+        const all_ = F.map(info).filter(Boolean), shown = all_.filter(x => !q || (x.f.n + ' ' + x.sub).toLowerCase().includes(q));
+        const followBtn = (k, n) => `<button class="btn btn-outline btn-sm btn-follow ${U.follows.has(k, n) ? 'is-following' : ''}" type="button" data-follow="${k}|${esc(n)}">${ico('bell')}<span>${U.followLabel(U.follows.has(k, n))}</span></button>`;
+        // the card: who (avatar, name, company · rating, a bell to unfollow) → what's new → your last enquiry → reach them
+        const bell = (k, n) => { const on = U.follows.has(k, n); return `<button class="account-lister-bell ${on ? 'is-following' : ''}" type="button" data-follow="${k}|${esc(n)}" aria-pressed="${on}" aria-label="${on ? 'Unfollow' : 'Follow'} ${esc(n)}" title="${on ? 'Following — tap to unfollow' : 'Follow'}">${ico('bell')}</button>`; };
+        const card = x => { const latest = x.mine[0], open = x.mine.filter(m => m.stage !== 'closed').length;
+          // three even figures: what's new, where you stand, how fast they answer
+          const tags = [
+            `<a href="${x.href}" class="${x.fresh ? 'is-new' : ''}" title="Listings they posted in the last 7 days"><b>${x.fresh || x.Ls.length}</b><small>${x.fresh ? 'new this week' : x.Ls.length === 1 ? 'listing' : 'listings'}</small></a>`,
+            `<a href="${latest ? '#enquiry=' + latest.r.id : x.href}"><b>${open || x.mine.length || 0}</b><small>${open ? (open === 1 ? 'open enquiry' : 'open enquiries') : x.mine.length ? 'closed' : 'enquiries'}</small></a>`,
+            `<span><b>~${x.reply}<i>min</i></b><small>reply time</small></span>`].join('');
+          const row = latest
+            ? `<a class="account-lister-latest" href="#enquiry=${latest.r.id}">${thumb(latest.r)}<span><b>${esc(latest.r.title)}</b><small><em class="is-${latest.pill[1]}">${esc(latest.pill[0])}</em> · ${esc(ago(latest.r.t))}</small></span>${ico('chevR')}</a>`
+            : `<a class="account-lister-latest" href="${HREF.listing}?id=${x.l0.id}"><img class="account-thumbnail" src="${esc(x.l0.img[0] || '')}" alt="" loading="lazy"><span><b>${esc(x.l0.title)}</b><small>Latest listing</small></span>${ico('chevR')}</a>`;
+          return `<article class="account-lister-card">
+            <div class="account-lister-card-head"><a href="${x.href}">${mav(x.f.n, 'is-md')}</a><a class="account-lister-who" href="${x.href}"><b><span>${esc(x.f.n)}</span>${ico('badge')}</b><small><span>${esc(x.sub)}</span>${x.rating ? `<em>${ico('star')}${x.rating.toFixed(1)}</em>` : ''}</small></a>${bell(x.f.k, x.f.n)}</div>
+            <div class="account-lister-stats">${tags}</div>${row}
+            <div class="account-lister-actions">${x.f.k === 'agent' ? `<a class="message-icon-btn is-whatsapp" target="_blank" rel="noopener" href="${waHref(x.l0.provider.phone, `Hi ${first(x.f.n)}, I found you on ${SITE.name}.`)}" aria-label="WhatsApp" title="WhatsApp">${ico('wa')}</a><a class="message-icon-btn" href="tel:${esc(x.l0.provider.phone)}" aria-label="Call" title="Call">${ico('phone')}</a>` : ''}
+              <a class="account-lister-profile" href="${x.href}">${x.f.k === 'agency' ? 'View agency' : 'View profile'}${ico('chevR')}</a></div></article>`; };
+        const more = A.fmore ? shown : shown.slice(0, SHOW);
+        const followed = new Set(F.filter(f => f.k === 'agent').map(f => f.n));
+        const contacted = agents.filter(r => !followed.has(r.provider));
+        const suggest = contacted.length ? `<section class="account-section account-contacted"><div class="account-section-header"><h2>People you’ve contacted</h2><small>Follow the ones you’d go back to</small></div>
+          <div class="account-contacted-list">${contacted.map(r => `<div class="account-contacted-row">${mav(r.provider)}<a href="${provHref(r.provider)}"><b>${esc(r.provider)}</b><small>${esc(r.title)}</small></a>${followBtn('agent', r.provider)}</div>`).join('')}</div></section>` : '';
+        const tools = all_.length > 3 ? `<div class="account-following-tools"><label class="account-enquiry-search">${ico('search')}<input type="search" data-follow-search value="${esc(A.fq || '')}" placeholder="Search who you follow" aria-label="Search who you follow"></label><span>${all_.length} followed</span></div>` : '';
+        const grid = !all_.length ? empty('bell', 'You’re not following anyone yet', 'Tap Follow on an agent’s or agency’s page to see their new listings here.', contacted.length ? '' : `<a class="btn btn-primary btn-sm" href="${HREF.search}">${ico('search')}Browse listings</a>`)
+          : !shown.length ? empty('search', 'No one matches', `Nothing for “${esc(A.fq)}”.`)
+          : `<div class="account-listers">${more.map(card).join('')}</div>${shown.length > SHOW && !A.fmore ? `<button type="button" class="account-enquiry-more account-following-more" data-act="fmore">Show ${shown.length - SHOW} more${ico('chevR')}</button>` : ''}`;
+        return tools + grid + suggest + `<p class="account-footer">${ico('bell')}Following an agent or agency shows their new listings here. They aren’t told you follow them.</p>`;
+      }
     };
-    return `${head('Saved', 'Your shortlist, saved searches and listers — synced to your account.', A.stab === 'items' && A.pick.size > 1 ? `<button class="btn btn-primary btn-sm" type="button" data-act="compare">${ico('grid4')}Compare ${A.pick.size}</button>` : '')}
-      ${tabs([['items', 'Listings', ids.length], ['searches', 'Searches', searches.length], ['agents', 'Listers', agents.length]], A.stab, 'stab')}
+    return `${head('Saved', 'Your shortlist, saved searches and who you follow — synced to your account.', A.stab === 'items' && A.pick.size > 1 ? `<button class="btn btn-primary btn-sm" type="button" data-act="compare">${ico('grid4')}Compare ${A.pick.size}</button>` : '')}
+      ${tabs([['items', 'Listings', ids.length], ['searches', 'Searches', searches.length], ['agents', 'Following', U.follows.all().length]], A.stab, 'stab')}
       ${(body[A.stab] || body.items)()}`;
   }
   function compareModal() {
@@ -394,33 +571,58 @@
         <div></div>${L.map(l => `<a class="btn btn-whatsapp btn-sm" target="_blank" rel="noopener" href="${waHref(l.provider.phone, `Hi ${first(l.provider.name)}, is ${l.title} (Ref ${l.ref}) still available?`)}">${ico('wa')}WhatsApp</a>`).join('')}</div></div>`, 'account-modal-wrap is-wide');
   }
 
-  /* ---------- alerts (C22) ---------- */
+  /* ---------- alerts — what happened, newest first, each with the one button that answers it;
+     new ones apart from earlier ones; how we reach you as plain channel switches per kind of alert ---------- */
   function alertsView() {
-    const F = feed(), list = A.ntab === 'all' ? F : F.filter(n => n.kind === A.ntab);
-    const need = all().filter(m => m.needs).length;
-    const TYPES = [['replies', 'Replies from listers', 'When an owner, manager or company replies to you'], ['matches', 'New matches', 'For your saved searches'], ['tips', 'Tips & news', 'Occasional, never more than monthly']];
-    const CH = [['wa', 'WhatsApp'], ['push', 'Push'], ['email', 'Email']];
-    const pref = k => D.notify[k] || (D.notify[k] = { on: false, ch: [] });
-    return `${head('Alerts', need ? `${need} ${need === 1 ? 'needs' : 'need'} your attention` : F.length ? `${unread()} unread` : '', F.length ? `<button class="btn btn-ghost btn-sm" type="button" data-act="readall">Mark all as read</button>` : '')}
+    const F = feed(), n = unread();
+    if (!F.length) return `${head('Alerts', '')}<div class="account-alerts"><div>${ES.alerts()}</div>${alertSettings()}</div>`;
+    const KINDS = [['all', 'All'], ['reply', 'Replies'], ['remind', 'Reminders'], ['listing', 'New listings'], ['document', 'Documents']]
+      .map(([k, t]) => [k, t, k === 'all' ? F.length : F.filter(x => x.kind === k).length]).filter(k => k[0] === 'all' || k[2]);
+    const cur = KINDS.some(k => k[0] === A.ntab) ? A.ntab : 'all', list = cur === 'all' ? F : F.filter(x => x.kind === cur);
+    const action = x => {
+      const id = x.m && x.m.r.id;
+      if (x.type === 'reply') return x.m.stage === 'closed' ? '' : `<a class="btn btn-primary btn-sm" href="#messages=${id}">Reply</a>`;
+      if (x.type === 'late') return x.m.stage !== 'sent' ? '' : x.m.S.nudged ? `<a class="btn btn-outline btn-sm" href="${esc(similarHref(x.m.r))}">See similar</a>` : `<button class="btn btn-primary btn-sm" type="button" data-act="nudge" data-id="${id}">Nudge</button>`;
+      if (x.type === 'closed') return `<a class="btn btn-outline btn-sm" href="${esc(similarHref(x.m.r))}">See similar</a>`;
+      if (x.type === 'document') return `<a class="btn btn-primary btn-sm" href="#documents">Update</a>`;
+      return `<a class="btn btn-outline btn-sm" href="${esc(x.go)}">View ${x.count > 1 ? x.count : ''}</a>`;
+    };
+    // the place it's about, with a small badge for what happened
+    const media = x => `<span class="account-alert-media">${x.img ? `<img src="${esc(x.img)}" alt="" loading="lazy">` : `<span class="account-alert-tile is-${x.tone}">${ico(x.icon)}</span>`}<i class="is-${x.tone}">${ico(x.badge)}</i></span>`;
+    const item = x => `<div class="account-alert ${isRead(x) ? '' : 'is-unread'}" data-read="${esc(x.id)}">${media(x)}
+      <a class="account-alert-text" href="${esc(x.go)}"><b>${esc(x.title)}</b><span>${esc(x.text)}</span><small>${x.sub ? esc(x.sub) + ' · ' : ''}${ago(x.t)}</small></a>${action(x) ? `<div class="account-alert-action">${action(x)}</div>` : ''}</div>`;
+    // by day: Today · Yesterday · This week · Earlier
+    const startOf = d => { const x = new Date(d); x.setHours(0, 0, 0, 0); return +x; }, today = startOf(now());
+    const bucket = t => t >= today ? 'Today' : t >= today - 864e5 ? 'Yesterday' : t >= today - 6 * 864e5 ? 'This week' : 'Earlier';
+    const groups = ['Today', 'Yesterday', 'This week', 'Earlier'].map(g => [g, list.filter(x => bucket(x.t) === g)]).filter(g => g[1].length);
+    return `${head('Alerts', n ? `${n} new since you last looked` : 'You’re up to date', n ? `<button class="btn btn-outline btn-sm" type="button" data-act="readall">${ico('check')}Mark all as read</button>` : '')}
       <div class="account-alerts"><div>
-        ${tabs([['all', 'All', F.length], ['enq', 'Enquiries', F.filter(n => n.kind === 'enq').length], ['match', 'Matches', F.filter(n => n.kind === 'match').length]], A.ntab, 'ntab')}
-        ${list.length ? `<div class="account-box account-feed">${list.map(n => `<a href="${esc(n.go)}" class="account-notification ${D.read.includes(n.id) ? '' : 'is-unread'}" data-read="${esc(n.id)}"><i class="is-${n.tone}">${ico(n.icon)}</i><span><b>${esc(n.title)}</b><small>${esc(n.text)}</small></span><em>${ago(n.t)}</em></a>`).join('')}</div>`
-          : F.length ? empty('bell', 'Nothing here', 'No alerts in this tab.') : ES.alerts()}</div>
-        <aside class="account-box account-preferences"><h3>Where should we reach you?</h3>
-          <div class="account-grid-preferences"><span></span>${CH.map(([, t]) => `<small>${t}</small>`).join('')}
-            ${TYPES.map(([k, t, s]) => `<span><b>${t}</b><small>${s}</small></span>${CH.map(([c]) => `<label class="account-box-check"><input type="checkbox" data-pref="${k}" data-ch="${c}" ${pref(k).ch.includes(c) ? 'checked' : ''} aria-label="${t} by ${c}"><i>${ico('check')}</i></label>`).join('')}`).join('')}</div>
-          <label class="toggle account-quiet-hours"><span><b>Quiet hours</b><small>No WhatsApp or push between 22:00 and 08:00</small></span><input type="checkbox" data-quiet ${D.quiet ? 'checked' : ''}><i></i></label></aside></div>`;
+        ${KINDS.length > 2 ? `<div class="lead-bar account-alert-kinds">${KINDS.map(([k, t, c]) => `<button class="chip ${cur === k ? 'is-active' : ''}" data-tab="ntab" data-v="${k}">${t}<em>${c}</em></button>`).join('')}</div>` : ''}
+        ${groups.map(([g, xs]) => `<section class="account-feed-group"><h2>${g}</h2><div class="account-box account-alert-list">${xs.map(item).join('')}</div></section>`).join('')}</div>
+        ${alertSettings()}</div>`;
+  }
+  // per kind of alert: a sentence of what it is and the channels as switches (WhatsApp · Push · Email)
+  function alertSettings() {
+    const TYPES = [['replies', 'Replies from listers', 'When an owner, manager or company replies or closes your enquiry'], ['matches', 'New listings', 'For your saved searches and people you follow'], ['tips', 'Tips & news', 'Occasional — never more than once a month']];
+    const CHN = [['wa', 'WhatsApp', 'wa'], ['push', 'Push', 'bell'], ['email', 'Email', 'mail']];
+    const pref = k => D.notify[k] || (D.notify[k] = { on: false, ch: [] });
+    const nSearch = alerts().length;
+    return `<aside class="account-box account-preferences"><h3>How we reach you</h3><p class="account-preferences-note">Pick any channels — or none to turn an alert off.</p>
+      ${TYPES.map(([k, t, sub]) => `<div class="account-preference"><b>${t}</b><small>${sub}</small>
+        <div class="account-channels">${CHN.map(([c, l, i]) => `<label class="account-channel"><input type="checkbox" data-pref="${k}" data-ch="${c}" ${pref(k).ch.includes(c) ? 'checked' : ''}><span>${ico(i)}${ico('check', 'channel-tick')}${l}</span></label>`).join('')}</div>
+        ${k === 'matches' && nSearch ? `<a class="account-preference-link" href="#saved" data-tab="stab" data-v="searches">${nSearch} saved ${nSearch === 1 ? 'search' : 'searches'} · set how often for each${ico('chevR')}</a>` : ''}</div>`).join('')}
+      <label class="toggle account-quiet-hours"><span><b>Quiet hours</b><small>No WhatsApp or push between 22:00 and 08:00</small></span><input type="checkbox" data-quiet ${D.quiet ? 'checked' : ''}><i></i></label></aside>`;
   }
 
   /* ---------- profile & privacy ----------
      Verification beside personal details; family (Programs, Health) beside addresses (Services, home visits);
-     how we reach you (a summary of Alerts) beside privacy and your data. Sign out lives in the account menu. */
+     how we reach you (a summary of Alerts) beside privacy and your data, then sign out. ID documents live in Documents only. */
   const familyOf = () => D.family || (D.family = []);
   const placesOf = () => D.places || (D.places = []);
   function profile() {
     const u = user(), L = leads(), shared = [...new Map(L.map(r => [r.provider, r])).values()];
     const since = u.since ? new Date(u.since) : null;
-    const eidDoc = IDOCS.find(x => x.id === 'eid'), eid = idocs().eid, eidOk = eid && eid.ok, eidExp = eidOk ? expOf(eidDoc) : '', eidDays = eidExp ? daysTo(eidExp) : null;
+    const eid = idocs().eid, eidOk = eid && eid.ok;
     const nationality = eidOk && eid.d && eid.d.nationality ? String(eid.d.nationality).replace(/^\?/, '') : '';
     const CHN = { wa: 'WhatsApp', push: 'Push', email: 'Email' }, rep = D.notify.replies || { on: false, ch: [] };
     const fam = familyOf(), places = placesOf();
@@ -429,16 +631,12 @@
     const select = (k, opts) => `<label class="account-select"><select data-prefs="${k}" aria-label="${k === 'cur' ? 'Currency' : 'Language'}">${opts}</select></label>`;
     const boxHead = (title, act = '') => `<div class="account-box-header"><h3>${title}</h3>${act}</div>`;
     const addBtn = (act, label) => `<button class="text-link account-add" type="button" data-act="${act}">${ico('plus')}${label}</button>`;
-    const eidRow = !eidOk ? row('user', 'Emirates ID', 'Upload once — we read the details for you', `<a class="btn btn-outline btn-sm" href="#documents">${ico('plus')}Add</a>`, 'is-todo')
-      : eidDays !== null && eidDays <= 60 ? row('user', 'Emirates ID', `${eidDays < 0 ? 'Expired' : 'Expires'} ${niceD(eidExp)} — upload the renewed card`, `<a class="btn btn-primary btn-sm" href="#documents">Update</a>`, 'is-warn')
-      : row('user', 'Emirates ID', [nationality, eidExp ? `valid to ${niceD(eidExp)}` : ''].filter(Boolean).map(esc).join(' · '), '<span class="status-pill is-success">Verified</span>');
-    return `${head('Profile &amp; privacy', 'Verified once, ready whenever you contact a lister.')}
+    return `${head('Profile &amp; privacy', 'How listers reach you, and what they can see.')}
       <div class="account-profile-grid">
         <section class="account-box">
-          <div class="account-details-header"><span class="account-avatar is-lg">${esc(U.auth.initialsOf(u))}</span><div><h3>${esc(u.name || 'Add your name')}</h3><small>${since ? `Member since ${MON[since.getMonth()]} ${since.getFullYear()}` : ''}${nationality ? ` · ${esc(nationality)}` : ''}</small></div><button class="btn btn-ghost btn-sm" type="button" data-act="editname">${ico('pen')}Edit</button></div>
+          <div class="account-details-header"><label class="account-photo" title="${D.photo ? 'Change photo' : 'Add a photo'}">${meAvatar(u, 'is-lg')}<i>${ico('camera')}</i><input type="file" accept="image/*" data-photo hidden></label><div><h3>${esc(u.name || 'Add your name')}</h3><small>${since ? `Member since ${MON[since.getMonth()]} ${since.getFullYear()}` : ''}${nationality ? ` · ${esc(nationality)}` : ''}</small><span class="account-photo-links">${D.photo ? `<label>${ico('camera')}Change photo<input type="file" accept="image/*" data-photo hidden></label><button type="button" data-act="delphoto">Remove</button>` : `<label>${ico('camera')}Add a photo<input type="file" accept="image/*" data-photo hidden></label>`}</span></div><button class="btn btn-ghost btn-sm" type="button" data-act="editname">${ico('pen')}Edit</button></div>
           ${u.phone ? row('phone', esc(U.fmtPhone(u.dial + u.phone)), 'Verified · used to sign in', '<span class="status-pill is-success">Verified</span>') : row('phone', 'No mobile yet', 'Add one so listers can reach you', '', 'is-todo')}
           ${row('mail', esc(u.email || 'No email yet'), u.email ? 'Copies of your enquiries and replies' : 'Get a copy of every enquiry and reply', `<button class="${u.email ? 'text-link' : 'btn btn-outline btn-sm'}" type="button" data-act="editemail">${u.email ? 'Change' : `${ico('plus')}Add`}</button>`, u.email ? '' : 'is-todo')}
-          ${eidRow}
           ${row('shield', 'UAE PASS', 'Share your verified ID with listers in one tap', '<span class="status-pill is-muted">Coming soon</span>', 'is-later')}
         </section>
         <section class="account-box"><h3>Preferences</h3>
@@ -463,6 +661,7 @@
             <details class="account-shared"><summary>${ico('users')}Who has your details <em>${shared.length}</em></summary>${shared.length ? shared.map(r => `<div><b>${esc(r.provider)}</b><small>${esc(r.org)} · first contact ${ago(r.t)}</small></div>`).join('') : '<p>No lister has your details yet.</p>'}</details></div>
           <div>
             <button type="button" class="account-setting is-link" data-act="export"><i>${ico('upload')}</i><span><b>Download my data</b><small>Account, saved listings, enquiries and settings</small></span>${ico('chevR')}</button>
+            <button type="button" class="account-setting is-link" data-act="signout"><i>${ico('arrow')}</i><span><b>Sign out</b><small>Signed in as ${esc(u.phone ? U.fmtPhone(u.dial + u.phone) : u.email || u.name || 'you')} on this device</small></span>${ico('chevR')}</button>
             <button type="button" class="account-setting is-link is-danger" data-act="delete"><i>${ico('x')}</i><span><b>Delete my account</b><small>Removes your account and everything saved with it</small></span>${ico('chevR')}</button></div>
         </section>
       </div>
@@ -569,23 +768,36 @@
   function isUnreadMsg(m) { const e = lastIn(m); return !!e && e.t > ((D.seen || {})[m.r.id] || 0); }
   function unreadMsgs() { return all().filter(isUnreadMsg).length; }
   const when = ts => { const d = new Date(ts), t = new Date(); return d.toDateString() === t.toDateString() ? 'Today ' + hm(d) : now() - ts < 6 * 864e5 ? DAY[d.getDay()] + ' ' + hm(d) : d.getDate() + ' ' + MON[d.getMonth()]; };
+  // each lister keeps one colour, so conversations are told apart at a glance
+  const hueOf = n => { let h = 0; for (const c of String(n)) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
+  const mav = (n, cls = '') => `<span class="message-avatar ${cls}" style="--hue:${hueOf(n)}">${esc(initials(n))}</span>`;
+  const dayLabel = ts => { const d = new Date(ts), t = new Date(), y = new Date(t); y.setDate(t.getDate() - 1);
+    return d.toDateString() === t.toDateString() ? 'Today' : d.toDateString() === y.toDateString() ? 'Yesterday' : `${DAY[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]}`; };
   function messages(id) {
     const L = all().sort((a, b) => (logOf(b).pop() || b.r).t - (logOf(a).pop() || a.r).t);
     const sub = `<header class="account-header"><div><h1>Messages</h1><p>Every conversation is linked to its listing, so nothing gets lost.</p></div></header>`;
     if (!L.length) return sub + ES.messages();
     const cur = L.find(m => m.r.id === id) || (matchMedia('(max-width: 860px)').matches ? null : L[0]);
     if (cur) { D.seen = D.seen || {}; D.seen[cur.r.id] = now(); save(); }
-    const list = L.map(m => { const last = logOf(m).pop(); return `<a href="#messages=${m.r.id}" class="message-row ${cur === m ? 'is-on' : ''}">${av(m.r.provider)}
-      <span><span class="message-row-text"><b>${esc(m.r.provider)}</b><em>${when((last || m.r).t)}</em>${isUnreadMsg(m) ? '<i></i>' : ''}</span><small>${esc(m.r.title)}</small><small>${last ? esc(last.text) : ''}</small></span></a>`; }).join('');
+    const list = L.map(m => { const last = logOf(m).pop(), unread = isUnreadMsg(m) && cur !== m;
+      return `<a href="#messages=${m.r.id}" class="message-row ${cur === m ? 'is-on' : ''} ${unread ? 'is-unread' : ''}">${mav(m.r.provider)}
+      <span><span class="message-row-text"><b>${esc(m.r.provider)}</b><em>${when((last || m.r).t)}</em></span><small class="message-row-listing">${srcTag(m.r)}<span>${esc(m.r.title)}</span></small><small class="message-row-last">${last ? (last.out ? 'You: ' : '') + esc(last.text) : ''}</small></span>${unread ? '<i aria-label="Unread"></i>' : ''}</a>`; }).join('');
     let pane = '';
     if (cur) {
       const { r, who } = cur, l = byId(r.lid);
-      const quick = cur.stage === 'closed' ? [] : cur.replyEv ? ['Thanks! When can I call you?', 'Can you share more photos?'] : ['Is it still available?', 'Could you call me back?'];
-      pane = `<section class="message-pane"><header class="message-pane-header"><a class="message-back" href="#messages" aria-label="All messages">${ico('chevL')}</a>${av(r.provider)}<span><b>${esc(r.provider)}</b><small>Replies in ~${r.reply || 10} min</small></span><a class="btn btn-outline btn-sm" href="tel:${esc(r.pphone)}" data-calllog="${r.id}">${ico('phone')}<span>Call</span></a></header>
-        <a class="message-context" href="#enquiry=${r.id}"><i>${ico('building')}</i><span><b>${esc(r.title)}</b><small>${esc(r.ref)} · ${esc(cur.pill[0])}</small></span>${ico('chevR')}</a>
-        <div class="message-list">${logOf(cur).map(x => `<div class="message-bubble ${x.out ? 'is-out' : ''}">${esc(x.text)}<small>${x.out ? 'You · ' : ''}${when(x.t)}${x.out ? ' · delivered' : ''}</small></div>`).join('')}</div>
-        ${quick.length ? `<div class="message-quick">${quick.map(q => `<button type="button" class="chip" data-quick="${esc(q)}">${esc(q)}</button>`).join('')}</div>` : ''}
-        ${cur.stage === 'closed' ? `<p class="message-closed">This enquiry is closed.</p>` : `<form class="message-compose" data-send="${r.id}"><a class="message-plus" href="${l ? HREF.listing + '?id=' + r.lid : '#'}" aria-label="Open listing">${ico('plus')}</a><input name="t" placeholder="Write a message" autocomplete="off" aria-label="Message"><button class="message-send" type="submit" aria-label="Send">${ico('arrow')}</button></form>`}</section>`;
+      const quick = cur.stage === 'closed' ? [] : cur.replyEv ? ['Thanks! When can I call you?', 'Can you share more photos?', 'Is the price negotiable?'] : ['Is it still available?', 'Could you call me back?'];
+      // the conversation, with a date line whenever the day changes; their messages carry their avatar
+      let lastDay = '';
+      const bubbles = logOf(cur).map(x => { const dl = dayLabel(x.t), sep = dl !== lastDay ? `<div class="message-day"><span>${dl}</span></div>` : ''; lastDay = dl;
+        return sep + (x.out
+          ? `<div class="message-bubble is-out">${esc(x.text)}<small>${hm(new Date(x.t))}${x.via && x.via !== SITE.name ? ' · via ' + esc(x.via) : ''}<span class="message-ticks" aria-label="Delivered">${ico('check')}${ico('check')}</span></small></div>`
+          : `<div class="message-in">${mav(r.provider, 'is-sm')}<div class="message-bubble">${esc(x.text)}<small>${hm(new Date(x.t))}</small></div></div>`); }).join('');
+      pane = `<section class="message-pane"><header class="message-pane-header"><a class="message-back" href="#messages" aria-label="All messages">${ico('chevL')}</a>${mav(r.provider, 'is-md')}<span><b>${esc(r.provider)}</b><small>${esc(orgOf(r) === r.provider ? 'Lister' : orgOf(r))} · replies in ~${r.reply || 10}&nbsp;min</small></span>
+          <a class="message-icon-btn is-whatsapp" target="_blank" rel="noopener" href="${waHref(r.pphone, `Hi ${who}, about ${r.title} (Ref ${r.ref}) on ${SITE.name}.`)}" data-walog="${r.id}" aria-label="WhatsApp" title="WhatsApp">${ico('wa')}</a><a class="btn btn-outline btn-sm" href="tel:${esc(r.pphone)}" data-calllog="${r.id}">${ico('phone')}<span>Call</span></a></header>
+        <a class="message-context" href="#enquiry=${r.id}">${thumb(r)}<span><b>${esc(r.title)}</b><small>Ref ${esc(r.ref)}</small></span>${pill(cur.pill)}${ico('chevR')}</a>
+        <div class="message-list">${bubbles}</div>
+        ${quick.length ? `<div class="message-quick"><span>${ico('spark')}Suggested</span>${quick.map(q => `<button type="button" class="chip" data-quick="${esc(q)}">${esc(q)}</button>`).join('')}</div>` : ''}
+        ${cur.stage === 'closed' ? `<p class="message-closed">${ico('check')}This enquiry is closed — the conversation is kept here for reference.</p>` : `<form class="message-compose" data-send="${r.id}"><a class="message-plus" href="${l ? HREF.listing + '?id=' + r.lid : '#'}" aria-label="Open listing" title="Open listing">${ico('plus')}</a><input name="t" placeholder="Write a message — it opens WhatsApp and keeps a copy here" autocomplete="off" aria-label="Message"><button class="message-send" type="submit" aria-label="Send">${ico('arrow')}</button></form>`}</section>`;
     } else pane = `<section class="message-pane is-empty">${ico('msg')}<b>Pick a conversation</b></section>`;
     return `${sub}<div class="message-wrap ${id ? 'has-current' : ''}"><aside class="message-rows">${list}</aside>${pane}</div>`;
   }
@@ -647,7 +859,8 @@
       const vals = doc.fields.map(([k, , kind]) => kind === 'date' ? f.d[k] && 'valid to ' + niceD(f.d[k]) : f.d[k]).filter(Boolean).slice(0, 3).join(' · ');
       return `<div class="onboarding-document is-done is-compact ${soon ? 'is-soon' : ''}"><div class="onboarding-document-header"><i>${ico(soon ? 'clock' : 'check')}</i><span><b>${esc(doc.t)}</b><small>${esc(vals)}</small></span>
         ${soon ? `<em class="account-document-expiry">${daysTo(e) < 0 ? 'Expired' : 'Expires in ' + daysTo(e) + ' days'}</em>` : ''}
-        ${f.data ? `<a class="text-link" href="${f.data}" download="${esc(f.name)}">Download</a>` : ''}<button type="button" class="text-link" data-idocedit="${doc.id}">Edit</button></div></div>`;
+        ${f.data ? `<a class="text-link" href="${f.data}" download="${esc(f.name)}">Download</a>` : ''}<button type="button" class="text-link" data-idocedit="${doc.id}">Edit</button>
+        ${soon ? `<label class="btn btn-primary btn-sm">${ico('upload')}Upload renewed<input type="file" hidden accept="image/*,.pdf" data-idoc="${doc.id}"></label>` : ''}</div></div>`;
     }
     const head = `<div class="onboarding-document-header"><i>${ico('doc')}</i><span><b>${esc(doc.t)}</b><small>${esc(f.name)} · ${esc(f.size)}</small></span>${st === 'scan' ? '<em class="is-scan">Reading…</em>' : replace}</div>`;
     let body = '';
@@ -662,18 +875,17 @@
     return `<div class="onboarding-document">${head}${body}</div>`;
   }
   function documents() {
-    const have = IDOCS.filter(d => idocs()[d.id]), missing = IDOCS.filter(d => !idocs()[d.id]), due = docsDue()[0];
+    const have = IDOCS.filter(d => idocs()[d.id]), missing = IDOCS.filter(d => !idocs()[d.id]);
     const main = !idocs().eid ? `<label class="onboarding-main-upload"><input type="file" accept="image/*,.pdf" data-idoc="eid" hidden><i>${ico('doc')}</i><span><b>Upload your Emirates ID</b><small>A photo or PDF — we’ll read it and fill in the details for you</small></span><span class="btn btn-primary">Choose file</span></label>` : '';
-    return `<header class="account-header"><div><h1>Documents</h1>${have.length ? '<p>Upload once — we read the details, you check them. Nothing is shared unless you send it.</p>' : ''}</div></header>
-      ${due ? `<div class="document-alert">${ico('clock')}<span><b>${esc(due.t)} ${daysTo(expOf(due)) < 0 ? 'expired' : 'expires'} ${esc(niceD(expOf(due)))}</b><small>Listers ask for a valid ID before a contract or sign-up. Upload the renewed one — we’ll read it again.</small></span><label class="btn btn-primary btn-sm">${ico('upload')}Upload<input type="file" hidden accept="image/*,.pdf" data-idoc="${due.id}"></label></div>` : ''}
+    return `<header class="account-header"><div><h1>Documents</h1>${have.length ? '<p>Ready for when a lister asks — you share them yourself.</p>' : ''}</div></header>
       ${have.length ? '' : ES.documents()}
       <div class="account-id-documents">${main}${have.map(idocCard).join('')}</div>
       ${missing.filter(d => d.id !== 'eid' || idocs().eid).length ? `<section class="account-section"><div class="account-section-header"><h2>${have.length ? 'Also useful' : 'Listers may also ask for'}</h2></div>
         <div class="onboarding-needs">${missing.filter(d => d.id !== 'eid').map(d => `<div class="onboarding-need"><i>${ico(d.icon)}</i><span><b>${esc(d.t)}</b><small>${esc(d.hint)}</small></span><em class="onboarding-need-tag">Optional</em>
           <label class="btn btn-outline btn-sm onboarding-need-upload">${ico('upload')}Upload<input type="file" accept="image/*,.pdf" data-idoc="${d.id}" hidden></label></div>`).join('')}</div></section>` : ''}
-      <section class="account-box document-health"><div class="document-health-header"><i>${ico('medic')}</i><span><b>Health records</b><small>Private. Only you and your care team can see these. Every view is logged.</small></span></div>
-        <div class="document-health-body">${ico('lock')}<small>No health records yet — results shared by clinics you book through ${esc(SITE.name)} will appear here.</small></div></section>
-      <p class="account-footer">${ico('lock')}Reading a document isn’t verification — you check the details. ${esc(SITE.name)} never sends your documents to a lister.</p>`;
+      <section class="account-box document-health"><div class="document-health-header"><i>${ico('medic')}</i><span><b>Health records</b><small>Private. Only you and the clinics you choose can see these. Every view is logged.</small></span></div>
+        <div class="document-health-body">${ico('lock')}<small>No health records yet — reports and results that clinics share with you will appear here.</small></div></section>
+      ${have.length ? `<p class="account-footer">${ico('lock')}Reading a document isn’t verification — you check the details. ${esc(SITE.name)} never sends your documents to a lister.</p>` : ''}`;
   }
 
   /* ---------- small dialogs ---------- */
@@ -707,7 +919,9 @@
     store.set('leads', [...recs, ...leads()]);
     const ids = [L[0], L[1], L[2], ...LISTINGS.filter(l => l.img.length && !used.has(l.id)).slice(0, 3)].map(l => l.id);
     ids.forEach(id => favs.add(id)); store.set('favs', [...favs]);
-    const q = U.toQuery({ ...U.blankState('spaces', 'residential'), loc: ['dubai-marina'] });
+    // the saved search goes where most homes are listed, so the preview never shows "0 listings"
+    const byArea = {}; LISTINGS.filter(l => l.v === 'spaces' && l.cat === 'residential').forEach(l => byArea[l.loc] = (byArea[l.loc] || 0) + 1);
+    const q = U.toQuery({ ...U.blankState('spaces', 'residential'), loc: [Object.keys(byArea).sort((a, b) => byArea[b] - byArea[a])[0] || 'dubai-marina'] });
     if (!alerts().includes(q)) setAlerts([...alerts(), q]);
     if (!Object.keys(idocs()).length) ['eid', 'passport', 'visa'].forEach(id => { const got = readIdoc(id), d = {}, src = {}; IDOCS.find(x => x.id === id).fields.forEach(([k, , kind]) => { const v = String(got[k] || '').replace(/^\?/, ''); d[k] = kind === 'date' ? isoD(v) : v; src[k] = 'doc'; }); idocs()[id] = { name: id + '.pdf', size: '240 KB', state: 'read', ok: true, d, src, orig: { ...d }, t: T }; });
     if (!familyOf().length) familyOf().push({ id: 'f' + T, name: 'Sami ' + ((user() || {}).last || ''), rel: 'Child', age: '7' });
@@ -725,6 +939,14 @@
     go(o.dataset.open === 'saved' ? 'saved' : o.dataset.enq ? 'enquiry=' + o.dataset.enq : 'enquiries'); scrollTo({ top: 0, behavior: 'smooth' });
   }, true);
 
+  root.addEventListener('input', e => {
+    const k = e.target.hasAttribute('data-enq-search') ? 'data-enq-search' : e.target.hasAttribute('data-follow-search') ? 'data-follow-search' : ''; if (!k) return;
+    if (k === 'data-enq-search') A.eq = e.target.value; else A.fq = e.target.value;
+    const at = e.target.selectionStart; render();
+    const i = root.querySelector('[' + k + ']'); if (i) { i.focus(); i.setSelectionRange(at, at); }
+  });
+  // following or unfollowing from Saved redraws the tab
+  document.addEventListener('upnow:follow', () => { if (route().s === 'saved') render(); });
   root.addEventListener('input', e => { const k = e.target.dataset.ik; if (!k || e.target.type === 'date') return; const [id, f] = k.split(':'); idocs()[id].d[f] = e.target.value; save(); });
 
   root.addEventListener('submit', e => {
@@ -737,6 +959,8 @@
   root.addEventListener('click', e => {
     const de = e.target.closest('[data-idocedit]'); if (de) { A.docOpen = A.docOpen || {}; A.docOpen[de.dataset.idocedit] = true; render(); return; }
     const qk = e.target.closest('[data-quick]'); if (qk) { const i = root.querySelector('.message-compose input'); if (i) { i.value = qk.dataset.quick; i.focus(); } return; }
+    const mo = e.target.closest('[data-more]'); if (mo) { (A.emore = A.emore || {})[mo.dataset.more] = true; render(); return; }
+    const sf = e.target.closest('[data-saved-filter]'); if (sf) { A.stab = 'items'; A.sv = 'all'; A.sstat = sf.dataset.savedFilter; }
     const sv = e.target.closest('[data-sview]'); if (sv) { D.sview = sv.dataset.sview; save(); render(); return; }
     const tab = e.target.closest('[data-tab]'); if (tab) { A[tab.dataset.tab] = tab.dataset.v; render(); return; }
     const rd = e.target.closest('[data-read]'); if (rd && !D.read.includes(rd.dataset.read)) { D.read.push(rd.dataset.read); save(); }
@@ -754,6 +978,10 @@
       nudge: () => { const m = M(); S.nudged = now(); logLine(id, `Reminder sent to ${orgOf(m.r)}`); save(); render(); toast(`We’ve reminded ${m.who} — most listers reply within the hour`); },
       report: () => ask({ title: 'Report a problem', text: 'Our team reviews every report within one working day.', fields: [{ name: 'why', label: 'What happened?', area: true, placeholder: 'e.g. asked me to pay before I saw it' }], ok: 'Send report' }, () => toast('Thanks — we’ll look into it')),
       compare: compareModal,
+      enqreset: () => { A.ev = 'all'; A.ech = 'all'; A.eq = ''; render(); },
+      delphoto: () => { delete D.photo; save(); render(); toast('Photo removed'); },
+      fmore: () => { A.fmore = true; render(); },
+      savedreset: () => { A.sv = 'all'; A.sstat = 'all'; render(); },
       heardall: () => { all().filter(m => m.stage === 'direct' && m.S.heard !== false).forEach(m => { const S2 = D.lead[m.r.id] = D.lead[m.r.id] || {}; S2.heard = true; logLine(m.r.id, 'You confirmed you’re in touch'); }); save(); render(); toast('Updated'); },
       deldoc: () => { delete idocs()[id]; save(); render(); toast('Removed'); },
       delsearch: () => { setAlerts(alerts().filter(q => q !== b.dataset.q)); delete D.alert[b.dataset.q]; save(); render(); toast('Saved search deleted'); },
@@ -781,6 +1009,9 @@
   root.addEventListener('change', e => {
     const t = e.target;
     if (t.dataset.pick) { t.checked ? (A.pick.size < 3 ? A.pick.add(t.dataset.pick) : (t.checked = false, toast('Compare up to 3 at a time'))) : A.pick.delete(t.dataset.pick); render(); return; }
+    if (t.hasAttribute('data-photo') && t.files && t.files[0]) { setPhoto(t.files[0]); t.value = ''; return; }
+    if (t.hasAttribute('data-saved-status')) { A.sstat = t.value; render(); return; }
+    if (t.hasAttribute('data-saved-sort')) { A.ssort = t.value; render(); return; }
     if (t.dataset.afreq) { alertMeta(t.dataset.afreq).freq = t.value; save(); render(); toast(t.value === 'paused' ? 'Alerts paused' : 'Alert frequency updated'); return; }
     if (t.dataset.ach) { alertMeta(t.dataset.ach).ch = t.value; save(); return; }
     if (t.dataset.pref) { const p = D.notify[t.dataset.pref]; p.ch = t.checked ? [...new Set([...p.ch, t.dataset.ch])] : p.ch.filter(c => c !== t.dataset.ch); p.on = p.ch.length > 0; save(); return; }

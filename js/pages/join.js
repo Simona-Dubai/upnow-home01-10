@@ -21,12 +21,14 @@
   ];
   const roleOf = s => ROLES.find(r => r[0] === s.role);
   const isBiz = s => s.role === 'company';
-  // verticals only licensed companies can offer
-  const COMPANY_ONLY = ['memberships', 'health', 'insurance'];
-  // sub-categories that need a licensed company even inside an open vertical
-  const COMPANY_CATS = ['venue', 'court', 'yacht', 'nursery', 'school', 'higher', 'camp'];
-  // property an individual lists must be theirs (title deed) or they must hold the owner's power of attorney
-  const companyOnly = s => COMPANY_ONLY.includes(s.v) || (s.cats || []).some(c => COMPANY_CATS.includes(c));
+  // who may offer what comes from the business types below: each type lists the sub-categories (cats) it covers.
+  // A sub-category no individual type covers needs a licensed company (venues, yachts, cleaning, nurseries, clinics…)
+  const inMarket = (t, s) => !(t.notIn || []).includes(s.country) && (!t.onlyIn || t.onlyIn.includes(s.country));
+  const indivTypes = s => ((TYPES[s.v] || {}).individual || []).filter(t => inMarket(t, s));
+  const companyOnlyCats = s => (s.cats || []).filter(c => !indivTypes(s).some(t => t.cats.includes(c)));
+  const companyOnly = s => !indivTypes(s).length;
+  // an individual keeps only what an individual may list (picks made as a company, or older drafts)
+  const dropCompanyOnly = s => { if (s.role === 'individual') s.cats = (s.cats || []).filter(c => !companyOnlyCats(s).includes(c)); };
   const offerLabel = id => (VERTICALS[S.v].offers.find(o => o.id === id) || {}).label;
   const JOIN_ORDER = ['spaces', 'services', 'experiences', 'programs', 'memberships', 'health', 'insurance'];
   const verticalsInOrder = () => [...JOIN_ORDER.filter(v => UP.VORDER.includes(v)), ...UP.VORDER.filter(v => !JOIN_ORDER.includes(v))];
@@ -43,65 +45,113 @@
      'later' = may follow after approval (listings in that category stay in draft). size: one or two sizing questions. */
   const ID_SET = [['eid', 'req'], ['passport', 'req'], ['visa', 'opt']]; // individuals: ID and passport both required
   const SIG_SET = [['sig', 'req'], ['sigPass', 'opt']];
+  /* sub = wording for any country; local = the country's regulators by name; notIn = countries where the type isn't
+     allowed. The UAE rules were researched in Oct 2026 — other markets use the general rules until researched. */
   const TYPES = {
+    // Dubai: a property manager with a RERA card (BRN) works under a RERA-registered office (ORN), which we ask for;
+    // holiday homes are run by owners or DET-registered operators. Venues, sports courts (DSC) and yacht charters (DMA) are company-only.
     spaces: {
       individual: [
-        { id: 'owner', t: 'Owner / landlord', sub: 'You rent out or sell property you own', icon: 'key', docs: ID_SET, size: [['units', 'How many properties do you own?', ['1', '2–3', '4–10', '11–25', '25+']]] },
-        { id: 'broker', t: 'Property manager / broker', sub: 'You list owners’ properties with a RERA broker card', icon: 'brief', docs: [['brn', 'req'], ...ID_SET], size: [['units', 'How many units do you handle?', ['1–5', '6–20', '21–50', '50+']]] }
+        { id: 'owner', cats: ['residential', 'commercial', 'industrial', 'land', 'mixed', 'holiday'], t: 'Owner / landlord', sub: 'You rent out or sell property you own', icon: 'key', docs: ID_SET, size: [['units', 'How many properties do you own?', ['1', '2–3', '4–10', '11–25', '25+']]] },
+        { id: 'broker', cats: ['residential', 'commercial', 'industrial', 'land', 'mixed'], t: 'Property manager', sub: 'You manage and list owners’ properties under your own licence', local: { AE: 'You manage and list owners’ properties with your RERA card' }, icon: 'brief', docs: [['brn', 'req'], ...ID_SET], size: [['units', 'How many units do you handle?', ['1–5', '6–20', '21–50', '50+']]] }
       ],
       company: [
-        { id: 'landlord', t: 'Landlord company', sub: 'Your company rents out or sells property it owns', icon: 'building', docs: [['tl', 'req'], ...SIG_SET, ['vat', 'opt']], size: [['units', 'How many units does the company own?', ['1–5', '6–20', '21–100', '101–500', '500+']]] },
-        { id: 'manager', t: 'Property management / brokerage', sub: 'Your company manages or brokers property for owners', icon: 'users', docs: [['tl', 'req'], ['orn', 'req'], ...SIG_SET, ['vat', 'opt']], size: [['units', 'How many units do you manage?', ['1–20', '21–100', '101–500', '500+']], ['team', 'How many agents / property managers?', ['1', '2–5', '6–20', '21–50', '50+']]] }
+        { id: 'landlord', cats: ['residential', 'commercial', 'industrial', 'land', 'mixed'], t: 'Landlord company', sub: 'Your company rents out or sells property it owns', icon: 'building', docs: [['tl', 'req'], ...SIG_SET, ['vat', 'opt']], size: [['units', 'How many units does the company own?', ['1–5', '6–20', '21–100', '101–500', '500+']]] },
+        { id: 'brokerage', cats: ['residential', 'commercial', 'industrial', 'land', 'mixed'], t: 'Real estate brokerage', sub: 'Licensed agency — your agents list under it', local: { AE: 'RERA-registered office (ORN) — your agents list under it' }, icon: 'brief', docs: [['tl', 'req'], ['orn', 'req'], ...SIG_SET, ['vat', 'opt']], size: [['units', 'How many listings do you handle?', ['1–20', '21–100', '101–500', '500+']], ['team', 'How many agents (BRN holders)?', ['1', '2–5', '6–20', '21–50', '50+']]] },
+        { id: 'manager', cats: ['residential', 'commercial', 'industrial', 'land', 'mixed'], t: 'Property management company', sub: 'Company that manages property for owners', local: { AE: 'RERA-approved company that manages property for owners' }, icon: 'users', docs: [['tl', 'req'], ['orn', 'req'], ...SIG_SET, ['vat', 'opt']], size: [['units', 'How many units do you manage?', ['1–20', '21–100', '101–500', '500+']], ['team', 'How many property managers?', ['1–5', '6–20', '21–50', '50+']]] },
+        { id: 'holidayop', cats: ['holiday'], t: 'Holiday home operator', sub: 'Runs short-stay homes for owners', local: { AE: 'Registered with DET to run holiday homes for owners' }, icon: 'key', docs: [['tl', 'req'], ...SIG_SET, ['vat', 'opt']], size: [['units', 'How many holiday homes do you operate?', ['1–5', '6–20', '21–100', '100+']]] },
+        { id: 'venueop', cats: ['venue'], t: 'Venue operator', sub: 'Hotel, restaurant, events venue or business centre', icon: 'party', docs: [['tl', 'req'], ...SIG_SET, ['vat', 'opt']], size: [['locations', 'How many venues?', ['1', '2–5', '6+']]] },
+        { id: 'sportsop', cats: ['court'], t: 'Sports facility operator', sub: 'Club, academy, hotel or community with courts', icon: 'racket', docs: [['tl', 'req'], ...SIG_SET, ['vat', 'opt']], size: [['courts', 'How many courts?', ['1–2', '3–6', '7+']]] },
+        { id: 'charter', cats: ['yacht'], t: 'Yacht charter company', sub: 'Licensed to charter yachts', local: { AE: 'Licensed by Dubai Maritime Authority to charter yachts' }, icon: 'boat', docs: [['tl', 'req'], ...SIG_SET, ['vat', 'opt']], size: [['fleet', 'How many yachts?', ['1', '2–5', '6–15', '15+']]] }
       ]
     },
+    // UAE: cleaning, AC, handyman work and salons need a licensed company (freelance cleaning is illegal — MoHRE; hair or
+    // make-up at home is an add-on permit, Dubai Municipality). Photography, design and make-up artists may work as
+    // freelancers (DET e-Trader / free-zone freelance permit). Elsewhere a freelancer may offer any of them.
     services: {
-      individual: [{ id: 'freelancer', t: 'Freelancer', sub: 'You provide the service yourself under a freelance permit', icon: 'user', docs: [['fp', 'req'], ...ID_SET], size: [['team', 'Do you work alone?', ['Just me', '2–3 people', '4–10 people']]] }],
-      company: [{ id: 'svcco', t: 'Service company', sub: 'Cleaning, maintenance, beauty or other service business', icon: 'building', docs: [['tl', 'req'], ...SIG_SET, ['vat', 'opt']], size: [['team', 'How many staff deliver services?', ['1–5', '6–20', '21–50', '51–200', '200+']]] }]
+      individual: [
+        { id: 'freelancer', notIn: ['AE'], cats: ['cleaning', 'ac', 'haircut', 'photography', 'design', 'makeup', 'handyman'], t: 'Freelancer / self-employed', sub: 'You provide the service yourself', icon: 'user', docs: [['fp', 'req'], ...ID_SET], size: [['team', 'Do you work alone?', ['Just me', '2–3 people', '4–10 people']]] },
+        { id: 'freelanceAE', onlyIn: ['AE'], cats: ['photography', 'design', 'makeup'], t: 'Freelancer', sub: 'You work under a DET e-Trader or free-zone freelance permit', icon: 'user', docs: [['fp', 'req'], ...ID_SET], size: [['team', 'Do you work alone?', ['Just me', '2–3 people', '4–10 people']]] }
+      ],
+      company: [
+        { id: 'svcco', cats: ['cleaning', 'ac', 'handyman'], t: 'Service company', sub: 'Cleaning, maintenance or other home service business', icon: 'building', docs: [['tl', 'req'], ...SIG_SET, ['vat', 'opt']], size: [['team', 'How many staff deliver services?', ['1–5', '6–20', '21–50', '51–200', '200+']]] },
+        { id: 'salon', cats: ['haircut', 'makeup'], t: 'Salon / beauty studio', sub: 'Hair, beauty or make-up business', local: { AE: 'Salon or beauty studio licensed by DET and Dubai Municipality' }, icon: 'scissors', docs: [['tl', 'req'], ...SIG_SET, ['vat', 'opt']], size: [['team', 'How many stylists or artists?', ['1–3', '4–10', '11+']]] },
+        { id: 'studio', cats: ['photography', 'design'], t: 'Studio / agency', sub: 'Photography, video or design business', icon: 'camera', docs: [['tl', 'req'], ...SIG_SET, ['vat', 'opt']], size: [['team', 'How many photographers or designers?', ['1–3', '4–10', '11+']]] }
+      ]
     },
+    // desert safaris need a DET tourism (tour operator) licence; a licensed guide works with a tour operator
     experiences: {
       individual: [
-        { id: 'guide', t: 'Licensed tour guide', sub: 'You guide tours with a DET tour guide licence', icon: 'compass', docs: [['guide', 'req'], ...ID_SET], size: [['volume', 'How many tours a week?', ['1–3', '4–10', '10+']]] },
-        { id: 'host', t: 'Workshop host / instructor', sub: 'You run classes or workshops under a freelance permit', icon: 'palette', docs: [['fp', 'req'], ...ID_SET], size: [['volume', 'How many sessions a month?', ['1–4', '5–15', '15+']]] }
+        { id: 'guide', cats: ['tour'], t: 'Licensed tour guide', sub: 'You guide tours with a tour guide licence', local: { AE: 'You guide tours with a DET tour guide licence' }, icon: 'compass', docs: [['guide', 'req'], ...ID_SET], size: [['volume', 'How many tours a week?', ['1–3', '4–10', '10+']]] },
+        { id: 'host', cats: ['workshop'], t: 'Workshop host / instructor', sub: 'You run classes or workshops under a freelance permit', icon: 'palette', docs: [['fp', 'req'], ...ID_SET], size: [['volume', 'How many sessions a month?', ['1–4', '5–15', '15+']]] }
       ],
       company: [
-        { id: 'operator', t: 'Tour operator / desert safari', sub: 'Licensed tourism company running tours or safaris', icon: 'compass', docs: [['tl', 'req'], ['tourOp', 'req'], ...SIG_SET, ['vat', 'opt']], size: [['team', 'How many guides and drivers?', ['1–5', '6–20', '21–50', '50+']]] },
-        { id: 'activity', t: 'Activity / workshop company', sub: 'Attractions, classes and experiences', icon: 'palette', docs: [['tl', 'req'], ...SIG_SET, ['vat', 'opt']], size: [['team', 'How many employees?', ['1–10', '11–50', '51–200', '200+']]] }
+        { id: 'operator', cats: ['safari', 'tour'], t: 'Tour operator', sub: 'Licensed to run tours and safaris', local: { AE: 'Licensed by DET to run tours and desert safaris' }, icon: 'compass', docs: [['tl', 'req'], ['tourOp', 'req'], ...SIG_SET, ['vat', 'opt']], size: [['team', 'How many guides and drivers?', ['1–5', '6–20', '21–50', '50+']]] },
+        { id: 'activity', cats: ['workshop'], t: 'Activity / workshop company', sub: 'Studios, classes and attractions', icon: 'palette', docs: [['tl', 'req'], ...SIG_SET, ['vat', 'opt']], size: [['team', 'How many employees?', ['1–10', '11–50', '51–200', '200+']]] }
       ]
     },
+    // KHDA licenses nurseries, schools and training (courses, music / art academies); Dubai Sports Council licenses
+    // sports academies; a camp is run under the licence of whoever runs it. Individuals: MoHRE tutor permit, or a
+    // freelance trainer / coach
     programs: {
       individual: [
-        { id: 'tutor', t: 'Private tutor', sub: 'You teach with a MoHRE private teacher work permit', icon: 'book', docs: [['tutor', 'req'], ...ID_SET], size: [['volume', 'How many students a week?', ['1–5', '6–15', '16–30', '30+']]] },
-        { id: 'coach', t: 'Coach / instructor', sub: 'Sport, music or skills coaching under a freelance permit', icon: 'ball', docs: [['fp', 'req'], ...ID_SET], size: [['volume', 'How many students a week?', ['1–5', '6–15', '16–30', '30+']]] }
+        { id: 'tutor', cats: ['course'], t: 'Private tutor', sub: 'Private lessons, registered as a tutor where required', local: { AE: 'Private lessons with a MoHRE private teacher work permit' }, icon: 'book', docs: [['tutor', 'req'], ...ID_SET], size: [['volume', 'How many students a week?', ['1–5', '6–15', '16–30', '30+']]] },
+        { id: 'trainer', cats: ['course', 'academy'], t: 'Freelance trainer', sub: 'Language, music, art or skills classes under a freelance permit', icon: 'brief', docs: [['fp', 'req'], ...ID_SET], size: [['volume', 'How many learners a month?', ['1–10', '11–30', '31–100', '100+']]] },
+        { id: 'coach', cats: ['academy'], t: 'Sports coach', sub: 'Sports coaching under your own registration', local: { AE: 'Coaching under a freelance permit, registered with Dubai Sports Council' }, icon: 'ball', docs: [['fp', 'req'], ...ID_SET], size: [['volume', 'How many students a week?', ['1–5', '6–15', '16–30', '30+']]] }
       ],
       company: [
-        { id: 'training', t: 'Training centre / course provider', sub: 'Courses and training licensed by KHDA', icon: 'grad', docs: [['tl', 'req'], ['khdaTrain', 'req'], ...SIG_SET], size: [['team', 'How many instructors?', ['1–5', '6–20', '21–50', '50+']]] },
-        { id: 'nursery', t: 'Nursery', sub: 'Early childhood centre licensed by KHDA', icon: 'smile', docs: [['tl', 'req'], ['khdaEcc', 'req'], ...SIG_SET], size: [['volume', 'How many children can you take?', ['Under 50', '50–150', '150–300', '300+']]] },
-        { id: 'school', t: 'School', sub: 'K-12 school with a KHDA permit', icon: 'grad', docs: [['tl', 'req'], ['khdaSchool', 'req'], ...SIG_SET], size: [['volume', 'How many students are enrolled?', ['Under 500', '500–1,500', '1,500–3,000', '3,000+']]] },
-        { id: 'higher', t: 'University / higher education', sub: 'Licensed by MoHESR or KHDA', icon: 'grad', docs: [['tl', 'req'], ['hedu', 'req'], ...SIG_SET], size: [['volume', 'How many students are enrolled?', ['Under 1,000', '1,000–5,000', '5,000+']]] },
-        { id: 'academy', t: 'Camp / sports academy', sub: 'Holiday camps and sports academies', icon: 'ball', docs: [['tl', 'req'], ['camp', 'req'], ...SIG_SET], size: [['team', 'How many coaches and staff?', ['1–5', '6–20', '20+']]] }
+        { id: 'nursery', cats: ['nursery', 'camp'], t: 'Nursery', sub: 'Licensed early childhood centre', local: { AE: 'Early childhood centre licensed by KHDA' }, icon: 'smile', docs: [['tl', 'req'], ['khdaEcc', 'req'], ...SIG_SET], size: [['volume', 'How many children can you take?', ['Under 50', '50–150', '150–300', '300+']]] },
+        { id: 'school', cats: ['school', 'camp'], t: 'School', sub: 'Licensed private school', local: { AE: 'Private K-12 school with a KHDA permit' }, icon: 'grad', docs: [['tl', 'req'], ['khdaSchool', 'req'], ...SIG_SET], size: [['volume', 'How many students are enrolled?', ['Under 500', '500–1,500', '1,500–3,000', '3,000+']]] },
+        { id: 'higher', cats: ['higher'], t: 'University / higher education', sub: 'Accredited university or college', local: { AE: 'Licensed by MoHESR, or KHDA in a free zone' }, icon: 'grad', docs: [['tl', 'req'], ['hedu', 'req'], ...SIG_SET], size: [['volume', 'How many students are enrolled?', ['Under 1,000', '1,000–5,000', '5,000+']]] },
+        { id: 'training', cats: ['course', 'academy', 'camp'], t: 'Training institute', sub: 'Courses, music, art or skills academy', local: { AE: 'Courses, music, art or skills academy with a KHDA permit' }, icon: 'book', docs: [['tl', 'req'], ['khdaTrain', 'req'], ...SIG_SET], size: [['team', 'How many instructors?', ['1–5', '6–20', '21–50', '50+']]] },
+        { id: 'academy', cats: ['academy', 'camp'], t: 'Sports academy', sub: 'Licensed sports academy', local: { AE: 'Approved by Dubai Sports Council' }, icon: 'ball', docs: [['tl', 'req'], ['dsc', 'req'], ...SIG_SET], size: [['team', 'How many coaches and staff?', ['1–5', '6–20', '20+']]] }
       ]
     },
     memberships: {
       company: [
-        { id: 'gym', t: 'Gym / studio / club', sub: 'Fitness business approved by Dubai Sports Council', icon: 'ball', docs: [['tl', 'req'], ['dsc', 'req'], ...SIG_SET, ['reps', 'later']], size: [['locations', 'How many locations?', ['1', '2–5', '6+']], ['team', 'How many trainers?', ['1–5', '6–20', '20+']]] },
-        { id: 'aggregator', t: 'Credit / package provider', sub: 'Memberships that work across partner venues', icon: 'tag', docs: [['tl', 'req'], ...SIG_SET], size: [['locations', 'How many partner venues?', ['1–10', '11–50', '50+']]] }
+        { id: 'gym', cats: ['gym'], t: 'Gym / studio / club', sub: 'Fitness business with its own premises', local: { AE: 'Fitness business approved by Dubai Sports Council' }, icon: 'ball', docs: [['tl', 'req'], ['dsc', 'req'], ...SIG_SET, ['reps', 'later']], size: [['locations', 'How many locations?', ['1', '2–5', '6+']], ['team', 'How many trainers?', ['1–5', '6–20', '20+']]] },
+        { id: 'aggregator', cats: ['credits'], t: 'Credit / package provider', sub: 'Memberships that work across partner venues', icon: 'tag', docs: [['tl', 'req'], ...SIG_SET], size: [['locations', 'How many partner venues?', ['1–10', '11–50', '50+']]] }
       ]
     },
+    // DHA: clinicians practise under a licensed facility — no independent practice; home healthcare is its own licence
     health: {
       company: [
-        { id: 'facility', t: 'Clinic / medical centre', sub: 'Clinic, dental, physio, lab or mental health centre', icon: 'medic', docs: [['tl', 'req'], ['dha', 'req'], ...SIG_SET], size: [['team', 'How many licensed clinicians?', ['1–5', '6–20', '21–50', '50+']]] },
-        { id: 'homecare', t: 'Home healthcare provider', sub: 'Licensed home-care centre', icon: 'home', docs: [['tl', 'req'], ['dha', 'req'], ...SIG_SET], size: [['team', 'How many licensed clinicians?', ['1–5', '6–20', '21–50', '50+']]] }
+        { id: 'facility', cats: ['doctor', 'dental', 'physio', 'diagnostics', 'mental'], t: 'Clinic / medical centre', sub: 'Clinic, dental, physio, lab or mental health centre', icon: 'medic', docs: [['tl', 'req'], ['dha', 'req'], ...SIG_SET], size: [['team', 'How many licensed clinicians?', ['1–5', '6–20', '21–50', '50+']]] },
+        { id: 'homecare', cats: ['homecare'], t: 'Home healthcare provider', sub: 'Licensed home healthcare', local: { AE: 'DHA-licensed home healthcare' }, icon: 'home', docs: [['tl', 'req'], ['dha', 'req'], ...SIG_SET], size: [['team', 'How many licensed clinicians?', ['1–5', '6–20', '21–50', '50+']]] }
       ]
     },
+    // CBUAE licenses insurers, intermediaries (brokers) and agents — the licence, not the cover type, decides
     insurance: {
       company: [
-        { id: 'insurer', t: 'Insurance company', sub: 'Insurer licensed by the Central Bank', icon: 'shield', docs: [['tl', 'req'], ['cbIns', 'req'], ...SIG_SET], size: [['lines', 'How many product lines?', ['1', '2–3', '4+']]] },
-        { id: 'insbroker', t: 'Insurance broker', sub: 'Broker registered with the Central Bank', icon: 'users', docs: [['tl', 'req'], ['cbBroker', 'req'], ...SIG_SET], size: [['team', 'How many licensed advisers?', ['1–5', '6–20', '20+']]] },
-        { id: 'agency', t: 'Insurance agency', sub: 'Agent of an insurance company', icon: 'brief', docs: [['tl', 'req'], ['cbAgent', 'req'], ['agencyAgr', 'req'], ...SIG_SET], size: [['team', 'How many licensed advisers?', ['1–5', '6–20', '20+']]] }
+        { id: 'insurer', cats: ['motor', 'health', 'property'], t: 'Insurance company', sub: 'Licensed insurance company', local: { AE: 'Insurer licensed by the Central Bank' }, icon: 'shield', docs: [['tl', 'req'], ['cbIns', 'req'], ...SIG_SET], size: [['lines', 'How many product lines?', ['1', '2–3', '4+']]] },
+        { id: 'insbroker', cats: ['motor', 'health', 'property'], t: 'Insurance intermediary', sub: 'Licensed to arrange cover from several insurers', local: { AE: 'Registered with the Central Bank to arrange cover from several insurers' }, icon: 'users', docs: [['tl', 'req'], ['cbBroker', 'req'], ...SIG_SET], size: [['team', 'How many licensed advisers?', ['1–5', '6–20', '20+']]] },
+        { id: 'agency', cats: ['motor', 'health', 'property'], t: 'Insurance agency', sub: 'Sells for one insurance company', icon: 'brief', docs: [['tl', 'req'], ['cbAgent', 'req'], ['agencyAgr', 'req'], ...SIG_SET], size: [['team', 'How many licensed advisers?', ['1–5', '6–20', '20+']]] }
       ]
     }
   };
-  const typesOf = s => (TYPES[s.v] || {})[s.role] || [];
+  /* the types that fit what they offer. Each chosen sub-category has its own fits: one fit is simply who they are for
+     it (Venues → Venue operator); several fits are a real choice (Residential → landlord, brokerage or manager).
+     They pick once for the sub-categories with a choice; the single fits come along as extra licences. */
+  const allTypes = s => ((TYPES[s.v] || {})[s.role] || []).filter(t => inMarket(t, s));
+  const fitsFor = (s, c) => allTypes(s).filter(t => t.cats.includes(c));
+  const choiceCats = s => (s.cats || []).filter(c => fitsFor(s, c).length > 1);
+  // the options for the sub-categories with a choice: types covering all of them when there are some, else any of them
+  const choiceFits = s => { const cs = choiceCats(s); if (!cs.length) return []; const all = allTypes(s).filter(t => cs.every(c => t.cats.includes(c))); return all.length ? all : allTypes(s).filter(t => cs.some(c => t.cats.includes(c))); };
+  const askTypes = s => { const f = choiceFits(s); return f.length > 1 ? f : []; };
+  const autoTypes = s => { const f = choiceFits(s); return allTypes(s).filter(t => (f.length === 1 && f[0] === t) || (s.cats || []).some(c => { const x = fitsFor(s, c); return x.length === 1 && x[0] === t; })); };
+  const typesOf = s => (s.cats || []).length ? [...new Set([...askTypes(s), ...autoTypes(s)])] : allTypes(s);
+  // a type's description: the country's own wording when we have it (local: { AE: … }), otherwise the general one
+  const typeSub = t => (t.local && t.local[S.country]) || t.sub;
+  // keep the chosen (main) type in step with what they offer
+  function syncType() {
+    const ask = askTypes(S), auto = autoTypes(S);
+    if (S.sub && !(ask.length ? ask : auto).some(t => t.id === S.sub)) { S.sub = ''; S.docs = {}; S.src = {}; }
+    if (!S.sub && !ask.length && auto.length) S.sub = auto[0].id;
+  }
+  // the other licences that come with what they offer: single fits for sub-categories the main type doesn't cover
+  const extraTypes = s => { const main = typeOf(s); return main ? autoTypes(s).filter(t => t !== main && !t.cats.filter(c => (s.cats || []).includes(c)).every(c => main.cats.includes(c))) : []; };
+  // sizing questions: the main type's, then each extra licence's (keys prefixed so answers don't clash)
+  const sizeQs = s => { const main = typeOf(s); return main ? [...main.size, ...extraTypes(s).flatMap(t => t.size.map(([k, q, o]) => [t.id + '_' + k, q, o]))] : []; };
   const typeOf = s => typesOf(s).find(t => t.id === s.sub);
 
   /* ---------- documents: names and the details we read from each ---------- */
@@ -115,11 +165,11 @@
       eid: { t: `Your ${M().idDoc}`, hint: 'Front and back', fields: [['fullName', 'Full name'], ['eidNo', 'ID number'], ['nationality', 'Nationality'], ['eidExp', 'Expiry date', 'date']] },
       passport: { t: 'Your passport', hint: 'Photo page', fields: [['passNo', 'Passport no.'], ['passCountry', 'Issuing country'], ['passExp', 'Expiry date', 'date']] },
       visa: { t: u('UAE residence visa', 'Residence permit'), hint: 'If you are a resident — helps us match your ID', fields: [['visaNo', 'Visa / file no.'], ['visaSponsor', 'Sponsor'], ['visaExp', 'Expiry date', 'date']] },
-      sig: { t: `${M().idDoc} · authorised signatory`, hint: 'The person who signs for the company', fields: [['sigName', 'Full name'], ['eidNo', 'ID number'], ['eidExp', 'Expiry date', 'date']] },
-      sigPass: { t: 'Passport · authorised signatory', hint: 'Photo page', fields: [['sigPassNo', 'Passport no.'], ['sigPassCountry', 'Issuing country'], ['sigPassExp', 'Expiry date', 'date']] },
+      sig: { t: M().idDoc, hint: 'Front and back', fields: [['sigName', 'Full name'], ['eidNo', 'ID number'], ['eidExp', 'Expiry date', 'date']] },
+      sigPass: { t: 'Passport', hint: 'Photo page', fields: [['sigPassNo', 'Passport no.'], ['sigPassCountry', 'Issuing country'], ['sigPassExp', 'Expiry date', 'date']] },
       vat: { t: 'Tax / VAT certificate', hint: 'If the company is tax-registered', fields: [['trn', 'Tax registration no. (TRN)']] },
-      orn: { t: u('RERA office registration (ORN)', L.office ? L.office[0] : 'Brokerage registration'), hint: u('From Dubai Land Department — required to manage or broker owners’ properties', 'Required to manage or broker property'), fields: [['ornNo', L.officeNo || 'Registration no.'], ['ornExp', 'Expiry date', 'date']] },
-      brn: { t: u('RERA broker card (BRN)', L.agentCard ? L.agentCard[0] : 'Real estate agent licence'), hint: u('Dubai brokers work under a RERA-registered office', 'Your professional licence'), fields: [['brnNo', L.agentNo || 'Licence no.'], ['brnOffice', 'Brokerage office (ORN)'], ['brnExp', 'Expiry date', 'date']] },
+      orn: { t: u('RERA office registration (ORN)', L.office ? L.office[0] : 'Office registration'), hint: u('From Dubai Land Department — required to manage or list owners’ properties', 'Required to manage or list property'), fields: [['ornNo', L.officeNo || 'Registration no.'], ['ornExp', 'Expiry date', 'date']] },
+      brn: { t: u('RERA card (BRN)', L.agentCard ? L.agentCard[0] : 'Real estate agent licence'), hint: u('In Dubai, property managers work under a RERA-registered office', L.agentCard ? L.agentCard[1] : 'Your professional licence'), fields: [['brnNo', L.agentNo || 'Licence no.'], ...(UAE() ? [['brnOffice', 'Office you work under (ORN)']] : []), ['brnExp', 'Expiry date', 'date']] },
       hhIndiv: { t: u('DET holiday home licence', (L.shortStay || ['Short-stay licence'])[0]), hint: 'Lets you rent your own home short-term', fields: f3('hh', 'Licence no.') },
       hhCo: { t: u('DET holiday homes operator licence', 'Short-stay operator licence'), hint: '“Vacation homes rental” activity', fields: f3('hh') },
       yacht: { t: u('DMA commercial marine craft licence', 'Charter licence'), hint: 'Dubai Maritime Authority licence for charters', fields: f3('ya') },
@@ -127,7 +177,7 @@
       dsc: { t: u('Dubai Sports Council approval', 'Sports facility registration'), hint: 'For gyms, courts and sports businesses', fields: f3('ds', 'Approval no.') },
       reps: { t: u('REPs UAE registration of trainers', 'Trainer registrations'), hint: 'For the trainers you list', fields: f3('re', 'Registration no.') },
       fp: { t: u('Freelance permit', (L.freelance || ['Self-employment registration'])[0]), hint: u('From DET or a free zone — activity must match what you offer', 'Your self-employment registration'), fields: f3('fp', 'Permit no.') },
-      beauty: { t: u('DET home-service permit + DM health card', 'Health & safety certificate'), hint: 'Required for hair and beauty at customers’ homes', fields: f3('be', 'Permit no.') },
+      beauty: { t: u('Dubai Municipality home-service permit', 'Home-service permit'), hint: 'Only if you also do hair or beauty at customers’ homes', fields: f3('be', 'Permit no.') },
       guide: { t: u('DET tour guide licence', 'Tour guide licence'), hint: 'Department of Economy & Tourism', fields: f3('tg') },
       tourOp: { t: u('DET tourism licence (tour operator)', (L.tour || ['Tour operator licence'])[0]), hint: 'Required for tours and safaris', fields: f3('to') },
       safari: { t: u('Desert safari permit + RTA vehicle permits', 'Safari / vehicle permits'), hint: 'Only if you run desert safaris', fields: f3('sa', 'Permit no.') },
@@ -136,10 +186,9 @@
       khdaEcc: { t: u('KHDA early childhood centre permit', 'Nursery licence'), hint: 'Knowledge & Human Development Authority', fields: f3('kh', 'Permit no.') },
       khdaSchool: { t: u('KHDA school permit', 'School licence'), hint: 'Knowledge & Human Development Authority', fields: f3('kh', 'Permit no.') },
       hedu: { t: u('MoHESR licence / CAA accreditation', 'Higher-education accreditation'), hint: u('Or KHDA licence for free-zone institutions', ''), fields: f3('he', 'Licence no.') },
-      camp: { t: u('KHDA permit or Dubai Sports Council registration', 'Activity licence'), hint: 'KHDA for educational camps, DSC for sports academies', fields: f3('ca', 'Permit no.') },
       dha: { t: u('DHA health facility licence', (L.health || ['Healthcare licence'])[0]), hint: u('Or DHCR if you are in Dubai Healthcare City', 'Health regulator licence'), fields: f3('dh') },
       cbIns: { t: u('CBUAE insurance company licence', (L.insurance || ['Insurance licence'])[0]), hint: 'Central Bank of the UAE', fields: f3('cb') },
-      cbBroker: { t: u('CBUAE insurance broker registration', 'Broker registration'), hint: 'Central Bank of the UAE', fields: f3('cb', 'Registration no.') },
+      cbBroker: { t: u('CBUAE insurance intermediary registration', 'Intermediary registration'), hint: 'Central Bank of the UAE', fields: f3('cb', 'Registration no.') },
       cbAgent: { t: u('CBUAE insurance agent registration', 'Agent registration'), hint: 'Central Bank of the UAE', fields: f3('cb', 'Registration no.') },
       agencyAgr: { t: 'Agency agreement with the insurer', hint: 'Names the insurer you sell for', fields: [['agInsurer', 'Insurer'], ['agExp', 'Valid until', 'date']] }
     })[id];
@@ -147,21 +196,25 @@
   // the business type's documents + licences that come with what you offer
   function needs(s) {
     const t = typeOf(s); if (!t) return [];
-    const out = t.docs.map(([id, st]) => [id, st !== 'opt', st === 'later']);
-    const add = (id, req, later) => { if (!out.some(x => x[0] === id)) out.push([id, req, later]); };
+    const WHO = ['eid', 'passport', 'visa', 'sig', 'sigPass'];
+    const out = t.docs.map(([id, st]) => [id, st !== 'opt', st === 'later', WHO.includes(id) ? 'who' : 'business']);
+    const add = (id, req, later, group = 'business') => { if (!out.some(x => x[0] === id)) out.push([id, req, later, group]); };
+    // other licences: grouped under the sub-categories they're for
+    extraTypes(s).forEach(x => { const cs = x.cats.filter(c => (s.cats || []).includes(c) && !t.cats.includes(c)); x.docs.forEach(([id, st]) => add(id, st !== 'opt', st === 'later', WHO.includes(id) ? 'who' : 'cat:' + cs.join(','))); });
     const cats = s.cats || [], has = (...c) => c.some(x => cats.includes(x)), biz = isBiz(s);
     if (s.v === 'spaces') {
-      if (has('holiday')) add(biz ? 'hhCo' : 'hhIndiv', true, true);
-      if (has('yacht')) add('yacht', true, true);
-      if (has('venue')) add('venue', true, true);
-      if (has('court')) add('dsc', false, true);
+      if (has('holiday')) add(biz ? 'hhCo' : 'hhIndiv', true, true, 'cat:holiday');
+      if (biz && has('yacht')) add('yacht', true, true, 'cat:yacht');
+      if (biz && has('venue')) add('venue', true, true, 'cat:venue');
+      if (biz && has('court')) add('dsc', false, true, 'cat:court');
     }
-    if (s.v === 'services' && has('haircut')) add('beauty', true, false);
-    if (s.v === 'experiences' && has('safari') && biz) add('safari', true, true);
+    // only those who also do hair or make-up at customers' homes
+    if (s.v === 'services' && has('haircut', 'makeup')) add('beauty', false, false, 'cat:' + ['haircut', 'makeup'].filter(c => cats.includes(c)).join(','));
+    if (s.v === 'experiences' && has('safari') && biz) { add('tourOp', true, false, 'cat:safari'); add('safari', true, true, 'cat:safari'); }
     return out;
   }
   function docsFor(s) {
-    return needs(s).map(([id, req, later]) => ({ id, req, later, ...catalog(id) }));
+    return needs(s).map(([id, req, later, group]) => ({ id, req, later, group, ...catalog(id) }));
   }
   // a document is settled when it is checked, or when it may follow later and hasn't been added
   const settled = doc => { const f = S.docs[doc.id]; return (f && f.state === 'read' && f.ok) || (doc.later && !f); };
@@ -169,6 +222,7 @@
   function readDoc(id) {
     const idName = S.name || 'Aisha Al Mansoori', parts = idName.split(' '), last = parts[parts.length - 1] || 'Palm', auth1 = (M().licences.authorities || ['Department of Economy'])[0];
     const fixed = {
+      brn: { brnNo: '48213', brnOffice: '?Al Noor Real Estate · ORN 21947', brnExp: '31 Mar 2027' },
       tl: { legal: `${last} Group L.L.C`, trade: `?${last} Group`, licence: '1048273', activity: 'Leasing & management of real estate', authority: auth1, issued: '12 Mar 2025', expiry: '11 Mar 2027', address: '' },
       sig: { sigName: idName, eidNo: '784-1990-4417291-3', eidExp: '04 Feb 2029' },
       eid: { fullName: idName, eidNo: '784-1990-4417291-3', nationality: '?United Arab Emirates', eidExp: '04 Feb 2029' },
@@ -177,7 +231,6 @@
       visa: { visaNo: '201/2023/7712093', visaSponsor: 'Self', visaExp: '03 Feb 2027' },
       sigPass: { sigPassNo: 'P0912284', sigPassCountry: '?India', sigPassExp: '22 Nov 2030' },
       orn: { ornNo: '21947', ornExp: '30 Jun 2027' },
-      brn: { brnNo: '48213', brnOffice: '?Al Noor Real Estate · ORN 21947', brnExp: '31 Mar 2027' },
       agencyAgr: { agInsurer: 'Oman Insurance Company', agExp: '31 Dec 2027' },
     };
     if (fixed[id]) return fixed[id];
@@ -222,6 +275,7 @@
   if (S.status === 'approved') S.status = 'submitted';
   if (S.step > 3) S.step = 3;
   if (companyOnly(S)) S.role = 'company';
+  dropCompanyOnly(S); syncType();
   S.later = S.later || {};
   // drafts from before business types: choose the type again (documents depend on it)
   if (S.status === 'draft' && !typeOf(S)) { S.step = 1; S.docs = {}; S.src = {}; }
@@ -255,6 +309,7 @@
   const text = (k, label, ph = '', hint = '') => field(k, label, `<input id="onboarding-${k}" data-k="${k}" value="${esc(S.d[k] || '')}" placeholder="${esc(ph)}">`, hint);
   const firstName = () => (S.name || '').split(' ')[0];
   // a part of a step; parts that appear later fade up the first time they're shown
+  const tip = text => ` <span class="onboarding-tip" tabindex="0" role="button" aria-label="More info"><i>${ico('spark')}</i><span role="tooltip"><b>${ico('spark')}Good to know</b>${esc(text)}</span></span>`;
   function sec(id, title, body, aside = '') {
     const key = S.step + ':' + id, isNew = !A.seen.has(key);
     A.seen.add(key);
@@ -288,7 +343,6 @@
   /* ---------- step 1: your business — what it does (location belongs to each listing) ---------- */
   function stepBusiness() {
     const cats = VERTICALS[S.v].offers, only = companyOnly(S);
-    const why = esc(COMPANY_ONLY.includes(S.v) ? VERTICALS[S.v].label : S.cats.filter(c => COMPANY_CATS.includes(c)).map(offerLabel).join(' and '));
     const countryPick = `<label class="onboarding-country" title="Country of registration">${country().flag}<select data-country aria-label="Country">${MARKETS.COUNTRIES.map(x => `<option value="${x.iso}" ${x.iso === S.country ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>${ico('chev')}</label>`;
     // city of the business, next to the country (known cities as a list, any other city typed in)
     const cities = Object.keys(M().cities || {});
@@ -298,19 +352,35 @@
     const pick = `<span class="onboarding-where">${countryPick}${cityPick}</span>`;
     let html = hero('Tell us about your business', `${firstName() ? `Hi ${esc(firstName())}! ` : ''}A few quick taps — your answers decide which documents we ask for.`, 'business');
     html += sec('what', 'What kind of business is it?', `<div class="onboarding-verticals">${verticalsInOrder().map(v => `<button type="button" class="onboarding-tile ${S.v === v ? 'is-active' : ''}" data-vert="${v}"><i>${ico(VERTICALS[v].icon)}</i><span>${esc(VERTICALS[v].label)}</span></button>`).join('')}</div>`);
-    html += sec('list', 'What do you offer?', `<div class="onboarding-categories ${errors.cats ? 'has-error' : ''}">${cats.map(o => { const on = S.cats.includes(o.id); return `<button type="button" class="onboarding-chip ${on ? 'is-active' : ''}" data-cat="${o.id}">${ico(o.icon || UPF.OICO[o.id] || VERTICALS[S.v].icon)}<span>${esc(o.label)}</span><span class="onboarding-tick">${ico('check')}</span></button>`; }).join('')}</div>${err('cats')}`, '<small>Choose all that apply</small>');
-    if (S.cats.length) {
-      html += only ? `<p class="onboarding-business-only">${ico('building')}<span>${why} can only be listed by a licensed business, so you'll join as a <b>company</b> with a valid trade licence.</span></p>`
-        : sec('as', 'Are you an individual or a company?', `<div class="onboarding-roles ${errors.role ? 'has-error' : ''}">${ROLES.map(([id, t, sub, icon]) => `<button type="button" class="onboarding-role ${S.role === id ? 'is-active' : ''}" data-role="${id}"><i>${ico(icon)}</i><span><b>${esc(t)}</b><small>${esc(sub)}</small></span><span class="onboarding-radio"></span></button>`).join('')}</div>${err('role')}`);
+    // individual or company first (when the vertical allows individuals), so we only offer what they may list:
+    // what only a business may list is shown, greyed out with a "Company" tag, for an individual
+    // always asked, so every vertical looks the same; where only businesses may list, Individual is greyed out
+    const indiv = S.role === 'individual';
+    html += sec('as', 'Are you an individual or a company?', `<div class="onboarding-roles ${errors.role ? 'has-error' : ''}">${ROLES.map(([id, t, sub, icon]) => { const lock = only && id === 'individual'; return `<button type="button" class="onboarding-role ${S.role === id ? 'is-active' : ''} ${lock ? 'is-locked' : ''}" data-role="${id}" ${lock ? 'disabled' : ''}><i>${ico(icon)}</i><span><b>${esc(t)}${lock ? ' <em>Not available</em>' : ''}</b><small>${esc(sub)}</small></span><span class="onboarding-radio"></span></button>`; }).join('')}</div>${only ? `<p class="onboarding-type-hint">${esc(VERTICALS[S.v].label)} can only be listed by licensed businesses.</p>` : ''}${err('role')}`);
+    if (S.role) {
+      const locked = o => indiv && !indivTypes(S).some(t => t.cats.includes(o.id)), lockedAll = cats.filter(locked);
+      const listNames = os => os.map(o => o.label.toLowerCase()).join(', ').replace(/, ([^,]*)$/, ' and $1').replace(/^./, c => c.toUpperCase());
+      html += sec('list', 'What do you offer?', `<div class="onboarding-categories ${errors.cats ? 'has-error' : ''}">${cats.map(o => { const on = S.cats.includes(o.id), lock = locked(o); return `<button type="button" class="onboarding-chip ${on ? 'is-active' : ''} ${lock ? 'is-locked' : ''}" data-cat="${o.id}" ${lock ? `disabled title="Listed by licensed businesses — choose Company to offer it"` : ''}>${ico(o.icon || UPF.OICO[o.id] || VERTICALS[S.v].icon)}<span>${esc(o.label)}</span>${lock ? '<em>Company</em>' : `<span class="onboarding-tick">${ico('check')}</span>`}</button>`; }).join('')}</div>${lockedAll.length ? `<p class="onboarding-type-hint">${esc(listNames(lockedAll))} ${lockedAll.length > 1 ? 'are' : 'is'} listed by licensed businesses.</p>` : ''}${err('cats')}`, '<small>Choose all that apply</small>');
+    }
+    if (only && S.cats.length) {
+      const sole = !askTypes(S).length && autoTypes(S)[0];
+      if (sole) html += `<p class="onboarding-business-only">${ico(sole.icon)}<span>You'll join as ${/^([aeio]|u(?!ni))/i.test(sole.t) ? 'an' : 'a'} <b>${esc(sole.t)}</b> — ${esc(/^[A-Z][a-z]/.test(typeSub(sole)) ? typeSub(sole).charAt(0).toLowerCase() + typeSub(sole).slice(1) : typeSub(sole))}.</span></p>`;
     }
     // one question at a time: the business type only once what you offer and individual / company are answered
     if (S.cats.length && S.role && typesOf(S).length) {
-      const types = typesOf(S);
-      html += sec('kind', isBiz(S) ? 'Which best describes your company?' : 'Which best describes you?', `<div class="onboarding-roles ${types.length > 2 ? 'is-grid' : ''} ${errors.sub ? 'has-error' : ''}">${types.map(t => `<button type="button" class="onboarding-role ${S.sub === t.id ? 'is-active' : ''}" data-sub="${t.id}"><i>${ico(t.icon)}</i><span><b>${esc(t.t)}</b><small>${esc(t.sub)}</small></span><span class="onboarding-radio"></span></button>`).join('')}</div>${err('sub')}`);
+      const ask = askTypes(S), auto = autoTypes(S), label = cs => cs.map(offerLabel).join(', ').replace(/, ([^,]*)$/, ' and $1');
+      const an = t => (/^([aeio]|u(?!ni))/i.test(t.t) ? 'an' : 'a') + ` <b>${esc(t.t)}</b>`;
+      const lower = x => /^[A-Z][a-z]/.test(x) ? x.charAt(0).toLowerCase() + x.slice(1) : x;
+      if (ask.length) html += sec('kind', (isBiz(S) ? 'Which best describes your company?' : 'Which best describes you?') + tip(isBiz(S) ? 'Choose what your licence says you do — that’s how we know which licence to check.' : 'Owners list property they own. Property managers list for owners, using their professional card.'), `<div class="onboarding-roles ${ask.length > 2 ? 'is-grid' : ''} ${errors.sub ? 'has-error' : ''}">${ask.map(t => `<button type="button" class="onboarding-role ${S.sub === t.id ? 'is-active' : ''}" data-sub="${t.id}"><i>${ico(t.icon)}</i><span><b>${esc(t.t)}</b><small>${esc(typeSub(t))}</small></span><span class="onboarding-radio"></span></button>`).join('')}</div>${err('sub')}`, auto.length ? `<small>For ${esc(label(choiceCats(S)))}</small>` : '');
+      // one line per single fit: what they'll also be listed as, and that its licence comes in the next step
+      // shown when it's another licence: not one of the options above, or the option they picked doesn't cover it
+      const main = typeOf(S), singles = auto.filter(t => t !== (ask.length ? null : auto[0]) && (!ask.includes(t) || (main && extraTypes(S).includes(t))));
+      if (!ask.length && !companyOnly(S)) html += `<p class="onboarding-business-only">${ico(auto[0].icon)}<span>You'll join as ${an(auto[0])} — ${esc(lower(typeSub(auto[0])))}.</span></p>`;
+      singles.forEach(t => { const cs = (S.cats || []).filter(c => t.cats.includes(c) && !(main && main.cats.includes(c)) && !(ask.length && choiceCats(S).includes(c))); const same = cs.length === 1 && t.t.toLowerCase().startsWith(offerLabel(cs[0]).toLowerCase()); html += `<p class="onboarding-business-only">${ico(t.icon)}<span><b>${esc(label(cs))}</b> — ${same ? '' : `also as ${an(t)}; `}we'll ask for ${same ? 'its licence too' : 'its licence'} in the next step.</span></p>`; });
       const t = typeOf(S);
       // one block: sizing question(s) + where you're based, all as "question · answer" rows
-      if (t) html += sec('size', 'A few details', '<div class="onboarding-details">' + t.size.map(([k, q, opts]) => `<div class="onboarding-size ${errors['size_' + k] ? 'has-error' : ''}"><span>${esc(q)}</span><div class="onboarding-segmented-control">${opts.map(o => `<button type="button" class="${S.d['size_' + k] === o ? 'is-active' : ''}" data-size="${k}" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>${err('size_' + k)}</div>`).join('')
-        + `<div class="onboarding-size onboarding-based-in ${errors.city ? 'has-error' : ''}"><span>Where are you based?</span>${pick}${err('city')}</div></div>`);
+      if (t) html += sec('size', 'A few details' + tip('Rough numbers are fine. It helps us set up your profile and show customers the size of your business.'), '<div class="onboarding-details">' + sizeQs(S).map(([k, q, opts]) => `<div class="onboarding-size ${errors['size_' + k] ? 'has-error' : ''}"><span>${esc(q)}</span><div class="onboarding-segmented-control">${opts.map(o => `<button type="button" class="${S.d['size_' + k] === o ? 'is-active' : ''}" data-size="${k}" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>${err('size_' + k)}</div>`).join('')
+        + `<div class="onboarding-size onboarding-based-in ${errors.city ? 'has-error' : ''}"><span>Where are you based?${tip('Your country decides which ID and licences we ask for.')}</span>${pick}${err('city')}</div></div>`);
     }
 
     return html;
@@ -357,8 +427,21 @@
     // licences that may follow later don't ask for a decision: upload now, or simply continue
     return `<div class="onboarding-need ${errors['doc_' + doc.id] ? 'has-error' : ''}" data-docid="${doc.id}"><i>${ico({ eid: 'user', sig: 'user', passport: 'globe', sigPass: 'globe', visa: 'flag' }[doc.id] || 'shield')}</i>
       <span><b>${esc(doc.t)}</b><small>${esc(doc.hint)}</small>${err('doc_' + doc.id)}</span>
-      ${doc.later ? '<em class="onboarding-need-tag">Now or later</em>' : !doc.req ? '<em class="onboarding-need-tag">Optional</em>' : ''}
+      ${doc.later ? '<em class="onboarding-need-tag" title="Those listings stay in draft until you add it">Add later</em>' : !doc.req ? '<em class="onboarding-need-tag">Optional</em>' : '<em class="onboarding-need-tag is-required">Required</em>'}
       <label class="btn ${doc.later || !doc.req ? 'btn-outline' : 'btn-primary'} btn-sm onboarding-need-upload">${ico('upload')}Upload<input type="file" accept="image/*,.pdf" data-doc="${doc.id}" hidden></label></div>`;
+  }
+  // the extra documents, grouped by what they're for so it's clear why each one is asked
+  function needGroups(rest) {
+    const t = typeOf(S), order = ['who', 'business', ...(S.cats || []).map(c => 'cat:' + c)];
+    const groups = [...new Set(rest.map(d => d.group || 'business'))].sort((a, b) => order.indexOf(a.split(',')[0]) - order.indexOf(b.split(',')[0]));
+    const label = cs => cs.map(offerLabel).join(', ').replace(/, ([^,]*)$/, ' and $1');
+    const head = g => {
+      if (g === 'who') return isBiz(S) ? ['The person who signs', 'The authorised signatory on your licence. We match this ID to the name on it — customers never see it.'] : ['Your ID', 'This confirms it’s really you. Customers only ever see a “Verified” badge.'];
+      if (g === 'business') return ['Your business', 'The documents that come with your licence. Optional ones help us approve you faster.'];
+      const cs = g.slice(4).split(',');
+      return [`To list ${label(cs).toLowerCase()}`, `Listings for ${label(cs).toLowerCase()} go live once this is added. Upload it now, or add it later.`];
+    };
+    return groups.map(g => { const [h, why] = head(g); return `<div class="onboarding-need-group"><div class="onboarding-need-group-header"><b>${esc(h)}${tip(why)}</b></div><div class="onboarding-needs">${rest.filter(d => (d.group || 'business') === g).map(needRow).join('')}</div></div>`; }).join('');
   }
   function stepVerify() {
     const docs = docsFor(S); if (!docs.length) return `<p class="onboarding-subtitle">Choose your business type first.</p><button type="button" class="btn btn-outline" data-goto="1">Back to step 1</button>`;
@@ -368,7 +451,7 @@
     return `${hero(isBiz(S) ? 'Verify your business' : 'Verify your identity', `Upload your ${isBiz(S) ? 'licence' : 'ID'} — we fill in the details, you just check them.`, 'verify')}
       <div class="onboarding-known">${ico(VERTICALS[S.v].icon)}<span><b>${esc(typeOf(S) ? typeOf(S).t : roleOf(S) ? roleOf(S)[1] : '')}</b> · ${esc(VERTICALS[S.v].label)} · ${esc([S.d.city, country().name].filter(Boolean).join(', '))}</span><button type="button" class="text-link" data-goto="1">Change</button></div>
       <div class="onboarding-main-wrap">${mainCard}</div>
-      ${rest.length ? sec('need', 'Also needed', `<p class="onboarding-need-subtitle">${rest.some(x => x.later) ? 'Documents marked “Now or later” can wait — related listings stay in draft until you add them.' : rest.every(x => !x.req) ? 'Optional, but they help us approve you faster.' : rest.every(x => x.req) ? 'We need these too before we can approve you.' : 'Upload the required ones to continue — optional ones help us approve you faster.'}</p><div class="onboarding-needs">${rest.map(needRow).join('')}</div>`) : ''}
+      ${rest.length ? sec('need', 'Supporting documents' + tip('These back up your main document. Upload the Required ones now — everything else can wait.'), needGroups(rest)) : ''}
       <p class="onboarding-private">${ico('lock')}<span>Your documents stay private. Customers only see a “Verified by ${esc(SITE.name)}” badge, and a real person reviews every application.</span></p>`;
   }
 
@@ -472,7 +555,7 @@
   /* ---------- progress: one line + three segments that fill as you answer ---------- */
   function partsDone(n) {
     const d = S.d;
-    if (n === 1) return [S.cats.length, S.role, typeOf(S), ...(typeOf(S) ? typeOf(S).size.map(([k]) => S.d['size_' + k]) : [0])];
+    if (n === 1) return [S.cats.length, S.role, typeOf(S), ...(typeOf(S) ? sizeQs(S).map(([k]) => S.d['size_' + k]) : [0])];
     if (n === 2) return docsFor(S).filter(x => x.req).map(settled);
     return [String(d.display || '').trim(), String(d.bio || '').trim().length >= 60, (d.langs || []).length, S.channels.length]; // photo is optional: not counted
   }
@@ -538,14 +621,15 @@
   }
 
   /* ---------- validation ---------- */
+  const OPTIONAL_FIELDS = ['address'];
   function validate(step) {
     const e = {}, d = S.d;
     if (step === 1) {
-      if (!S.cats.length) e.cats = 'Pick at least one thing you offer';
-      else if (!S.role) e.role = 'Tell us if you’re an individual or a company';
+      if (!S.role) e.role = 'Tell us if you’re an individual or a company';
+      else if (!S.cats.length) e.cats = 'Pick at least one thing you offer';
       else if (!typeOf(S)) e.sub = 'Pick the option that fits you best';
       else {
-        typeOf(S).size.forEach(([k]) => { if (!S.d['size_' + k]) e['size_' + k] = 'Pick one'; });
+        sizeQs(S).forEach(([k]) => { if (!S.d['size_' + k]) e['size_' + k] = 'Pick one'; });
         if (!String(S.d.city || '').trim()) e.city = 'Choose your city';
       }
     }
@@ -553,7 +637,8 @@
       const f = S.docs[doc.id];
       if (!f) { if (doc.req && !doc.later) e['doc_' + doc.id] = 'Upload this document to continue'; return; }
       if (f.state !== 'read') return;
-      doc.fields.forEach(([k, , kind]) => { if (!String(d[k] || '').trim()) e[k] = 'This can’t be empty'; else if (kind === 'date' && expired(d[k])) e[k] = 'This date has passed — upload a current document'; });
+      // fields many documents don't show (e.g. the address on a trade licence) may stay empty
+      doc.fields.forEach(([k, , kind]) => { if (!String(d[k] || '').trim()) { if (!OPTIONAL_FIELDS.includes(k)) e[k] = 'This can’t be empty'; } else if (kind === 'date' && expired(d[k])) e[k] = 'This date has passed — upload a current document'; });
       if (!f.ok) e['ok_' + doc.id] = 'Check the details, then tick this box';
     });
     if (step === 3) {
@@ -677,6 +762,8 @@
   function next() {
     errors = validate(S.step);
     if (Object.keys(errors).length) {
+      // a checked document folds away — open any that still has a problem, so the message is visible
+      if (S.step === 2) docsFor(S).forEach(doc => { if (doc.fields.some(([k]) => errors[k]) || errors['ok_' + doc.id]) A.open[doc.id] = true; });
       render();
       const f = root.querySelector('.has-error'); if (f) { f.scrollIntoView({ block: 'center', behavior: 'smooth' }); f.classList.add('is-shake'); }
       return;
@@ -758,7 +845,10 @@
     if (t.matches('[data-cityin]')) { S.d.city = t.value.trim(); delete errors.city; commit(); return; }
     if (t.matches('[data-country]')) {
       // another country means other ID and licence documents: start the documents again
-      S.country = t.value; S.d.city = ''; A.otherCity = false; S.docs = {}; S.src = {}; errors = {}; commit(); return;
+      S.country = t.value; S.d.city = ''; A.otherCity = false; S.docs = {}; S.src = {}; errors = {};
+      // and other rules on who may offer what (e.g. individual agents are licensed in some countries, not in the UAE)
+      if (companyOnly(S)) S.role = 'company';
+      syncType(); commit(); return;
     }
     if (t.matches('[data-langinput]')) { if (LANGS.some(l => l.toLowerCase() === t.value.trim().toLowerCase())) addLang(t.value); return; }
     if (t.matches('[data-docok]')) { const f = S.docs[t.dataset.docok]; if (f) { f.ok = t.checked; delete A.open[t.dataset.docok]; if (t.checked && ['eid', 'sig'].includes(t.dataset.docok)) nameFromId(); delete errors['ok_' + t.dataset.docok]; commit(`[data-docid="${t.dataset.docok}"]`); } return; }
@@ -805,7 +895,7 @@
       // another kind of business: other offers, maybe other documents (company-only verticals, sector licence)
       if (S.v !== v) {
         S.v = v; S.cats = []; S.sub = '';
-        if (COMPANY_ONLY.includes(v)) { if (S.role !== 'company') { S.docs = {}; S.src = {}; } S.role = 'company'; }
+        if (companyOnly(S)) { if (S.role !== 'company') { S.docs = {}; S.src = {}; } S.role = 'company'; }
         delete S.docs.sector;
         [...A.seen].forEach(k => k.startsWith('1:') && k !== '1:what' && k !== '1:list' && A.seen.delete(k));
       }
@@ -815,6 +905,7 @@
     if ((x = b('[data-cat]'))) {
       const c = x.dataset.cat; S.cats = S.cats.includes(c) ? S.cats.filter(y => y !== c) : [...S.cats, c];
       if (companyOnly(S) && S.role !== 'company') { S.role = 'company'; S.sub = ''; S.docs = {}; S.src = {}; }
+      syncType();
       delete errors.cats; commit(`[data-cat="${c}"]`); return;
     }
     if ((x = b('[data-sub]'))) {
@@ -825,6 +916,7 @@
     if ((x = b('[data-role]'))) {
       // another type means other documents
       if (S.role !== x.dataset.role) { S.role = x.dataset.role; S.sub = ''; S.docs = {}; S.src = {}; }
+      dropCompanyOnly(S); syncType();
       delete errors.role; commit(`[data-role="${S.role}"]`); return;
     }
     if ((x = b('[data-addlang]'))) return addLang(x.dataset.addlang);

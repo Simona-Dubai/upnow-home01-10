@@ -6,7 +6,7 @@
   const { areaName, offerOf } = UP;
   const HREF = PATHS.href;
 
-  const badges = l => `<div class="badges">${l.featured ? `<span class="badge is-featured">${t('Featured')}</span>` : ''}${l.a.verified ? `<span class="badge is-verified">${ico('shield')}${t('Verified')}</span>` : ''}</div>`;
+  const badges = l => `<div class="badges">${l.featured ? `<span class="badge is-featured">${t('Featured')}</span>` : ''}${l.a.verified ? `<span class="badge is-verified" title="${t('Verified')}" aria-label="${t('Verified')}">${ico('shield')}${t('Verified')}</span>` : ''}</div>`;
   function photo(l, i = 0) {
     if (l.img && l.img.length) return `<img src="${l.img[i % l.img.length]}" alt="${esc(l.title)}" loading="lazy">`;
     return `<div class="tile" style="--h:165"><b>${esc(initials(l.provider.name))}</b><span>${esc(l.provider.name)}</span><small>${esc(offerOf(l.v, l.cat).label)} insurance</small></div>`;

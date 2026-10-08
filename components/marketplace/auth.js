@@ -176,13 +176,13 @@
     }
     // Log in means they're coming back: never ask for a name here (only Create account does). The prototype has no
     // server, so a number this browser hasn't seen logs in as a sample returning customer (name, and history on the dashboard).
-    if (A.from === 'login' && !provider()) return finish({ first: 'Sara', last: 'Ahmed', email: byEmail ? A.email.trim() : 'sara.ahmed@gmail.com', iso: A.iso, dial: byIso(A.iso).dial, phone: byEmail ? '' : digits(A.phone), via: byEmail ? 'email' : 'phone', since: Date.now() - 400 * 864e5 }, true);
+    if (A.from === 'login' && !provider()) return finish({ first: 'Sairah', last: 'Dan', email: byEmail ? A.email.trim() : 'sairah.dan@gmail.com', iso: A.iso, dial: byIso(A.iso).dial, phone: byEmail ? '' : digits(A.phone), via: byEmail ? 'email' : 'phone', since: Date.now() - 400 * 864e5 }, true);
     if ((!askName() || (A.first.trim() && A.last.trim())) && (!emailRequired() || emailOk(A.email)) && (A.phoneVerified || !provider())) return complete();
     A.pane = 'finish'; A.err = {}; paint();
   }
   function social(kind) {
     // simulated identity providers: they return a verified name and email
-    const P = { google: { first: 'Sara', last: 'Ahmed', email: 'sara.ahmed@gmail.com' }, apple: { first: 'Sara', last: 'Ahmed', email: 'sara.a@privaterelay.appleid.com' } }[kind];
+    const P = { google: { first: 'Sairah', last: 'Dan', email: 'sairah.dan@gmail.com' }, apple: { first: 'Sairah', last: 'Dan', email: 'sairah.d@privaterelay.appleid.com' } }[kind];
     Object.assign(A, P, { via: kind, err: {} });
     const known = accounts()[keyOf({ email: P.email })];
     if (known && !(provider() && !known.phone)) return finish(known, true);

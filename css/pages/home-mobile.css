@@ -1860,3 +1860,37 @@ body.mobile-shell {
   color: var(--color-text-muted);
   font-size: 13px;
 }
+
+/* "This season" banners in the app: a swipeable row; the card look comes from home.css (.promo-card) */
+.mobile-promos {
+  gap: 10px;
+  scroll-snap-type: x mandatory;
+}
+
+.mobile-promos .promo-card {
+  flex: 0 0 84%;
+  height: 200px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  scroll-snap-align: start;
+  cursor: pointer;
+}
+
+.mobile-promos .promo-text {
+  padding: 16px;
+}
+
+.mobile-promos .promo-card.is-large .promo-text {
+  padding: 16px;
+}
+
+.mobile-promos .promo-card.is-large .promo-text b {
+  font-size: 21px;
+}
+
+.mobile-promos .promo-text > span {
+  font-size: 12.5px;
+}
